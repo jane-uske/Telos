@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+/* ===== Telos 设计 token(超级简历风:专业蓝 / 灰阶 / SaaS 商务)===== */
+@theme {
+  /* 字体 — Latin 自托管,CJK(Noto Sans SC)走 <link>,作为 sans 回退自动命中汉字 */
+  --font-sans: var(--font-jakarta), "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
+  --font-cn: "Noto Sans SC", var(--font-jakarta), sans-serif;
+  --font-serif: var(--font-source-serif), "Noto Serif SC", ui-serif, serif;
+
+  /* 品牌蓝 */
+  --color-brand: oklch(0.56 0.195 255);
+  --color-brand-deep: oklch(0.44 0.19 257);
+  --color-brand-soft: oklch(0.96 0.028 255);
+  --color-brand-line: oklch(0.56 0.195 255 / 0.30);
+
+  /* 墨色梯度(偏蓝暖灰,非纯黑) */
+  --color-ink: oklch(0.20 0.012 250);
+  --color-ink-2: oklch(0.43 0.012 250);
+  --color-muted: oklch(0.60 0.012 250);
+  --color-faint: oklch(0.78 0.010 250);
+
+  /* 表面 */
+  --color-bg: oklch(0.992 0.002 250);
+  --color-bg-2: oklch(0.975 0.004 250);
+  --color-line: oklch(0.20 0.012 250 / 0.10);
+  --color-line-2: oklch(0.20 0.012 250 / 0.06);
+
+  /* 危险/错误态(赭红) */
+  --color-clay: oklch(0.55 0.135 38);
+  --color-clay-deep: oklch(0.46 0.14 35);
+
+  /* 圆角 / 阴影 */
+  --radius-card: 14px;
+  --shadow-card: 0 1px 2px oklch(0.20 0.012 250 / 0.04), 0 8px 24px -12px oklch(0.20 0.012 250 / 0.12);
+  --shadow-pop: 0 4px 8px oklch(0.20 0.012 250 / 0.06), 0 24px 48px -16px oklch(0.20 0.012 250 / 0.20);
+}
+
+:root {
+  --background: var(--color-bg);
+  --foreground: var(--color-ink);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: oklch(0.56 0.195 255 / 0.18);
+}
+
+/* A4 简历纸感 */
+.sheet {
+  background: #fff;
+  box-shadow: 0 1px 2px oklch(0.20 0.012 250 / 0.05),
+    0 30px 60px -30px oklch(0.20 0.012 250 / 0.22);
+}
+
+/* 简历缩略图里的「文字行」模拟 */
+.ln { height: 3px; border-radius: 2px; background: oklch(0.78 0.010 250 / 0.55); }
+.ln-d { height: 3px; border-radius: 2px; background: oklch(0.43 0.012 250 / 0.45); }
+
+/* ===== 打印 / PDF 导出:只显示简历,隐藏所有 UI ===== */
+@media print {
+  /* 隐藏所有非简历元素 */
+  body * { visibility: hidden !important; }
+  #resume-sheet, #resume-sheet * { visibility: visible !important; }
+
+  /* 简历定位到页面左上角,占满 A4 */
+  #resume-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0;
+    padding: 16mm 18mm !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  /* 打印色彩精准 */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+}
+
+/* ===== 首页简历卡:模块从右往左滑入 ===== */
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.slide-in {
+  animation: slide-in-left 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 浮卡弹入 */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+  60% { opacity: 1; transform: scale(1.03) translateY(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.pop-in {
+  animation: pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* 评分进度条填充 */
+@keyframes fill-bar {
+  from { width: 0; }
+}
+
+.fill-bar {
+  animation: fill-bar 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-in, .pop-in, .fill-bar { animation: none; opacity: 1; transform: none; }
+}
+
+/* ===== TipTap 富文本编辑器内容样式 ===== */
+.tiptap-content {
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+.tiptap-content :where(p) {
+  margin: 0;
+}
+.tiptap-content :where(ul, ol) {
+  margin: 0.25rem 0;
+  padding-left: 1.1rem;
+}
+.tiptap-content :where(ul) { list-style: disc; }
+.tiptap-content :where(ol) { list-style: decimal; }
+.tiptap-content :where(li) {
+  margin: 0.1rem 0;
+}
+.tiptap-content :where(li > p) {
+  display: inline;
+}
+.tiptap-content :where(strong) { font-weight: 600; }
+.tiptap-content :where(em) { font-style: italic; }
+
+/* placeholder */
+.tiptap-content:where(.ProseMirror):empty::before {
+  content: attr(data-placeholder);
+  color: var(--color-faint);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
+.ProseMirror:focus { outline: none; }
+.ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--color-faint);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

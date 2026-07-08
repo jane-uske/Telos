@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TELOS · 你的最后一份简历</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..700,0..100;1,9..144,300..700,0..100&family=Noto+Serif+SC:wght@300;400;500;600;700&family=Hanken+Grotesk:wght@300;400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink:        'oklch(0.21 0.012 75)',
+          'ink-soft': 'oklch(0.34 0.012 75)',
+          muted:      'oklch(0.54 0.012 75)',
+          faint:      'oklch(0.72 0.010 75)',
+          parchment:  'oklch(0.965 0.012 85)',
+          paper:      'oklch(0.985 0.006 85)',
+          patina:     'oklch(0.54 0.085 172)',
+          'patina-deep':'oklch(0.42 0.078 172)',
+          'patina-soft':'oklch(0.90 0.030 172)',
+          clay:       'oklch(0.55 0.135 38)',
+          'clay-deep':'oklch(0.46 0.14 35)',
+        },
+        fontFamily: {
+          serif: ['Fraunces', '"Noto Serif SC"', 'ui-serif', 'serif'],
+          cn:    ['"Noto Serif SC"', 'Fraunces', 'ui-serif', 'serif'],
+          sans:  ['"Hanken Grotesk"', '"Noto Sans SC"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+          mono:  ['"Spline Sans Mono"', 'ui-monospace', 'monospace'],
+        },
+        letterSpacing: {
+          inscribe: '0.42em',
+          engrave:  '0.22em',
+        }
+      }
+    }
+  }
+</script>
+
+<style>
+  :root{
+    --rule: oklch(0.21 0.012 75 / 0.16);
+    --rule-soft: oklch(0.21 0.012 75 / 0.08);
+    --paper-shadow: 0 1px 1px oklch(0.21 0.012 75 / 0.04), 0 24px 48px -28px oklch(0.21 0.012 75 / 0.22);
+  }
+
+  html{ -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+  body{
+    background-color: theme('colors.parchment');
+    color: theme('colors.ink');
+    font-family: theme('fontFamily.sans');
+    /* warm paper grain — material, not decoration */
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0.028 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Fraunces display cut — high optical size, high contrast, slightly softer */
+  .display{
+    font-family: theme('fontFamily.serif');
+    font-variation-settings: "opsz" 144, "SOFT" 30, "wght" 400;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 0.92;
+  }
+  .display-italic{
+    font-family: theme('fontFamily.serif');
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 60, "wght" 380;
+  }
+
+  .cn-display{
+    font-family: theme('fontFamily.cn');
+    font-weight: 500;
+    line-height: 1.04;
+    letter-spacing: 0.01em;
+  }
+
+  .eyebrow{
+    font-family: theme('fontFamily.mono');
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: theme('colors.muted');
+  }
+  .eyebrow .grk{ font-family: theme('fontFamily.serif'); font-style: italic; text-transform: none; letter-spacing: 0.04em; font-size: 0.95rem; color: theme('colors.patina-deep'); }
+
+  /* engraved hairline that draws in */
+  .rule{ height:1px; background: var(--rule); border:0; }
+  .rule-soft{ height:1px; background: var(--rule-soft); border:0; }
+
+  .tau{
+    font-family: theme('fontFamily.serif');
+    font-variation-settings: "opsz" 144, "SOFT" 20, "wght" 380;
+    line-height: 0.8;
+  }
+
+  /* The resume sheet — real paper */
+  .sheet{
+    background: theme('colors.paper');
+    box-shadow: var(--paper-shadow);
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.13  0 0 0 0 0.10  0 0 0 0 0.07  0 0 0 0.018 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* Patina button — engraved, not glossy */
+  .btn-patina{
+    background: theme('colors.patina');
+    color: theme('colors.paper');
+    box-shadow: inset 0 -1px 0 oklch(0.42 0.078 172), 0 1px 2px oklch(0.21 0.012 75 / 0.10);
+  }
+  .btn-patina:hover{ background: theme('colors.patina-deep'); }
+
+  /* keyword chip — inscribed */
+  .chip{
+    font-family: theme('fontFamily.sans');
+    font-size: 0.78rem;
+    padding: 0.28rem 0.7rem;
+    border: 1px solid var(--rule);
+    color: theme('colors.ink-soft');
+    background: transparent;
+  }
+  .chip.hit{ border-color: oklch(0.54 0.085 172 / 0.55); color: oklch(0.34 0.07 172); background: oklch(0.54 0.085 172 / 0.08); }
+  .chip.miss{ border-color: oklch(0.55 0.135 38 / 0.45); color: oklch(0.46 0.14 35); border-style: dashed; }
+
+  /* wax seal */
+  .seal{
+    background: radial-gradient(circle at 32% 30%, oklch(0.62 0.150 38), oklch(0.46 0.16 35) 62%, oklch(0.36 0.13 33));
+    box-shadow: inset 0 2px 3px oklch(0.75 0.13 40 / 0.7), inset 0 -3px 5px oklch(0.28 0.10 30 / 0.6), 0 8px 18px -8px oklch(0.30 0.10 30 / 0.5);
+  }
+
+  /* streaming caret */
+  .caret{ display:inline-block; width:0.5ch; background: theme('colors.patina'); margin-left:1px; animation: blink 1.05s steps(1) infinite; }
+  @keyframes blink{ 0%,49%{opacity:1} 50%,100%{opacity:0} }
+
+  /* progress-to-otium scale */
+  .otium-tick{ width:1px; height:10px; background: var(--rule); }
+  .otium-tick.major{ height:16px; }
+  .otium-fill{ background: theme('colors.patina'); height:2px; }
+
+  /* reveal */
+  .reveal{ opacity:0; transform: translateY(14px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
+  .reveal.in{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion: reduce){
+    .reveal{ opacity:1 !important; transform:none !important; transition:none !important; }
+    .caret{ animation:none; }
+  }
+
+  /* form inputs — underline only, no boxes */
+  .field{
+    font-family: theme('fontFamily.cn');
+    background: transparent;
+    border:0; border-bottom:1px solid var(--rule);
+    padding: 0.4rem 0;
+    width:100%;
+    color: theme('colors.ink');
+    outline:none;
+    transition: border-color .2s;
+  }
+  .field:focus{ border-color: theme('colors.patina'); }
+  .field::placeholder{ color: theme('colors.faint'); }
+
+  /* draw-in rule */
+  .draw-rule{ transform-origin:left center; animation: drawx 1.1s cubic-bezier(.16,1,.3,1) both; }
+  @keyframes drawx{ from{ transform: scaleX(0) } to{ transform: scaleX(1) } }
+
+  ::selection{ background: oklch(0.54 0.085 172 / 0.22); }
+</style>
+</head>
+
+<body class="min-h-screen">
+
+<!-- ============ NAV ============ -->
+<header class="max-w-[1400px] mx-auto px-6 md:px-12 pt-7 flex items-center justify-between">
+  <a href="#" class="flex items-baseline gap-3">
+    <span class="tau text-[2.1rem] text-ink">τ</span>
+    <span class="font-serif tracking-inscribe text-[0.92rem] text-ink" style="font-variation-settings:'opsz' 12,'wght' 500">TELOS</span>
+  </a>
+  <nav class="hidden md:flex items-center gap-9 font-sans text-[0.82rem] text-ink-soft">
+    <a href="#thesis" class="hover:text-ink">主张</a>
+    <a href="#editor" class="hover:text-ink">编辑器</a>
+    <a href="#intelligence" class="hover:text-ink">τ · 智写</a>
+    <a href="#specimen" class="hover:text-ink">模板</a>
+  </nav>
+  <a href="#editor" class="font-sans text-[0.82rem] text-ink border-b border-ink pb-0.5 hover:text-patina hover:border-patina">开始书写</a>
+</header>
+<hr class="rule max-w-[1400px] mx-auto mt-5 draw-rule" />
+
+<!-- ============ HERO ============ -->
+<section class="max-w-[1400px] mx-auto px-6 md:px-12 pt-16 md:pt-24 pb-24 md:pb-36 grid grid-cols-12 gap-8 items-start">
+  <!-- left: type -->
+  <div class="col-span-12 lg:col-span-7 reveal">
+    <p class="eyebrow mb-8"><span class="grk">τελος</span> &nbsp;·&nbsp; the final résumé</p>
+
+    <h1 class="cn-display text-ink" style="font-size: clamp(2.6rem, 6.4vw, 5.6rem)">
+      这是你<br/>
+      <span class="text-clay-deep">最后一次</span><br/>
+      写简历<span class="text-patina">。</span>
+    </h1>
+
+    <div class="mt-10 max-w-[30rem]">
+      <hr class="rule w-16 mb-6" />
+      <p class="font-cn text-[1.05rem] leading-[1.85] text-ink-soft">
+        Telos 用 AI 替你打磨每一段经历、命中每一个关键词。<br/>
+        写完它 —— 然后去过你的 <em class="display-italic text-patina-deep not-italic" style="font-style:italic">Otium</em>，从此不再打工。
+      </p>
+    </div>
+
+    <div class="mt-11 flex items-center gap-7 flex-wrap">
+      <a href="#editor" class="btn-patina font-sans text-[0.9rem] tracking-wide px-7 py-3.5 inline-flex items-center gap-3">
+        开始写你的 Telos
+        <span aria-hidden="true">→</span>
+      </a>
+      <a href="#specimen" class="font-sans text-[0.88rem] text-ink-soft hover:text-ink underline underline-offset-4 decoration-[var(--rule)]">看看它长什么样</a>
+    </div>
+  </div>
+
+  <!-- right: specimen peek -->
+  <div class="col-span-12 lg:col-span-5 relative reveal" style="transition-delay:.12s">
+    <div class="hidden lg:block absolute -top-6 right-0 eyebrow"><span class="grk">specimen</span> &nbsp;i</div>
+    <div class="sheet p-7 md:p-9 rotate-[1.4deg] origin-bottom-left" style="aspect-ratio: 1/1.32">
+      <div class="flex items-baseline justify-between">
+        <span class="tau text-3xl text-ink">τ</span>
+        <span class="eyebrow text-[0.62rem]">CV · 001</span>
+      </div>
+      <hr class="rule mt-5 mb-6" />
+      <p class="font-cn text-2xl text-ink leading-tight">陈墨白</p>
+      <p class="font-sans text-[0.78rem] text-muted mt-1">高级前端工程师 · Chen Mobai</p>
+
+      <p class="eyebrow mt-7 text-[0.6rem]"><span class="grk">τελος</span> · 经历</p>
+      <hr class="rule-soft mb-3" />
+      <p class="font-cn text-[0.82rem] text-ink-soft leading-[1.7]">
+        主导电商前端架构重构，首屏 <span class="text-ink">3.8s → 1.1s</span>，转化率提升 <span class="text-patina-deep">14%</span>。
+      </p>
+      <p class="font-cn text-[0.82rem] text-ink-soft leading-[1.7] mt-2.5">
+        搭建组件库与 Lowcode 体系，支撑 <span class="text-ink">200+</span> 业务页面，研发效率提升 <span class="text-patina-deep">40%</span>。
+      </p>
+
+      <div class="mt-7 flex items-end justify-between">
+        <span class="eyebrow text-[0.6rem]">已完成</span>
+        <span class="tau text-2xl text-clay">τ</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THESIS STRIP ============ -->
+<section id="thesis" class="border-y border-[var(--rule)]">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-20 md:py-28 grid grid-cols-12 gap-8">
+    <div class="col-span-12 md:col-span-3 reveal">
+      <p class="eyebrow"><span class="grk">α</span> &nbsp;·&nbsp; thesis</p>
+    </div>
+    <div class="col-span-12 md:col-span-9 reveal" style="transition-delay:.08s">
+      <p class="cn-display text-ink" style="font-size: clamp(1.7rem, 3.2vw, 2.8rem); line-height:1.3">
+        简历不该是一份永远在改的草稿。<br/>
+        它是<em class="display-italic text-patina-deep" style="font-style:italic">终章</em> —— 写完，就翻篇。
+      </p>
+      <div class="mt-12 grid grid-cols-1 sm:grid-cols-3 gap-px bg-[var(--rule)]">
+        <div class="bg-parchment p-7">
+          <p class="eyebrow text-[0.6rem]"><span class="grk">τελος</span></p>
+          <p class="font-cn text-[0.95rem] text-ink-soft leading-[1.8] mt-3">τέλος ／ 终点。这一份写完，你打工的旅程就到站了。</p>
+        </div>
+        <div class="bg-parchment p-7">
+          <p class="eyebrow text-[0.6rem]"><span class="grk">σχολή</span></p>
+          <p class="font-cn text-[0.95rem] text-ink-soft leading-[1.8] mt-3">scholē ／ 闲暇。希腊人眼里人生最高的追求，而非工作的间隙。</p>
+        </div>
+        <div class="bg-parchment p-7">
+          <p class="eyebrow text-[0.6rem]"><span class="grk">otium</span></p>
+          <p class="font-cn text-[0.95rem] text-ink-soft leading-[1.8] mt-3">otium ／ 不用工作的自由生活。罗马人毕生想跨入的那一步。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ EDITOR MOCK ============ -->
+<section id="editor" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="grid grid-cols-12 gap-8 mb-12 items-end">
+    <div class="col-span-12 md:col-span-7 reveal">
+      <p class="eyebrow mb-5"><span class="grk">β</span> &nbsp;·&nbsp; the editor</p>
+      <h2 class="cn-display text-ink" style="font-size: clamp(2rem,4vw,3.4rem)">左边书写，<br/>右边即刻成碑。</h2>
+    </div>
+    <div class="col-span-12 md:col-span-5 reveal" style="transition-delay:.08s">
+      <p class="font-cn text-[0.98rem] leading-[1.85] text-ink-soft">
+        没有弹窗、没有花活。一栏表单，一栏实时预览。
+        你打的每一个字，都在右侧的纸张上当场刻下。
+      </p>
+    </div>
+  </div>
+
+  <!-- editor frame -->
+  <div class="reveal" style="transition-delay:.12s">
+    <div class="rounded-[3px] border border-[var(--rule)] bg-paper overflow-hidden shadow-[0_30px_60px_-30px_oklch(0.21_0.012_75/0.25)]">
+      <!-- top bar: progress to otium -->
+      <div class="px-6 md:px-8 py-4 flex items-center gap-6 border-b border-[var(--rule)] bg-parchment">
+        <div class="flex items-baseline gap-2.5 shrink-0">
+          <span class="tau text-xl text-ink">τ</span>
+          <span class="font-mono text-[0.62rem] tracking-engrave text-muted uppercase">progress to otium</span>
+        </div>
+        <!-- the scale -->
+        <div class="flex-1 relative flex items-center">
+          <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-px bg-[var(--rule)]"></div>
+          <div class="relative otium-fill" style="width:68%"></div>
+          <div class="absolute inset-y-0 left-0 flex items-end justify-between w-[68%] pointer-events-none">
+            <div class="flex items-end gap-[14%] h-full">
+              <span class="otium-tick major"></span><span class="otium-tick"></span><span class="otium-tick major"></span><span class="otium-tick"></span><span class="otium-tick major"></span>
+            </div>
+          </div>
+          <span class="absolute right-[32%] top-1/2 -translate-y-1/2 translate-x-1/2 tau text-base text-clay">τ</span>
+        </div>
+        <div class="shrink-0 text-right">
+          <span class="display text-ink text-2xl">68</span><span class="display text-muted text-lg">%</span>
+          <p class="eyebrow text-[0.55rem] mt-0.5">距自由 · 32%</p>
+        </div>
+        <button class="hidden md:inline-flex btn-patina font-sans text-[0.78rem] px-4 py-2 items-center gap-2 shrink-0">导出 PDF</button>
+      </div>
+
+      <!-- two columns -->
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1fr]">
+        <!-- LEFT: form -->
+        <div class="p-6 md:p-9 border-b lg:border-b-0 lg:border-r border-[var(--rule)] bg-parchment">
+          <p class="eyebrow mb-6"><span class="grk">τελος</span> · 基本信息</p>
+
+          <div class="grid grid-cols-2 gap-x-8 gap-y-6">
+            <label class="block col-span-2">
+              <span class="eyebrow text-[0.58rem]">姓名</span>
+              <input class="field font-cn text-lg" value="陈墨白" />
+            </label>
+            <label class="block col-span-2">
+              <span class="eyebrow text-[0.58rem]">一句话定位</span>
+              <input class="field font-cn" value="七年前端，专精架构与性能。" />
+            </label>
+            <label class="block">
+              <span class="eyebrow text-[0.58rem]">邮箱</span>
+              <input class="field font-sans text-sm" value="mobai@telos.cv" />
+            </label>
+            <label class="block">
+              <span class="eyebrow text-[0.58rem]">电话</span>
+              <input class="field font-sans text-sm" value="+86 138 0000 0000" />
+            </label>
+          </div>
+
+          <hr class="rule my-8" />
+
+          <div class="flex items-center justify-between mb-5">
+            <p class="eyebrow"><span class="grk">τελος</span> · 经历</p>
+            <button class="font-sans text-[0.72rem] text-patina-deep hover:text-patina">+ 新增一段</button>
+          </div>
+
+          <!-- experience block -->
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+              <input class="field font-cn text-[0.95rem]" value="某里巴巴 · 高级前端工程师" />
+              <input class="field font-sans text-[0.8rem] text-right" value="2021.03 — 至今" />
+            </div>
+            <textarea rows="2" class="field font-cn text-[0.88rem] leading-[1.7] resize-none" style="border-bottom:1px dashed var(--rule-soft)">主导电商平台前端架构重构，首屏从 3.8s 降至 1.1s，转化率提升 14%。</textarea>
+
+            <!-- inline AI affordance -->
+            <div class="flex items-center gap-2 pt-1">
+              <button class="font-sans text-[0.72rem] text-ink-soft border border-[var(--rule)] px-2.5 py-1 hover:border-patina hover:text-patina-deep inline-flex items-center gap-1.5">
+                <span class="tau text-sm text-patina-deep leading-none">τ</span> 让 AI 重写这句
+              </button>
+              <span class="font-mono text-[0.6rem] text-faint uppercase tracking-engrave">paste JD to match</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: live preview (mini sheet) -->
+        <div class="p-6 md:p-9 bg-paper">
+          <div class="flex items-center justify-between mb-5">
+            <p class="eyebrow"><span class="grk">specimen</span> · live</p>
+            <div class="flex gap-2">
+              <button class="font-mono text-[0.6rem] tracking-engrave uppercase px-2 py-1 text-paper bg-ink">τελος</button>
+              <button class="font-mono text-[0.6rem] tracking-engrave uppercase px-2 py-1 text-muted border border-[var(--rule)]">σχολή</button>
+              <button class="font-mono text-[0.6rem] tracking-engrave uppercase px-2 py-1 text-muted border border-[var(--rule)]">vale</button>
+            </div>
+          </div>
+
+          <div class="sheet p-7 mx-auto" style="aspect-ratio:1/1.414">
+            <p class="font-cn text-xl text-ink">陈墨白</p>
+            <p class="font-sans text-[0.7rem] text-muted mt-0.5">高级前端工程师 · mobai@telos.cv · +86 138 0000 0000</p>
+            <hr class="rule-soft my-4" />
+            <p class="eyebrow text-[0.55rem] mb-2">经历</p>
+            <p class="font-cn text-[0.78rem] text-ink leading-tight">某里巴巴 · 高级前端工程师</p>
+            <p class="font-sans text-[0.6rem] text-faint">2021.03 — 至今</p>
+            <p class="font-cn text-[0.78rem] text-ink-soft leading-[1.7] mt-1.5">
+              主导电商平台前端架构重构，首屏 <span class="text-ink">3.8s → 1.1s</span>，转化率提升 <span class="text-patina-deep">14%</span>。
+            </p>
+            <hr class="rule-soft my-4" />
+            <p class="eyebrow text-[0.55rem] mb-2">技能</p>
+            <p class="font-cn text-[0.78rem] text-ink-soft leading-[1.8]">React · Next.js · TypeScript · 性能优化 · 架构 · Lowcode</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AI INTELLIGENCE ============ -->
+<section id="intelligence" class="bg-ink text-paper">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 md:py-32">
+    <div class="grid grid-cols-12 gap-8 mb-14 items-end">
+      <div class="col-span-12 md:col-span-7 reveal">
+        <p class="eyebrow mb-5" style="color:oklch(0.72 0.010 75)"><span class="grk" style="color:oklch(0.74 0.10 172)">γ</span> &nbsp;·&nbsp; τ · intelligence</p>
+        <h2 class="cn-display" style="font-size: clamp(2rem,4vw,3.4rem); color:theme('colors.paper')">
+          粘贴 JD，<br/>让它替你<span class="display-italic" style="font-style:italic; color:oklch(0.78 0.11 172)">命中</span>每一个词。
+        </h2>
+      </div>
+      <div class="col-span-12 md:col-span-5 reveal" style="transition-delay:.08s">
+        <p class="font-cn text-[0.98rem] leading-[1.85]" style="color:oklch(0.78 0.010 75)">
+          Telos 读 JD、抽关键词、比对你的经历——命中的标绿，缺的标虚。点一下，AI 当场把平淡的句子重写成有冲击力的碑文。
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-px bg-[oklch(0.30_0.012_75)]">
+      <!-- JD match panel -->
+      <div class="bg-ink p-8 md:p-10 reveal">
+        <div class="flex items-center justify-between mb-6">
+          <p class="eyebrow" style="color:oklch(0.62 0.010 75)"><span class="grk" style="color:oklch(0.74 0.10 172)">τελος</span> · JD 匹配</p>
+          <span class="display text-paper text-xl">12<span class="text-[oklch(0.55_0.010_75)] text-base">/18</span></span>
+        </div>
+
+        <div class="border border-[oklch(0.34_0.012_75)] p-4 mb-6">
+          <p class="font-mono text-[0.6rem] tracking-engrave uppercase mb-2" style="color:oklch(0.5 0.010 75)">pasted JD · excerpt</p>
+          <p class="font-cn text-[0.82rem] leading-[1.75]" style="color:oklch(0.8 0.010 75)">
+            ……熟练掌握 <span style="color:oklch(0.78 0.11 172)">React</span> 生态，有大型<span style="color:oklch(0.78 0.11 172)">前端架构</span>与<span style="color:oklch(0.78 0.11 172)">性能优化</span>经验，熟悉 SSR / <span style="color:oklch(0.78 0.80 38)">微前端</span>……
+          </p>
+        </div>
+
+        <p class="font-mono text-[0.6rem] tracking-engrave uppercase mb-3" style="color:oklch(0.55 0.010 75)">关键词 · 命中 / 缺失</p>
+        <div class="flex flex-wrap gap-2">
+          <span class="chip hit" style="color:oklch(0.78 0.11 172); border-color:oklch(0.54 0.085 172/0.5); background:oklch(0.54 0.085 172/0.12)">React</span>
+          <span class="chip hit" style="color:oklch(0.78 0.11 172); border-color:oklch(0.54 0.085 172/0.5); background:oklch(0.54 0.085 172/0.12)">前端架构</span>
+          <span class="chip hit" style="color:oklch(0.78 0.11 172); border-color:oklch(0.54 0.085 172/0.5); background:oklch(0.54 0.085 172/0.12)">性能优化</span>
+          <span class="chip hit" style="color:oklch(0.78 0.11 172); border-color:oklch(0.54 0.085 172/0.5); background:oklch(0.54 0.085 172/0.12)">SSR</span>
+          <span class="chip miss" style="color:oklch(0.72 0.13 42); border-color:oklch(0.55 0.135 38/0.45)">微前端</span>
+          <span class="chip miss" style="color:oklch(0.72 0.13 42); border-color:oklch(0.55 0.135 38/0.45)">Rust</span>
+          <span class="chip hit" style="color:oklch(0.78 0.11 172); border-color:oklch(0.54 0.085 172/0.5); background:oklch(0.54 0.085 172/0.12)">TypeScript</span>
+          <span class="chip miss" style="color:oklch(0.72 0.13 42); border-color:oklch(0.55 0.135 38/0.45)">WebGPU</span>
+        </div>
+        <p class="font-cn text-[0.8rem] mt-6 leading-[1.7]" style="color:oklch(0.6 0.010 75)">
+          <span style="color:oklch(0.72 0.13 42)">微前端、Rust</span> 未命中——可在经历中补充相关项目，或让 AI 据此改写。
+        </p>
+      </div>
+
+      <!-- AI rewrite streaming -->
+      <div class="bg-ink p-8 md:p-10 reveal" style="transition-delay:.08s">
+        <div class="flex items-center justify-between mb-6">
+          <p class="eyebrow" style="color:oklch(0.62 0.010 75)"><span class="grk" style="color:oklch(0.74 0.10 172)">τελος</span> · τ · rewrite</p>
+          <span class="font-mono text-[0.6rem] tracking-engrave uppercase" style="color:oklch(0.74 0.10 172)">streaming</span>
+        </div>
+
+        <!-- original -->
+        <p class="font-mono text-[0.6rem] tracking-engrave uppercase mb-2" style="color:oklch(0.45 0.010 75)">原句</p>
+        <p class="font-cn text-[0.92rem] leading-[1.8] line-through decoration-[oklch(0.4_0.010_75)]" style="color:oklch(0.45 0.010 75)">
+          负责电商网站前端开发，优化了页面加载速度。
+        </p>
+
+        <div class="my-6 flex items-center gap-3">
+          <span class="tau text-lg" style="color:oklch(0.74 0.10 172)">τ</span>
+          <span class="h-px flex-1 bg-[oklch(0.3_0.012_75)]"></span>
+        </div>
+
+        <!-- rewritten, streaming -->
+        <p class="font-mono text-[0.6rem] tracking-engrave uppercase mb-2" style="color:oklch(0.74 0.10 172)">重写 · 命中关键词 · 量化结果</p>
+        <p class="font-cn text-[1rem] leading-[1.85]" style="color:theme('colors.paper')">
+          主导电商平台<span style="color:oklch(0.78 0.11 172)">前端架构</span>重构，首屏加载 <span style="color:oklch(0.78 0.11 172)">3.8s → 1.1s</span>，<span style="color:oklch(0.72 0.80 38)">转化率提升 14%</span>，支撑日均千万级 UV<span class="caret"></span>
+        </p>
+
+        <div class="mt-8 flex items-center gap-4">
+          <button class="btn-patina font-sans text-[0.8rem] px-5 py-2.5">采纳</button>
+          <button class="font-sans text-[0.8rem] px-5 py-2.5 border border-[oklch(0.34_0.012_75)] text-[oklch(0.8_0.010_75)] hover:border-[oklch(0.5_0.010_75)]">再试一次</button>
+          <span class="font-mono text-[0.6rem] tracking-engrave uppercase ml-auto" style="color:oklch(0.5 0.010 75)">τ · opus</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SPECIMEN / TEMPLATE ============ -->
+<section id="specimen" class="max-w-[1400px] mx-auto px-6 md:px-12 py-24 md:py-32">
+  <div class="grid grid-cols-12 gap-8 mb-14 items-end">
+    <div class="col-span-12 md:col-span-7 reveal">
+      <p class="eyebrow mb-5"><span class="grk">δ</span> &nbsp;·&nbsp; the specimen</p>
+      <h2 class="cn-display text-ink" style="font-size: clamp(2rem,4vw,3.4rem)">模板 <em class="display-italic text-patina-deep" style="font-style:italic">Telos</em> ——<br/>印刷级的碑文。</h2>
+    </div>
+    <div class="col-span-12 md:col-span-5 reveal" style="transition-delay:.08s">
+      <p class="font-cn text-[0.98rem] leading-[1.85] text-ink-soft">
+        一栏、衬线、克制的留白。它读起来不像一份"填出来的表"，而像一页值得被印出来的东西。另有 <em class="display-italic text-patina-deep" style="font-style:italic">Scholē</em>（学术）与 <em class="display-italic text-patina-deep" style="font-style:italic">Vale</em>（一页告别）两套在路上。
+      </p>
+    </div>
+  </div>
+
+  <div class="reveal" style="transition-delay:.12s">
+    <div class="grid grid-cols-12 gap-8 items-start">
+      <!-- the A4 sheet, full -->
+      <div class="col-span-12 lg:col-span-8 lg:col-start-2">
+        <div class="sheet p-10 md:p-16 mx-auto max-w-[820px]" style="aspect-ratio:1/1.414">
+          <div class="flex items-baseline justify-between">
+            <div>
+              <p class="cn-display text-ink" style="font-size: clamp(1.8rem,3.4vw,2.6rem)">陈墨白</p>
+              <p class="font-sans text-[0.82rem] text-muted mt-1">高级前端工程师 · Chen Mobai</p>
+              <p class="font-sans text-[0.74rem] text-faint mt-1">mobai@telos.cv &nbsp;·&nbsp; +86 138 0000 0000 &nbsp;·&nbsp; 杭州</p>
+            </div>
+            <span class="tau text-3xl text-ink">τ</span>
+          </div>
+
+          <hr class="rule mt-7 mb-7" />
+
+          <p class="eyebrow mb-3"><span class="grk">τελος</span> · 经历</p>
+          <div class="space-y-5">
+            <div>
+              <div class="flex items-baseline justify-between">
+                <p class="font-cn text-[1.05rem] text-ink">某里巴巴 <span class="text-muted font-sans text-[0.8rem]">· 高级前端工程师</span></p>
+                <p class="font-mono text-[0.7rem] text-faint">2021.03 — 至今</p>
+              </div>
+              <p class="font-cn text-[0.92rem] text-ink-soft leading-[1.85] mt-1.5">
+                主导电商平台<span class="text-ink">前端架构</span>重构，首屏加载 <span class="text-patina-deep">3.8s → 1.1s</span>，转化率提升 <span class="text-patina-deep">14%</span>；搭建组件库与 Lowcode 体系，支撑 <span class="text-ink">200+</span> 业务页面，研发效率提升 <span class="text-patina-deep">40%</span>。
+              </p>
+            </div>
+            <div>
+              <div class="flex items-baseline justify-between">
+                <p class="font-cn text-[1.05rem] text-ink">某节跳动 <span class="text-muted font-sans text-[0.8rem]">· 前端工程师</span></p>
+                <p class="font-mono text-[0.7rem] text-faint">2018.07 — 2021.02</p>
+              </div>
+              <p class="font-cn text-[0.92rem] text-ink-soft leading-[1.85] mt-1.5">
+                负责内容创作平台前端，落地<span class="text-ink">实时协同编辑</span>，支撑万人并发；推动性能监控体系上线，线上卡顿率下降 <span class="text-patina-deep">63%</span>。
+              </p>
+            </div>
+          </div>
+
+          <hr class="rule mt-8 mb-7" />
+          <p class="eyebrow mb-3"><span class="grk">σχολή</span> · 教育</p>
+          <div class="flex items-baseline justify-between">
+            <p class="font-cn text-[0.98rem] text-ink">浙江大学 <span class="text-muted font-sans text-[0.8rem]">· 计算机科学 · 学士</span></p>
+            <p class="font-mono text-[0.7rem] text-faint">2014 — 2018</p>
+          </div>
+
+          <hr class="rule mt-8 mb-7" />
+          <p class="eyebrow mb-3"><span class="grk">otium</span> · 技能</p>
+          <p class="font-cn text-[0.92rem] text-ink-soft leading-[1.9]">React · Next.js · TypeScript · 性能优化 · 前端架构 · Lowcode · 实时协同</p>
+        </div>
+      </div>
+    </div>
+    <p class="eyebrow text-center mt-8"><span class="grk">template</span> &nbsp;·&nbsp; τελος &nbsp;·&nbsp; 极简 &nbsp;·&nbsp; a4 / 210×297mm</p>
+  </div>
+</section>
+
+<!-- ============ OTIUM MOMENT ============ -->
+<section class="border-t border-[var(--rule)]">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-28 md:py-40 grid grid-cols-12 gap-10 items-center">
+    <div class="col-span-12 md:col-span-7 reveal">
+      <p class="eyebrow mb-7"><span class="grk">τελος</span> &nbsp;·&nbsp; the last word</p>
+      <p class="cn-display text-ink" style="font-size: clamp(2.2rem,5vw,4.4rem); line-height:1.12">
+        这是你的 Telos<span class="text-clay">。</span><br/>
+        去吧，<br/>
+        拿到你的 <em class="display-italic text-patina-deep" style="font-style:italic">Otium</em><span class="text-patina">。</span>
+      </p>
+      <a href="#editor" class="btn-patina font-sans text-[0.9rem] tracking-wide px-7 py-3.5 inline-flex items-center gap-3 mt-10">
+        开始写你的最后一份简历 <span aria-hidden="true">→</span>
+      </a>
+    </div>
+    <div class="col-span-12 md:col-span-5 flex justify-center md:justify-end reveal" style="transition-delay:.1s">
+      <!-- wax seal -->
+      <div class="relative">
+        <div class="seal w-44 h-44 md:w-52 md:h-52 rounded-full flex flex-col items-center justify-center rotate-[-6deg]">
+          <span class="tau text-6xl md:text-7xl" style="color:oklch(0.96 0.04 85)">τ</span>
+          <span class="font-mono text-[0.55rem] tracking-inscribe uppercase mt-1" style="color:oklch(0.92 0.06 85)">telos · seal</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer class="border-t border-[var(--rule)]">
+  <div class="max-w-[1400px] mx-auto px-6 md:px-12 py-10 flex flex-col md:flex-row items-center justify-between gap-4">
+    <div class="flex items-baseline gap-3">
+      <span class="tau text-xl text-ink">τ</span>
+      <span class="font-serif tracking-inscribe text-[0.8rem] text-ink" style="font-variation-settings:'opsz' 12,'wght' 500">TELOS</span>
+      <span class="font-mono text-[0.62rem] tracking-engrave uppercase text-faint ml-2">your final résumé</span>
+    </div>
+    <p class="font-mono text-[0.62rem] tracking-engrave uppercase text-faint">τελος · MMXXVI · 杭州</p>
+  </div>
+</footer>
+
+<script>
+  // staggered reveal on scroll
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
