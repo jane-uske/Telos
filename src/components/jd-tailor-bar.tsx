@@ -7,13 +7,11 @@ import type { Resume } from "@/lib/schema";
 import { importResumeSchema, buildResumeFromPartial } from "@/lib/import-schema";
 
 /**
- * 上下文式「按 JD 优化」——不占独立 tab。
- * 平时是一条安静的邀请；粘贴/展开 JD 后就地浮出「按此优化」，
- * AI 流式改写整份简历、实时覆盖右侧预览，且可一键撤销。
+ * 「按 JD 优化」面板（由工具栏按钮开关，渲染在预览列上方）。
+ * 粘贴 JD → AI 流式改写整份简历 → 实时覆盖右侧预览，可一键撤销。
  */
-export function JdTailorBar() {
+export function JdTailorPanel({ onClose }: { onClose: () => void }) {
   const setResume = useResumeStore((s) => s.setResume);
-  const [open, setOpen] = useState(false);
   const [jd, setJd] = useState("");
   const [hasRun, setHasRun] = useState(false);
   const snapshot = useRef<Resume | null>(null);
@@ -43,33 +41,18 @@ export function JdTailorBar() {
 
   const done = hasRun && !isLoading && !error;
 
-  // 收起态：一条安静的邀请
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="group mb-4 flex w-full items-center gap-2.5 rounded-card border border-dashed border-line bg-white px-4 py-2.5 text-left text-xs text-ink-2 transition hover:border-brand-line hover:bg-brand-soft/40"
-      >
-        <Sparkle />
-        <span>
-          粘贴目标职位 <span className="font-medium text-ink">JD</span>，AI 按它帮你把简历改得更贴合
-        </span>
-        <span className="ml-auto text-brand-deep opacity-0 transition group-hover:opacity-100">展开 →</span>
-      </button>
-    );
-  }
-
   return (
-    <div className="mb-4 rounded-card border border-line bg-white p-4 shadow-card">
+    <div className="mb-4 rounded-card border border-line bg-white p-5 shadow-card">
       <div className="mb-2 flex items-center gap-2">
         <Sparkle />
-        <span className="text-xs font-semibold">按 JD 优化简历</span>
-        <button
-          onClick={() => setOpen(false)}
-          className="ml-auto text-xs text-muted hover:text-ink"
-        >
-          收起
+        <div>
+          <p className="text-sm font-semibold">按 JD 优化简历</p>
+          <p className="mt-0.5 text-xs text-muted">
+            粘贴目标 JD，AI 在不编造的前提下把你确实具备、且 JD 看重的能力改写得更凸显。
+          </p>
+        </div>
+        <button onClick={onClose} className="ml-auto text-xs text-muted hover:text-ink">
+          关闭
         </button>
       </div>
 
@@ -77,8 +60,8 @@ export function JdTailorBar() {
         value={jd}
         onChange={(e) => setJd(e.target.value)}
         disabled={isLoading}
-        rows={4}
-        placeholder="粘贴目标职位的 JD 描述…AI 会在不编造的前提下，把你确实具备、且 JD 看重的能力更好地凸显出来。"
+        rows={5}
+        placeholder="粘贴目标职位的 JD 描述…"
         className="w-full resize-y rounded-lg border border-line bg-bg-2/50 px-3 py-2 text-xs leading-relaxed focus:border-brand focus:bg-white focus:outline-none disabled:opacity-60"
       />
 
@@ -115,7 +98,10 @@ export function JdTailorBar() {
             {done && (
               <>
                 <span className="text-xs text-emerald-600">✓ 已按 JD 优化</span>
-                <button onClick={revert} className="text-xs text-muted underline-offset-2 hover:text-ink hover:underline">
+                <button
+                  onClick={revert}
+                  className="text-xs text-muted underline-offset-2 hover:text-ink hover:underline"
+                >
                   撤销
                 </button>
               </>

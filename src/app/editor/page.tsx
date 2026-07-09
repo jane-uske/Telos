@@ -12,7 +12,7 @@ import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { SmartOnePagePanel } from "@/components/smart-one-page-panel";
 import { ImportPanel } from "@/components/import-panel";
 import { ExportMenu } from "@/components/export-menu";
-import { JdTailorBar } from "@/components/jd-tailor-bar";
+import { JdTailorPanel } from "@/components/jd-tailor-bar";
 import { EnhanceButton } from "@/components/enhance-button";
 import { SortableList, SortableItem } from "@/components/sortable";
 import { ToolbarDropdown, DropdownItem } from "@/components/toolbar-dropdown";
@@ -51,6 +51,7 @@ function EditorPageInner() {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [onePageOpen, setOnePageOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [tailorOpen, setTailorOpen] = useState(false);
   const searchParams = useSearchParams();
   const { overflowing, pageCount } = usePageOverflow();
   useEffect(() => setMounted(true), []);
@@ -113,7 +114,7 @@ function EditorPageInner() {
               <span className="h-1.5 w-1.5 rounded-full bg-brand" /> 已自动保存
             </span>
             <button
-              onClick={() => { setImportOpen((v) => !v); setAnalysisOpen(false); setOnePageOpen(false); }}
+              onClick={() => { setImportOpen((v) => !v); setAnalysisOpen(false); setOnePageOpen(false); setTailorOpen(false); }}
               className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
                 importOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
               }`}
@@ -121,7 +122,15 @@ function EditorPageInner() {
               导入
             </button>
             <button
-              onClick={() => { setAnalysisOpen((v) => !v); setOnePageOpen(false); setImportOpen(false); }}
+              onClick={() => { setTailorOpen((v) => !v); setImportOpen(false); setAnalysisOpen(false); setOnePageOpen(false); }}
+              className={`hidden items-center gap-1 rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
+                tailorOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
+              }`}
+            >
+              按 JD 优化
+            </button>
+            <button
+              onClick={() => { setAnalysisOpen((v) => !v); setOnePageOpen(false); setImportOpen(false); setTailorOpen(false); }}
               className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
                 analysisOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
               }`}
@@ -129,7 +138,7 @@ function EditorPageInner() {
               AI 分析
             </button>
             <button
-              onClick={() => { setOnePageOpen((v) => !v); setAnalysisOpen(false); setImportOpen(false); }}
+              onClick={() => { setOnePageOpen((v) => !v); setAnalysisOpen(false); setImportOpen(false); setTailorOpen(false); }}
               className={`hidden items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
                 onePageOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
               }`}
@@ -144,8 +153,6 @@ function EditorPageInner() {
 
       {/* main */}
       <div className="mx-auto max-w-[1440px] px-5 py-6 md:px-10">
-        {/* 上下文式 AI：粘贴 JD 就地优化，不占独立 tab */}
-        <JdTailorBar />
         <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
           {/* form */}
           <div className="rounded-card border border-line bg-white p-5 shadow-card md:p-7">
@@ -204,6 +211,7 @@ function EditorPageInner() {
           {/* preview */}
           <div className="hidden lg:block">
             {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
+            {tailorOpen && <JdTailorPanel onClose={() => setTailorOpen(false)} />}
             {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
             {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
             <div className="relative rounded-card border border-line bg-bg-2/50 p-5 md:p-8" style={{ minHeight: "calc(100vh - 7rem)" }}>
@@ -220,6 +228,7 @@ function EditorPageInner() {
           </div>
           <div className="lg:hidden">
             {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
+            {tailorOpen && <JdTailorPanel onClose={() => setTailorOpen(false)} />}
             {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
             {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
             <div className="grid place-items-center rounded-card border border-line bg-bg-2/50 p-5 md:p-8">
