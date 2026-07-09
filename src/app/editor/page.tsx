@@ -10,11 +10,12 @@ import { templates } from "@/lib/templates";
 import { usePageOverflow } from "@/lib/use-page-overflow";
 import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { SmartOnePagePanel } from "@/components/smart-one-page-panel";
+import { ImportPanel } from "@/components/import-panel";
+import { ExportMenu } from "@/components/export-menu";
 import { EnhanceButton } from "@/components/enhance-button";
 import { SortableList, SortableItem } from "@/components/sortable";
 import { ToolbarDropdown, DropdownItem } from "@/components/toolbar-dropdown";
 import { RichTextEditor } from "@/components/rich-text-editor";
-import { exportResumePDF } from "@/lib/export-pdf";
 
 const inputCls =
   "mt-1 w-full rounded-lg border border-line bg-bg-2/50 px-3 py-2 text-sm font-cn focus:border-brand focus:bg-white focus:outline-none transition";
@@ -46,9 +47,9 @@ export default function EditorPage() {
 function EditorPageInner() {
   const [mounted, setMounted] = useState(false);
   const [tab, setTab] = useState<TabKey>("basics");
-  const [exporting, setExporting] = useState(false);
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [onePageOpen, setOnePageOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const searchParams = useSearchParams();
   const { overflowing, pageCount } = usePageOverflow();
   useEffect(() => setMounted(true), []);
@@ -111,7 +112,15 @@ function EditorPageInner() {
               <span className="h-1.5 w-1.5 rounded-full bg-brand" /> 已自动保存
             </span>
             <button
-              onClick={() => { setAnalysisOpen((v) => !v); setOnePageOpen(false); }}
+              onClick={() => { setImportOpen((v) => !v); setAnalysisOpen(false); setOnePageOpen(false); }}
+              className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
+                importOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
+              }`}
+            >
+              导入
+            </button>
+            <button
+              onClick={() => { setAnalysisOpen((v) => !v); setOnePageOpen(false); setImportOpen(false); }}
               className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
                 analysisOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
               }`}
@@ -119,7 +128,7 @@ function EditorPageInner() {
               AI 分析
             </button>
             <button
-              onClick={() => { setOnePageOpen((v) => !v); setAnalysisOpen(false); }}
+              onClick={() => { setOnePageOpen((v) => !v); setAnalysisOpen(false); setImportOpen(false); }}
               className={`hidden items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
                 onePageOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
               }`}
@@ -127,24 +136,7 @@ function EditorPageInner() {
               智能一页
               {overflowing && <span className="h-1.5 w-1.5 rounded-full bg-clay" />}
             </button>
-            <button
-              onClick={async () => {
-                if (exporting) return;
-                setExporting(true);
-                try {
-                  await exportResumePDF(resume);
-                } catch (e) {
-                  alert("导出失败,请重试");
-                  console.error(e);
-                } finally {
-                  setExporting(false);
-                }
-              }}
-              disabled={exporting}
-              className="rounded-[9px] bg-brand px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-deep disabled:opacity-60"
-            >
-              {exporting ? "生成中…" : "导出 PDF"}
-            </button>
+            <ExportMenu resume={resume} theme={theme} sectionOrder={sectionOrder} />
           </div>
         </div>
       </div>
@@ -208,6 +200,7 @@ function EditorPageInner() {
 
           {/* preview */}
           <div className="hidden lg:block">
+            {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
             {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
             {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
             <div className="relative rounded-card border border-line bg-bg-2/50 p-5 md:p-8" style={{ minHeight: "calc(100vh - 7rem)" }}>
@@ -223,6 +216,7 @@ function EditorPageInner() {
             </div>
           </div>
           <div className="lg:hidden">
+            {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
             {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
             {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
             <div className="grid place-items-center rounded-card border border-line bg-bg-2/50 p-5 md:p-8">
