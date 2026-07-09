@@ -1,13 +1,10 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { AccountChip } from "@/components/account-chip";
 
 const links = [
   { href: "/templates", label: "模板中心" },
   { href: "/editor", label: "在线编辑" },
   { href: "/#ai", label: "AI 智写", ai: true },
-  { href: "#", label: "简历案例" },
-  { href: "#", label: "价格" },
 ];
 
 function AiSparkle() {
@@ -72,7 +69,6 @@ export function SiteNav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <AccountChip />
           <Link
             href="/editor"
             className="rounded-[9px] bg-brand px-4 py-2 text-sm font-semibold text-white shadow-[inset_0_-1px_0_var(--color-brand-deep)] transition hover:bg-brand-deep"

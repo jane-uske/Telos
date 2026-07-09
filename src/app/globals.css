@@ -58,7 +58,8 @@ body {
 /* A4 简历纸感 */
 .sheet {
   background: #fff;
-  box-shadow: 0 1px 2px oklch(0.20 0.012 250 / 0.05),
+  box-shadow: 0 1px 3px oklch(0.20 0.012 250 / 0.08),
+    0 8px 20px -4px oklch(0.20 0.012 250 / 0.12),
     0 30px 60px -30px oklch(0.20 0.012 250 / 0.22);
 }
 
@@ -85,6 +86,32 @@ body {
     border-radius: 0 !important;
   }
 
+  /* 分页控制：防止在元素中间断页 */
+  #resume-sheet > div,
+  #resume-sheet li,
+  #resume-sheet p {
+    break-inside: avoid;
+  }
+
+  /* 标题不与后续内容分离 */
+  #resume-sheet h1,
+  #resume-sheet h2,
+  #resume-sheet h3,
+  #resume-sheet [class*="font-bold"],
+  #resume-sheet [class*="font-semibold"] {
+    break-after: avoid;
+  }
+
+  /* 每个模块（经历/项目/教育等条目）不断页 */
+  #resume-sheet > div > div > div {
+    break-inside: avoid;
+  }
+
+  /* 分页时自动加顶部 padding */
+  #resume-sheet {
+    break-before: avoid;
+  }
+
   /* 打印色彩精准 */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -93,7 +120,7 @@ body {
 
   @page {
     size: A4 portrait;
-    margin: 0;
+    margin: 14mm 18mm;
   }
 }
 
@@ -127,8 +154,38 @@ body {
   animation: fill-bar 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* 下拉菜单/面板入场 */
+@keyframes dropdown-in {
+  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dropdown-in {
+  animation: dropdown-in 0.15s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 面板入场(从上方滑入) */
+@keyframes panel-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-in {
+  animation: panel-in 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Tab 内容淡入 */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fade-in 0.18s ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .slide-in, .pop-in, .fill-bar { animation: none; opacity: 1; transform: none; }
+  .slide-in, .pop-in, .fill-bar, .dropdown-in, .panel-in, .fade-in { animation: none; opacity: 1; transform: none; }
 }
 
 /* ===== TipTap 富文本编辑器内容样式 ===== */

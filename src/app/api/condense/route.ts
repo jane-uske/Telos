@@ -1,5 +1,6 @@
-import { generateText } from "ai";
-import { getModel, hasApiKey, SYSTEM_CONDENSE } from "@/lib/ai";
+import { generateObject } from "ai";
+import { getModel, hasApiKey, cleanResumeForAI, SYSTEM_CONDENSE } from "@/lib/ai";
+import { importResumeSchema } from "@/lib/import-schema";
 
 export async function POST(req: Request) {
   if (!hasApiKey()) {
@@ -14,18 +15,14 @@ export async function POST(req: Request) {
     return Response.json({ error: "缺少 resume" }, { status: 400 });
   }
 
-  const { text } = await generateText({
+  const cleaned = cleanResumeForAI(resume);
+
+  const { object } = await generateObject({
     model: getModel(),
+    schema: importResumeSchema,
     system: SYSTEM_CONDENSE,
-    prompt: `请精简以下简历:\n${JSON.stringify(resume)}`,
+    prompt: `请精简以下简历:\n${JSON.stringify(cleaned)}`,
   });
 
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("未能解析 AI 返回内容");
-    const result = JSON.parse(match[0]);
-    return Response.json({ resume: result });
-  } catch {
-    return Response.json({ error: "AI 返回格式异常,请重试" }, { status: 500 });
-  }
+  return Response.json({ resume: object });
 }

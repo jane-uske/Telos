@@ -51,8 +51,8 @@ export function JdTailorPanel({ onClose }: { onClose: () => void }) {
             粘贴目标 JD，AI 在不编造的前提下把你确实具备、且 JD 看重的能力改写得更凸显。
           </p>
         </div>
-        <button onClick={onClose} className="ml-auto text-xs text-muted hover:text-ink">
-          关闭
+        <button onClick={onClose} aria-label="关闭" className="ml-auto rounded-md px-1.5 py-0.5 text-xs text-muted transition hover:bg-bg-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30">
+          ✕
         </button>
       </div>
 

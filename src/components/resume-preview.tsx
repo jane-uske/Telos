@@ -47,6 +47,8 @@ export function ResumePreview({
       return <SidebarLayout {...common} />;
     case "banner":
       return <BannerLayout {...common} />;
+    case "photo":
+      return <PhotoLayout {...common} />;
     case "minimal":
       return <MinimalLayout {...common} />;
     case "timeline":
@@ -96,7 +98,12 @@ function SidebarLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutP
   return (
     <div className="sheet flex overflow-hidden" id="resume-sheet" style={{ fontFamily: fontCss, minHeight: "560px" }}>
       <div className="w-[36%] p-6 text-white" style={{ background: accent }}>
-        <p className="font-cn text-xl font-bold">{b.name || "你的姓名"}</p>
+        {b.photo ? (
+          <img src={b.photo} alt="" className="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-white/30" />
+        ) : (
+          <div className="mx-auto h-20 w-20 rounded-full bg-white/20" />
+        )}
+        <p className="mt-3 font-cn text-xl font-bold">{b.name || "你的姓名"}</p>
         {b.headline && <p className="mt-1 text-[0.72rem] opacity-90">{b.headline}</p>}
         <div className="mt-5 space-y-0.5 text-[0.62rem] leading-relaxed opacity-85">
           {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => <div key={i}>{c}</div>)}
@@ -139,6 +146,31 @@ function BannerLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutPr
         {b.summary && <p className="mb-4 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
         <Sections resume={r} accent={accent} sp={sp} order={sectionOrder} />
       </div>
+    </div>
+  );
+}
+
+/* ============ 3b. 证件照(左侧照片 + 右侧主内容)============ */
+function PhotoLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutProps) {
+  const b = r.basics;
+  return (
+    <div className={`sheet ${sp.pad}`} id="resume-sheet" style={{ fontFamily: fontCss }}>
+      <div className="flex items-start gap-5 border-b-2 pb-4" style={{ borderColor: accent }}>
+        {b.photo ? (
+          <img src={b.photo} alt="" className="h-24 w-20 shrink-0 rounded-lg object-cover" />
+        ) : (
+          <div className="flex h-24 w-20 shrink-0 items-center justify-center rounded-lg border border-line bg-bg-2 text-[0.6rem] text-faint">照片</div>
+        )}
+        <div className="flex-1">
+          <p className="font-cn text-2xl font-bold">{b.name || "你的姓名"}</p>
+          {b.headline && <p className="mt-0.5 text-[0.78rem] text-muted">{b.headline}</p>}
+          <div className="mt-2 flex flex-wrap gap-x-4 text-[0.62rem] text-faint">
+            {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => <span key={i}>{c}</span>)}
+          </div>
+        </div>
+      </div>
+      {b.summary && <p className="mt-3 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
+      <Sections resume={r} accent={accent} sp={sp} order={sectionOrder} />
     </div>
   );
 }

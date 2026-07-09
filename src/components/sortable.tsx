@@ -73,7 +73,7 @@ export function SortableItem({
         type="button"
         {...attributes}
         {...listeners}
-        className="mt-3 grid h-6 w-4 shrink-0 cursor-grab touch-none place-items-center self-start rounded text-faint opacity-40 transition hover:bg-bg-2 hover:opacity-100 active:cursor-grabbing"
+        className="mt-3 grid h-6 w-4 shrink-0 cursor-grab touch-none place-items-center self-start rounded text-faint opacity-40 transition hover:bg-bg-2 hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 active:cursor-grabbing"
         aria-label="拖拽排序"
       >
         <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">

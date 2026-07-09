@@ -112,7 +112,7 @@ function ToolbarBtn({
         e.preventDefault();
         onClick();
       }}
-      className={`grid h-5 w-5 place-items-center rounded text-[0.7rem] transition ${
+      className={`grid h-5 w-5 place-items-center rounded text-[0.65rem] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 ${
         active
           ? "bg-brand-soft text-brand-deep"
           : "text-muted hover:bg-bg-2 hover:text-ink"

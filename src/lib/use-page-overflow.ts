@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const A4_HEIGHT = 1123;
+export const A4_HEIGHT = 1123;
 
 export function usePageOverflow() {
   const [sheetHeight, setSheetHeight] = useState(0);

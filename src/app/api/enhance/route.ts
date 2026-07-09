@@ -1,7 +1,6 @@
 import { streamText } from "ai";
 import { getModel, hasApiKey, SYSTEM_ENHANCE } from "@/lib/ai";
 
-/** 重写单条经历要点,流式返回纯文本 */
 export async function POST(req: Request) {
   if (!hasApiKey()) {
     return Response.json(
@@ -10,19 +9,24 @@ export async function POST(req: Request) {
     );
   }
 
-  const { bullet, jd } = (await req.json()) as { bullet?: string; jd?: string };
+  const { bullet, jd, position } = (await req.json()) as {
+    bullet?: string;
+    jd?: string;
+    position?: string;
+  };
   if (!bullet?.trim()) {
     return Response.json({ error: "缺少 bullet" }, { status: 400 });
   }
 
-  const prompt = jd
-    ? `目标 JD:\n${jd}\n\n请重写以下经历要点(自然嵌入 JD 关键词):\n${bullet}`
-    : `请重写以下经历要点:\n${bullet}`;
+  const parts: string[] = [];
+  if (position) parts.push(`候选人职位: ${position}`);
+  if (jd) parts.push(`目标 JD:\n${jd}`);
+  parts.push(`请重写以下经历要点:\n${bullet}`);
 
   const result = streamText({
     model: getModel(),
     system: SYSTEM_ENHANCE,
-    prompt,
+    prompt: parts.join("\n\n"),
   });
 
   return result.toTextStreamResponse();

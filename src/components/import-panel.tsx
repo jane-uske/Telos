@@ -65,8 +65,8 @@ export function ImportPanel({ onClose }: { onClose: () => void }) {
             上传 PDF / Markdown，或粘贴文本，AI 自动识别并填入表单（覆盖当前内容）。
           </p>
         </div>
-        <button onClick={onClose} className="text-xs text-muted hover:text-ink">
-          关闭
+        <button onClick={onClose} aria-label="关闭" className="rounded-md px-1.5 py-0.5 text-xs text-muted transition hover:bg-bg-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30">
+          ✕
         </button>
       </div>
 

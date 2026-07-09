@@ -10,6 +10,7 @@ export const basicsSchema = z.object({
   location: z.string(),
   availability: z.string(),
   summary: z.string(),
+  photo: z.string(),
 });
 
 export const experienceSchema = z.object({

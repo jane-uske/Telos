@@ -90,7 +90,7 @@ export function SmartOnePagePanel({
     <div className="mb-4 rounded-card border border-line bg-white p-5 shadow-card">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm font-semibold">智能一页</p>
-        <button onClick={onClose} className="text-xs text-muted hover:text-ink">✕</button>
+        <button onClick={onClose} aria-label="关闭" className="rounded-md px-1.5 py-0.5 text-xs text-muted transition hover:bg-bg-2 hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30">✕</button>
       </div>
 
       {phase === "idle" && (
@@ -102,7 +102,7 @@ export function SmartOnePagePanel({
           </p>
           {overflowing ? (
             <>
-              <p className="mb-3 text-[0.68rem] text-muted">
+              <p className="mb-3 text-[0.7rem] text-muted">
                 将先尝试调整排版间距，如仍超出则由 AI 精简内容。操作可一键撤销。
               </p>
               <button
@@ -113,7 +113,7 @@ export function SmartOnePagePanel({
               </button>
             </>
           ) : (
-            <p className="text-[0.68rem] text-muted">无需压缩 ✓</p>
+            <p className="text-[0.7rem] text-muted">无需压缩 ✓</p>
           )}
         </>
       )}
@@ -143,7 +143,7 @@ export function SmartOnePagePanel({
           )}
           {changes.length > 0 && (
             <div className="rounded-lg border border-line bg-bg-2/50 p-3">
-              <p className="mb-1.5 text-[0.68rem] font-medium text-muted">变更摘要</p>
+              <p className="mb-1.5 text-[0.7rem] font-medium text-muted">变更摘要</p>
               <ul className="space-y-0.5">
                 {changes.map((c, i) => (
                   <li key={i} className="text-[0.7rem] text-ink-2">· {c}</li>

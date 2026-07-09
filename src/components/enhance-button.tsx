@@ -3,15 +3,13 @@
 import { useState } from "react";
 import { useStreamText } from "@/lib/use-stream-text";
 
-/**
- * 经历「AI 润色」按钮 —— 把当前经历要点发给 /api/enhance,
- * 流式显示重写结果,确认后采用。
- */
 export function EnhanceButton({
   bullets,
+  position,
   onApply,
 }: {
   bullets: string[];
+  position?: string;
   onApply: (text: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -21,7 +19,7 @@ export function EnhanceButton({
 
   function handleRun() {
     setOpen(true);
-    void run("/api/enhance", { bullet: source });
+    void run("/api/enhance", { bullet: source, position });
   }
 
   function cancel() {
@@ -34,7 +32,7 @@ export function EnhanceButton({
       <button
         onClick={handleRun}
         disabled={loading || !source}
-        className="inline-flex items-center gap-1 rounded-md border border-brand-line bg-brand-soft px-2.5 py-1 text-[0.7rem] font-medium text-brand-deep transition hover:bg-brand hover:text-white disabled:opacity-50"
+        className="inline-flex items-center gap-1 rounded-md border border-brand-line bg-brand-soft px-2.5 py-1 text-[0.65rem] font-medium text-brand-deep transition hover:bg-brand hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30 disabled:opacity-50"
       >
         <svg
           width="11"
@@ -51,31 +49,31 @@ export function EnhanceButton({
       </button>
 
       {open && (text || error || loading) && (
-        <div className="mt-2 rounded-md border border-line bg-white p-2.5">
+        <div className="mt-2 rounded-lg border border-line bg-white p-2.5 fade-in">
           {error ? (
             <p className="text-[0.7rem] leading-relaxed text-clay-deep">{error}</p>
           ) : (
             <>
-              <p className="text-[0.72rem] leading-relaxed text-ink">
+              <p className="text-[0.7rem] leading-relaxed text-ink">
                 {text || "…"}
                 {loading && (
                   <span className="ml-0.5 inline-block h-3 w-[2px] animate-pulse bg-brand align-middle" />
                 )}
               </p>
               {!loading && text && (
-                <div className="mt-1.5 flex gap-2">
+                <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => {
                       onApply(text.trim());
                       cancel();
                     }}
-                    className="rounded bg-brand px-2 py-0.5 text-[0.66rem] font-semibold text-white"
+                    className="rounded-md bg-brand px-2.5 py-1 text-[0.65rem] font-semibold text-white transition hover:bg-brand-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                   >
                     采用
                   </button>
                   <button
                     onClick={cancel}
-                    className="rounded border border-line px-2 py-0.5 text-[0.66rem] text-ink-2"
+                    className="rounded-md border border-line px-2.5 py-1 text-[0.65rem] text-ink-2 transition hover:bg-bg-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                   >
                     取消
                   </button>

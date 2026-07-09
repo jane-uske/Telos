@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ResumePreview } from "@/components/resume-preview";
@@ -12,17 +12,19 @@ import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { SmartOnePagePanel } from "@/components/smart-one-page-panel";
 import { ImportPanel } from "@/components/import-panel";
 import { ExportMenu } from "@/components/export-menu";
-import { JdTailorPanel } from "@/components/jd-tailor-bar";
 import { EnhanceButton } from "@/components/enhance-button";
 import { SortableList, SortableItem } from "@/components/sortable";
 import { ToolbarDropdown, DropdownItem } from "@/components/toolbar-dropdown";
+import { TemplateThumb } from "@/components/template-thumb";
 import { RichTextEditor } from "@/components/rich-text-editor";
 
+const focusRing = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/30";
+
 const inputCls =
-  "mt-1 w-full rounded-lg border border-line bg-bg-2/50 px-3 py-2 text-sm font-cn focus:border-brand focus:bg-white focus:outline-none transition";
+  `mt-1 w-full rounded-lg border border-line bg-bg-2/50 px-3 py-2 text-sm font-cn transition ${focusRing} focus:border-brand focus:bg-white focus:outline-none`;
 const labelCls = "text-xs font-medium text-ink-2";
 const subInputCls =
-  "rounded-md border border-line bg-white px-2.5 py-1.5 text-xs font-cn focus:border-brand focus:outline-none";
+  `rounded-lg border border-line bg-white px-2.5 py-1.5 text-xs font-cn transition ${focusRing} focus:border-brand focus:outline-none`;
 
 const tabMeta: { key: SectionKey; label: string }[] = [
   { key: "experiences", label: "经历" },
@@ -37,7 +39,6 @@ const tabMeta: { key: SectionKey; label: string }[] = [
 type TabKey = SectionKey | "basics" | "order";
 
 export default function EditorPage() {
-  // useSearchParams 需在 Suspense 边界内，否则生产构建预渲染 /editor 会报错
   return (
     <Suspense fallback={<div className="min-h-screen bg-bg" />}>
       <EditorPageInner />
@@ -51,10 +52,24 @@ function EditorPageInner() {
   const [analysisOpen, setAnalysisOpen] = useState(false);
   const [onePageOpen, setOnePageOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
-  const [tailorOpen, setTailorOpen] = useState(false);
+  const [tplPickerOpen, setTplPickerOpen] = useState(false);
+  const tplPickerRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const { overflowing, pageCount } = usePageOverflow();
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    if (!tplPickerOpen) return;
+    function onDoc(e: MouseEvent) {
+      if (tplPickerRef.current && !tplPickerRef.current.contains(e.target as Node)) setTplPickerOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setTplPickerOpen(false);
+    }
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDoc); document.removeEventListener("keydown", onKey); };
+  }, [tplPickerOpen]);
 
   const s = useResumeStore();
   const { resume, sectionOrder, theme, setTheme } = s;
@@ -66,25 +81,72 @@ function EditorPageInner() {
     if (t) setTheme({ template: t.id, accent: t.accent });
   }, [searchParams, setTheme]);
 
+  function togglePanel(panel: "import" | "analysis" | "onePage") {
+    setImportOpen(panel === "import" ? (v) => !v : false);
+    setAnalysisOpen(panel === "analysis" ? (v) => !v : false);
+    setOnePageOpen(panel === "onePage" ? (v) => !v : false);
+  }
+
   if (!mounted) return <div className="min-h-screen bg-bg" />;
+
+  const toolbarBtnCls = (active: boolean) =>
+    `hidden items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${focusRing} ${
+      active ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
+    }`;
+
+  const activePanel = importOpen ? "import" : analysisOpen ? "analysis" : onePageOpen ? "onePage" : null;
 
   return (
     <>
       {/* toolbar */}
-      <div className="sticky top-0 z-30 border-b border-line bg-white">
+      <div className="sticky top-0 z-30 border-b border-line bg-white/95 backdrop-blur-sm">
         <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between gap-3 px-5 md:px-10">
-          <Link href="/" className="flex items-center gap-2 text-sm">
-            <span className="grid h-7 w-7 place-items-center rounded-md bg-brand text-xs font-bold text-white">T</span>
+          <Link href="/" className={`flex items-center gap-2 text-sm ${focusRing} rounded-lg`}>
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-brand text-xs font-bold text-white">T</span>
             <span className="hidden font-semibold sm:inline">我的简历</span>
           </Link>
           <div className="hidden items-center gap-1.5 text-xs lg:flex">
-            <ToolbarDropdown label={themePresets.templates.find((t) => t.id === theme.template)?.label ?? "模板"}>
-              {themePresets.templates.map((t) => (
-                <DropdownItem key={t.id} active={theme.template === t.id} onClick={() => setTheme({ template: t.id })}>
-                  {t.label}
-                </DropdownItem>
-              ))}
-            </ToolbarDropdown>
+            <div ref={tplPickerRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setTplPickerOpen((v) => !v)}
+                className={`flex items-center gap-1 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${focusRing} ${
+                  tplPickerOpen
+                    ? "border-brand bg-brand-soft text-brand-deep"
+                    : "border-line bg-white text-ink-2 hover:border-brand-line hover:text-brand-deep"
+                }`}
+              >
+                {templates.find((t) => t.id === theme.template)?.name ?? "模板"}
+                <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.5" className={`ml-0.5 transition-transform ${tplPickerOpen ? "rotate-180" : ""}`}><path d="M1.5 2.5L4 5.5L6.5 2.5" /></svg>
+              </button>
+              {tplPickerOpen && (
+                <div className="dropdown-in absolute left-0 top-full z-50 mt-1.5 w-[420px] rounded-xl border border-line bg-white p-3 shadow-pop">
+                  <div className="grid grid-cols-4 gap-2.5">
+                    {templates.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => { setTheme({ template: t.id, accent: t.accent }); setTplPickerOpen(false); }}
+                        className={`group/tpl rounded-lg border p-1.5 transition ${focusRing} ${
+                          theme.template === t.id
+                            ? "border-brand bg-brand-soft ring-1 ring-brand/20"
+                            : "border-line hover:border-brand-line hover:shadow-sm"
+                        }`}
+                      >
+                        <div className="overflow-hidden rounded" style={{ fontSize: "0.55rem" }}>
+                          <TemplateThumb template={t} />
+                        </div>
+                        <p className={`mt-1.5 truncate text-center text-[0.65rem] font-medium ${
+                          theme.template === t.id ? "text-brand-deep" : "text-ink-2 group-hover/tpl:text-ink"
+                        }`}>
+                          {t.name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             <ToolbarDropdown label={themePresets.fonts.find((f) => f.id === theme.font)?.label ?? "字体"}>
               {themePresets.fonts.map((f) => (
                 <DropdownItem key={f.id} active={theme.font === f.id} onClick={() => setTheme({ font: f.id })}>
@@ -110,39 +172,16 @@ function EditorPageInner() {
             </ToolbarDropdown>
           </div>
           <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 text-xs text-muted md:flex">
+            <span className="hidden items-center gap-1.5 text-xs text-muted md:flex fade-in">
               <span className="h-1.5 w-1.5 rounded-full bg-brand" /> 已自动保存
             </span>
-            <button
-              onClick={() => { setImportOpen((v) => !v); setAnalysisOpen(false); setOnePageOpen(false); setTailorOpen(false); }}
-              className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
-                importOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
-              }`}
-            >
+            <button onClick={() => togglePanel("import")} className={toolbarBtnCls(importOpen)}>
               导入
             </button>
-            <button
-              onClick={() => { setTailorOpen((v) => !v); setImportOpen(false); setAnalysisOpen(false); setOnePageOpen(false); }}
-              className={`hidden items-center gap-1 rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
-                tailorOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
-              }`}
-            >
-              按 JD 优化
-            </button>
-            <button
-              onClick={() => { setAnalysisOpen((v) => !v); setOnePageOpen(false); setImportOpen(false); setTailorOpen(false); }}
-              className={`hidden rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
-                analysisOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
-              }`}
-            >
+            <button onClick={() => togglePanel("analysis")} className={toolbarBtnCls(analysisOpen)}>
               AI 分析
             </button>
-            <button
-              onClick={() => { setOnePageOpen((v) => !v); setAnalysisOpen(false); setImportOpen(false); setTailorOpen(false); }}
-              className={`hidden items-center gap-1.5 rounded-[9px] border px-3 py-1.5 text-xs font-medium transition md:inline-flex ${
-                onePageOpen ? "border-brand bg-brand-soft text-brand-deep" : "border-line hover:border-brand-line hover:bg-brand-soft hover:text-brand-deep"
-              }`}
-            >
+            <button onClick={() => togglePanel("onePage")} className={toolbarBtnCls(onePageOpen)}>
               智能一页
               {overflowing && <span className="h-1.5 w-1.5 rounded-full bg-clay" />}
             </button>
@@ -155,84 +194,42 @@ function EditorPageInner() {
       <div className="mx-auto max-w-[1440px] px-5 py-6 md:px-10">
         <div className="grid gap-8 lg:grid-cols-[2fr_3fr]">
           {/* form */}
-          <div className="rounded-card border border-line bg-white p-5 shadow-card md:p-7">
-            <div className="mb-5 flex gap-1 overflow-x-auto text-xs font-medium" style={{ scrollbarWidth: "none" }}>
+          <div>
+            {activePanel && (
+              <div className="panel-in mb-5">
+                {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
+                {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
+                {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
+              </div>
+            )}
+            <div className="rounded-card border border-line bg-white p-5 shadow-card md:p-7">
+              <TabBar tab={tab} sectionOrder={sectionOrder} onTabChange={setTab} />
+
+              <div key={tab} className="fade-in">
+                {tab === "basics" && <BasicsForm />}
+                {tab === "order" && <SectionOrderForm />}
+                {tab === "experiences" && <ExperiencesForm />}
+                {tab === "projects" && <ProjectsForm />}
+                {tab === "education" && <EducationForm />}
+                {tab === "skills" && <SkillsForm />}
+                {tab === "certificates" && <CertificatesForm />}
+                {tab === "languages" && <LanguagesForm />}
+                {tab === "awards" && <AwardsForm />}
+              </div>
+
               <button
-                onClick={() => setTab("basics")}
-                className={`whitespace-nowrap rounded-md px-3 py-1.5 transition ${
-                  tab === "basics" ? "bg-brand text-white" : "text-ink-2 hover:bg-bg-2"
-                }`}
+                onClick={() => { if (confirm("重置为示例数据?当前编辑内容将被清除。")) s.reset(); }}
+                className={`mt-7 text-xs text-muted transition hover:text-ink ${focusRing} rounded-md px-1 py-0.5`}
               >
-                个人信息
-              </button>
-              {sectionOrder.map((key) => {
-                const meta = tabMeta.find((t) => t.key === key);
-                if (!meta) return null;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setTab(key)}
-                    className={`whitespace-nowrap rounded-md px-3 py-1.5 transition ${
-                      tab === key ? "bg-brand text-white" : "text-ink-2 hover:bg-bg-2"
-                    }`}
-                  >
-                    {meta.label}
-                  </button>
-                );
-              })}
-              <button
-                onClick={() => setTab("order")}
-                className={`whitespace-nowrap rounded-md px-3 py-1.5 transition ${
-                  tab === "order" ? "bg-brand text-white" : "text-ink-2 hover:bg-bg-2"
-                }`}
-              >
-                模块排序
+                重置为示例数据
               </button>
             </div>
-
-            {tab === "basics" && <BasicsForm />}
-            {tab === "order" && <SectionOrderForm />}
-            {tab === "experiences" && <ExperiencesForm />}
-            {tab === "projects" && <ProjectsForm />}
-            {tab === "education" && <EducationForm />}
-            {tab === "skills" && <SkillsForm />}
-            {tab === "certificates" && <CertificatesForm />}
-            {tab === "languages" && <LanguagesForm />}
-            {tab === "awards" && <AwardsForm />}
-
-            <button
-              onClick={() => { if (confirm("重置为示例数据?当前编辑内容将被清除。")) s.reset(); }}
-              className="mt-7 text-xs text-muted hover:text-ink"
-            >
-              重置为示例数据
-            </button>
           </div>
 
           {/* preview */}
-          <div className="hidden lg:block">
-            {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
-            {tailorOpen && <JdTailorPanel onClose={() => setTailorOpen(false)} />}
-            {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
-            {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
-            <div className="relative rounded-card border border-line bg-bg-2/50 p-5 md:p-8" style={{ minHeight: "calc(100vh - 7rem)" }}>
-              {overflowing && (
-                <div className="pointer-events-none absolute left-0 right-0" style={{ top: `calc(${1123}px + 2rem)` }}>
-                  <div className="border-t-2 border-dashed border-clay/40" />
-                  <span className="absolute right-2 -top-5 rounded bg-clay/10 px-1.5 py-0.5 text-[0.6rem] text-clay">A4 页面边界</span>
-                </div>
-              )}
+          <div>
+            <div className="rounded-card border border-line bg-gradient-to-b from-bg-2/80 to-bg-2 p-5 md:p-8" style={{ minHeight: "calc(100vh - 7rem)" }}>
               <div className="mx-auto w-full" style={{ maxWidth: "794px" }}>
-                <ResumePreview resume={resume} theme={theme} sectionOrder={sectionOrder} />
-              </div>
-            </div>
-          </div>
-          <div className="lg:hidden">
-            {importOpen && <ImportPanel onClose={() => setImportOpen(false)} />}
-            {tailorOpen && <JdTailorPanel onClose={() => setTailorOpen(false)} />}
-            {analysisOpen && <AiAnalysisPanel resume={resume} onClose={() => setAnalysisOpen(false)} />}
-            {onePageOpen && <SmartOnePagePanel overflowing={overflowing} pageCount={pageCount} onClose={() => setOnePageOpen(false)} />}
-            <div className="grid place-items-center rounded-card border border-line bg-bg-2/50 p-5 md:p-8">
-              <div className="w-full" style={{ maxWidth: "794px" }}>
                 <ResumePreview resume={resume} theme={theme} sectionOrder={sectionOrder} />
               </div>
             </div>
@@ -243,10 +240,98 @@ function EditorPageInner() {
   );
 }
 
+/* ===== Tab 栏 ===== */
+function TabBar({ tab, sectionOrder, onTabChange }: { tab: TabKey; sectionOrder: SectionKey[]; onTabChange: (t: TabKey) => void }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    function check() {
+      if (!el) return;
+      setCanScrollLeft(el.scrollLeft > 2);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    }
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", check); ro.disconnect(); };
+  }, []);
+
+  const allTabs: { key: TabKey; label: string }[] = [
+    { key: "basics", label: "个人信息" },
+    ...sectionOrder.map((key) => tabMeta.find((t) => t.key === key)!).filter(Boolean),
+    { key: "order", label: "模块排序" },
+  ];
+
+  return (
+    <div className="relative mb-5">
+      {canScrollLeft && <div className="pointer-events-none absolute left-0 top-0 z-10 h-full w-6 bg-gradient-to-r from-white to-transparent" />}
+      {canScrollRight && <div className="pointer-events-none absolute right-0 top-0 z-10 h-full w-6 bg-gradient-to-l from-white to-transparent" />}
+      <div
+        ref={scrollRef}
+        role="tablist"
+        className="flex gap-1 overflow-x-auto text-xs font-medium"
+        style={{ scrollbarWidth: "none" }}
+      >
+        {allTabs.map((t) => (
+          <button
+            key={t.key}
+            role="tab"
+            aria-selected={tab === t.key}
+            onClick={() => onTabChange(t.key)}
+            className={`whitespace-nowrap rounded-lg px-3 py-1.5 transition ${focusRing} ${
+              tab === t.key ? "bg-brand text-white shadow-sm" : "text-ink-2 hover:bg-bg-2"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ===== 照片压缩 ===== */
+function compressPhoto(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 400;
+      let { width: w, height: h } = img;
+      if (w > MAX || h > MAX) {
+        const scale = MAX / Math.max(w, h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d")!.drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", 0.75));
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 /* ===== 个人信息 ===== */
 function BasicsForm() {
   const { resume, setBasics } = useResumeStore();
   const b = resume.basics;
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const dataUrl = await compressPhoto(file);
+    setBasics({ photo: dataUrl });
+    if (fileRef.current) fileRef.current.value = "";
+  }
+
   return (
     <div className="grid grid-cols-2 gap-4">
       <label className="col-span-2 block">
@@ -291,9 +376,9 @@ function SectionOrderForm() {
       <SortableList ids={sectionOrder} onReorder={reorderSections}>
         {sectionOrder.map((key) => (
           <SortableItem key={key} id={key}>
-            <div className="flex items-center gap-2 rounded-lg border border-line bg-bg-2/40 px-3.5 py-2.5">
+            <div className="flex items-center gap-2 rounded-lg border border-line bg-bg-2/40 px-3.5 py-2.5 transition hover:border-brand-line hover:shadow-sm">
               <span className="text-sm font-medium">{sectionMeta[key].title.replace(" ", "")}</span>
-              <span className="ml-auto font-mono text-[0.66rem] text-faint">{key}</span>
+              <span className="ml-auto font-mono text-[0.65rem] text-faint">{key}</span>
             </div>
           </SortableItem>
         ))}
@@ -317,7 +402,7 @@ function ExperiencesForm() {
                 <input className={subInputCls} placeholder="2021.03 — 至今" value={e.current ? `${e.startDate} — 至今` : `${e.startDate}${e.endDate ? ` — ${e.endDate}` : ""}`} onChange={(ev) => { const [st, en] = ev.target.value.split("—").map((x) => x.trim()); updateExperience(e.id, { startDate: st ?? "", endDate: en === "至今" ? "" : en ?? "", current: en === "至今" }); }} />
               </div>
               <RichTextEditor value={e.bullets[0] ?? ""} onChange={(html) => updateExperience(e.id, { bullets: [html] })} placeholder="写下你的经历亮点,可加粗关键成果…" className="mt-2.5" rows={3} />
-              <EnhanceButton bullets={e.bullets} onApply={(t) => updateExperience(e.id, { bullets: [t] })} />
+              <EnhanceButton bullets={e.bullets} position={e.position && e.company ? `${e.position} @ ${e.company}` : undefined} onApply={(t) => updateExperience(e.id, { bullets: [t] })} />
             </Card>
           </SortableItem>
         ))}
@@ -340,7 +425,7 @@ function ProjectsForm() {
                 <input className={subInputCls} placeholder="项目名称" value={p.name} onChange={(e) => updateProject(p.id, { name: e.target.value })} />
                 <input className={subInputCls} placeholder="担任角色" value={p.role} onChange={(e) => updateProject(p.id, { role: e.target.value })} />
               </div>
-              <input className={`${subInputCls} mt-2`} placeholder="链接(可选)" value={p.link} onChange={(e) => updateProject(p.id, { link: e.target.value })} />
+              <input className={`${subInputCls} mt-2 w-full`} placeholder="链接(可选)" value={p.link} onChange={(e) => updateProject(p.id, { link: e.target.value })} />
               <RichTextEditor value={p.bullets[0] ?? ""} onChange={(html) => updateProject(p.id, { bullets: [html] })} placeholder="项目描述与你的贡献…" className="mt-2.5" rows={2} />
             </Card>
           </SortableItem>
@@ -460,17 +545,22 @@ function ListHeader({ title, onAdd, addLabel }: { title: string; onAdd: () => vo
   return (
     <div className="mb-3 flex items-center justify-between">
       <p className="text-sm font-semibold">{title}</p>
-      <button onClick={onAdd} className="text-xs font-medium text-brand hover:text-brand-deep">{addLabel}</button>
+      <button onClick={onAdd} className={`rounded-md px-2 py-1 text-xs font-medium text-brand transition hover:bg-brand-soft hover:text-brand-deep ${focusRing}`}>{addLabel}</button>
     </div>
   );
 }
 
 function Card({ children, onDelete }: { children: React.ReactNode; onDelete: () => void }) {
   return (
-    <div className="group rounded-lg border border-line bg-bg-2/40 p-3.5">
+    <div className="group rounded-lg border border-line bg-bg-2/40 p-3.5 transition hover:border-brand-line/50 hover:shadow-sm">
       {children}
       <div className="mt-2 flex justify-end">
-        <button onClick={onDelete} className="text-[0.7rem] text-red-500 hover:text-red-600">删除</button>
+        <button
+          onClick={onDelete}
+          className={`rounded-md px-1.5 py-0.5 text-[0.65rem] text-muted opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-500 ${focusRing} focus-visible:opacity-100`}
+        >
+          删除
+        </button>
       </div>
     </div>
   );

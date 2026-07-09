@@ -1,5 +1,6 @@
-import { generateText } from "ai";
-import { getModel, hasApiKey, SYSTEM_ANALYZE, SYSTEM_JD_ANALYZE } from "@/lib/ai";
+import { generateObject } from "ai";
+import { getModel, hasApiKey, cleanResumeForAI, SYSTEM_ANALYZE, SYSTEM_JD_ANALYZE } from "@/lib/ai";
+import { generalAnalysisSchema, jdAnalysisSchema } from "@/lib/analysis-schema";
 
 export async function POST(req: Request) {
   if (!hasApiKey()) {
@@ -14,24 +15,18 @@ export async function POST(req: Request) {
     return Response.json({ error: "缺少 resume" }, { status: 400 });
   }
 
+  const cleaned = cleanResumeForAI(resume);
   const isJd = Boolean(jd?.trim());
-  const system = isJd ? SYSTEM_JD_ANALYZE : SYSTEM_ANALYZE;
-  const prompt = isJd
-    ? `简历:\n${JSON.stringify(resume)}\n\n目标职位 JD:\n${jd}`
-    : `简历:\n${JSON.stringify(resume)}`;
 
-  const { text } = await generateText({
+  const { object } = await generateObject({
     model: getModel(),
-    system,
-    prompt,
+    schema: isJd ? jdAnalysisSchema : generalAnalysisSchema,
+    system: isJd ? SYSTEM_JD_ANALYZE : SYSTEM_ANALYZE,
+    prompt: isJd
+      ? `简历:\n${JSON.stringify(cleaned)}\n\n目标职位 JD:\n${jd}`
+      : `简历:\n${JSON.stringify(cleaned)}`,
   });
 
-  try {
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error("未能解析 AI 返回内容");
-    const result = JSON.parse(match[0]);
-    return Response.json(result);
-  } catch {
-    return Response.json({ error: "AI 返回格式异常,请重试" }, { status: 500 });
-  }
+  const result = isJd ? { type: "jd" as const, ...object } : { type: "general" as const, ...object };
+  return Response.json(result);
 }

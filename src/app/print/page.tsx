@@ -42,10 +42,18 @@ function PrintInner() {
     <>
       <style>{`
         html, body { margin: 0; padding: 0; background: #fff; }
-        /* A4 无边距，简历自身控制内边距；#resume-sheet 去掉屏幕态的阴影/圆角 */
-        @page { size: A4; margin: 0; }
+        @page { size: A4; margin: 14mm 18mm; }
         #resume-sheet { box-shadow: none !important; border-radius: 0 !important; }
         #print-root { width: 794px; margin: 0 auto; background: #fff; }
+        /* 分页控制：不在元素中间断页 */
+        #resume-sheet > div,
+        #resume-sheet li,
+        #resume-sheet p { break-inside: avoid; }
+        #resume-sheet > div > div > div { break-inside: avoid; }
+        /* 标题不与后续内容分离 */
+        #resume-sheet h1,
+        #resume-sheet h2,
+        #resume-sheet h3 { break-after: avoid; }
       `}</style>
       <div id="print-root">
         <ResumePreview

@@ -44,6 +44,7 @@ const defaultResume: Resume = {
     location: "杭州",
     availability: "在职,随时可面试",
     summary: "七年前端开发经验,专精大型 Web 应用架构设计与性能优化。曾主导日活千万级电商平台的前端架构重构,首屏加载提速 70%;搭建企业级组件库与 Lowcode 平台,服务 200+ 业务页面。具备从 0 到 1 的产品落地能力与跨团队协作经验,擅长用技术手段驱动业务增长。",
+    photo: "",
   },
   experiences: [
     {
