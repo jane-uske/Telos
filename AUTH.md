@@ -17,12 +17,17 @@
 | 用户资料 | `GET https://id.xsticq.com/api/auth/me`（带 Cookie） | 取 email/name 等 |
 | 登出 | `POST https://id.xsticq.com/api/auth/logout` | 清父域 Cookie |
 
-## Telos 侧接入（已实现，P1）
+## Telos 侧接入（已实现）
+
+**双模式设计**：免登录 = 完整可用（编辑/导入/导出/自定义模板，全部本地存储）；
+登录 = 可选增强（分享模板到服务端；未来的云同步、多简历、付费）。
+`AUTH_ENABLED=true` 只是"接入网关登录能力"，**不会**把站点上锁。
 
 - `src/lib/auth-config.ts` — 契约常量，全部读环境变量。
 - `src/lib/auth.ts` — 服务端 `getSession()` / `verifyToken()` / `fetchGatewayUser()`（jose 验签）。
-- `src/proxy.ts` — Next 16 Proxy：受保护路径（默认 `/editor`）无有效会话则跳网关登录页。
-- 开关 `AUTH_ENABLED`：网关就绪前保持 `false`，不拦截、不影响本地开发。
+- `src/proxy.ts` — Next 16 Proxy：仅拦截 `AUTH_PROTECTED_PREFIXES`（**默认空**，即全站免登录可用）。
+  未来出现"必须登录"的整页（如账户页/付费页）再配 `AUTH_PROTECTED_PREFIXES=/account,/paid`。
+- 登录触发点是**功能级**的：导航栏"登录"入口；分享模板未登录时返回 401，前端就地给"去登录"引导。
 
 打开方式：`.env.local` 里设 `AUTH_ENABLED=true` 且填入与网关一致的 `AUTH_JWT_SECRET`。
 

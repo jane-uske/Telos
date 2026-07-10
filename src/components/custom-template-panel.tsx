@@ -199,15 +199,17 @@ export function CustomTemplatePanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** 分享当前模板：POST 到服务端拿分享链接并复制到剪贴板 */
+/** 分享当前模板：POST 到服务端拿分享链接并复制到剪贴板；未登录时引导去登录 */
 function ShareButton({ name, spec }: { name: string; spec: TemplateSpec }) {
   const [state, setState] = useState<"idle" | "busy" | "copied">("idle");
   const [err, setErr] = useState<string | null>(null);
+  const [needLogin, setNeedLogin] = useState(false);
 
   async function share() {
     if (state === "busy") return;
     setState("busy");
     setErr(null);
+    setNeedLogin(false);
     try {
       const res = await fetch("/api/share-template", {
         method: "POST",
@@ -215,6 +217,11 @@ function ShareButton({ name, spec }: { name: string; spec: TemplateSpec }) {
         body: JSON.stringify({ name, spec }),
       });
       const data = await res.json();
+      if (res.status === 401) {
+        setNeedLogin(true);
+        setState("idle");
+        return;
+      }
       if (!res.ok) throw new Error(data.error ?? "分享失败");
       await navigator.clipboard.writeText(data.url).catch(() => prompt("复制分享链接：", data.url));
       setState("copied");
@@ -230,6 +237,14 @@ function ShareButton({ name, spec }: { name: string; spec: TemplateSpec }) {
       <button onClick={share} className="text-xs text-brand hover:text-brand-deep" disabled={state === "busy"}>
         {state === "busy" ? "生成链接…" : state === "copied" ? "✓ 链接已复制" : "分享"}
       </button>
+      {needLogin && (
+        <a
+          href={`/api/auth/login?next=${encodeURIComponent(typeof window === "undefined" ? "/editor" : window.location.href)}`}
+          className="text-[0.66rem] text-brand underline underline-offset-2"
+        >
+          分享需登录，去登录 →
+        </a>
+      )}
       {err && <span className="text-[0.66rem] text-clay">{err}</span>}
     </span>
   );

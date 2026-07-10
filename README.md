@@ -26,6 +26,7 @@ ANTHROPIC_API_KEY=
 # AI_MODEL=claude-sonnet-5
 
 # 统一登录网关接入（默认关闭；日常开发无需配置，详见 AUTH.md）
+# 双模式：免登录=全功能本地可用；登录=可选增强(分享/未来云同步付费)。开启不会把站点上锁
 AUTH_ENABLED=false
 ```
 

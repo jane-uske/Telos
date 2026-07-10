@@ -28,8 +28,16 @@ export const AUTH_GATEWAY_URL =
 export const AUTH_ME_URL =
   process.env.AUTH_ME_URL ?? `${AUTH_GATEWAY_URL}/api/auth/me`;
 
-/** 需要登录才能访问的路径前缀（AUTH_ENABLED 为 true 时中间件据此拦截） */
-export const PROTECTED_PREFIXES = ["/editor"];
+/**
+ * 需要登录才能访问的路径前缀（AUTH_ENABLED 为 true 时代理据此拦截）。
+ * 双模式设计：默认**空** —— 免登录模式下编辑/导入/导出全部可用（本地存储），
+ * 登录只是可选增强（分享模板、未来的云同步/付费）。真需要整页上锁时用
+ * env AUTH_PROTECTED_PREFIXES=/paid,/account 这类逗号分隔值开启。
+ */
+export const PROTECTED_PREFIXES = (process.env.AUTH_PROTECTED_PREFIXES ?? "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 /** 拼接跳转到网关登录页的完整地址（带回跳） */
 export function buildLoginUrl(returnTo: string): string {
