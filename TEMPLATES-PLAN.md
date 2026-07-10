@@ -1,6 +1,8 @@
 # 模板体系演进方案（已确认）
 
-> 状态：方案已拍板（2026-07-09）。P0 进行中。
+> 状态：**四期已全部实现**（2026-07-09）。P0 模板 26 个；P1 TemplateSpec+SpecRenderer+自定义模板；
+> P2 截图生成(/api/vibe-template)；P3 分享(/api/share-template + /t/[slug]，fork 语义)。
+> 后续可选：自定义模板缩略图、模板广场、AI 生成后的自然语言微调。
 > 三个已确认决策：① 自定义模板是**数据不是代码**；② 分享 V1 = 链接分享 + fork 语义，公开广场后置；③ 顺序 P0 → P1 → P2 → P3。
 
 ## 核心架构决策：TemplateSpec（数据）+ SpecRenderer（通用渲染器）
