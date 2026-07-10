@@ -477,6 +477,67 @@ function renderLayout(layout: TemplateLayout, accent: string) {
         </div>
       );
 
+    case "right-rail":
+      return (
+        <div className="flex h-full">
+          <div className="flex-1 p-2.5">
+            <div className="h-2.5 w-14 rounded-sm bg-ink" />
+            <div className="mt-1 h-1.5 w-16 rounded-sm" style={{ background: accent }} />
+            <Sec accent={accent} />
+            <div className="mt-1.5 space-y-1">
+              <div className="ln-d w-3/4" />
+              <div className="ln" />
+              <div className="ln w-2/3" />
+            </div>
+            <Sec accent={accent} />
+            <div className="mt-1.5 space-y-1">
+              <div className="ln-d w-1/2" />
+              <div className="ln w-5/6" />
+              <div className="ln w-3/4" />
+            </div>
+          </div>
+          <div className="w-[31%] bg-bg-2/70 p-2">
+            <div className="ln w-3/4" />
+            <div className="mt-0.5 space-y-0.5">
+              <div className="ln w-full" />
+              <div className="ln w-2/3" />
+            </div>
+            <Sec accent={accent} />
+            <div className="mt-1 space-y-0.5">
+              <div className="ln" />
+              <div className="ln w-3/4" />
+            </div>
+            <Sec accent={accent} />
+            <div className="mt-1 space-y-0.5">
+              <div className="ln w-5/6" />
+            </div>
+          </div>
+        </div>
+      );
+
+    case "statement":
+      return (
+        <div className="h-full p-3">
+          <div className="h-4 w-20 rounded-sm bg-ink" />
+          <div className="mt-1 h-1.5 w-8 rounded" style={{ background: accent }} />
+          <div className="mt-2 flex items-baseline justify-between">
+            <div className="h-1.5 w-14 rounded-sm bg-muted/60" />
+            <div className="ln w-10" />
+          </div>
+          <Sec accent={accent} />
+          <div className="mt-1.5 space-y-1">
+            <div className="ln-d w-3/4" />
+            <div className="ln" />
+            <div className="ln w-5/6" />
+          </div>
+          <Sec accent={accent} />
+          <div className="mt-1.5 space-y-1">
+            <div className="ln-d w-2/3" />
+            <div className="ln w-3/4" />
+          </div>
+        </div>
+      );
+
     default:
       return null;
   }

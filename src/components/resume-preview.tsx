@@ -1,6 +1,7 @@
 import type { Resume } from "@/lib/schema";
 import type { ResumeTheme, SectionKey } from "@/lib/store";
 import { sectionMeta, hasSectionContent, filled } from "@/lib/store";
+import { templates } from "@/lib/templates";
 
 const defaultTheme: ResumeTheme = {
   template: "classic",
@@ -42,7 +43,10 @@ export function ResumePreview({
 
   const common = { resume: r, accent: theme.accent, sp, fontCss, sectionOrder };
 
-  switch (theme.template) {
+  // 由模板 id 反查布局骨架:同一 layout 的配色/字体变体(如 metro-warm)零成本复用
+  const layout = templates.find((t) => t.id === theme.template)?.layout ?? "classic";
+
+  switch (layout) {
     case "sidebar":
       return <SidebarLayout {...common} />;
     case "banner":
@@ -56,15 +60,19 @@ export function ResumePreview({
     case "two-col":
       return <TwoColLayout {...common} />;
     case "metro":
-    case "metro-warm":
-    case "metro-teal":
       return <MetroLayout {...common} />;
     case "elegant":
-    case "elegant-rose":
       return <ElegantLayout {...common} />;
     case "compact":
-    case "compact-dark":
       return <CompactLayout {...common} />;
+    case "serif":
+      return <SerifLayout {...common} />;
+    case "dark":
+      return <DarkLayout {...common} />;
+    case "right-rail":
+      return <RightRailLayout {...common} />;
+    case "statement":
+      return <StatementLayout {...common} />;
     default:
       return <ClassicLayout {...common} />;
   }
@@ -340,6 +348,112 @@ function CompactLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutP
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ============ 10. 学院衬线(居中正式,Harvard 风)============ */
+function SerifLayout({ resume: r, accent, sp, sectionOrder }: LayoutProps) {
+  const b = r.basics;
+  return (
+    <div className={`sheet ${sp.pad}`} id="resume-sheet" style={{ fontFamily: "var(--font-serif)" }}>
+      <div className="text-center">
+        <p className="font-cn text-[1.7rem] font-bold tracking-[0.08em]">{b.name || "你的姓名"}</p>
+        {b.headline && <p className="mt-1 text-[0.76rem] tracking-wide text-muted">{b.headline}</p>}
+        <div className="mt-2 flex flex-wrap items-center justify-center gap-x-3 text-[0.62rem] text-faint">
+          {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => (
+            <span key={i}>{i > 0 && <span className="mr-3">|</span>}{c}</span>
+          ))}
+        </div>
+      </div>
+      {/* 双细线:学院正式感 */}
+      <div className="mt-3 border-b-2" style={{ borderColor: accent }} />
+      <div className="mt-[2px] border-b border-line" />
+      {b.summary && <p className="mt-4 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
+      {sectionOrder.filter((k) => hasSectionContent(r, k)).map((key, idx) => (
+        <div key={key} className={idx === 0 && !b.summary ? "mt-4" : sp.section}>
+          <p className="mb-2 border-b border-line pb-1 text-[0.66rem] font-bold uppercase tracking-[0.14em]" style={{ color: accent }}>
+            {sectionMeta[key].titleEn}
+          </p>
+          <SectionContent sectionKey={key} resume={r} accent={accent} sp={sp} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ============ 11. 深色高管(深色 header + 纸面正文)============ */
+function DarkLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutProps) {
+  const b = r.basics;
+  return (
+    <div className="sheet overflow-hidden" id="resume-sheet" style={{ fontFamily: fontCss }}>
+      <div className="px-7 py-6 text-white" style={{ background: "oklch(0.23 0.02 255)" }}>
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="font-cn text-2xl font-bold tracking-wide">{b.name || "你的姓名"}</p>
+            {b.headline && <p className="mt-1 text-[0.78rem] opacity-80">{b.headline}</p>}
+          </div>
+          <div className="space-y-0.5 text-right text-[0.62rem] leading-relaxed opacity-70">
+            {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => <div key={i}>{c}</div>)}
+          </div>
+        </div>
+        <div className="mt-4 h-[2px] w-14" style={{ background: accent }} />
+      </div>
+      <div className={sp.pad}>
+        {b.summary && <p className="mb-4 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
+        <Sections resume={r} accent={accent} sp={sp} order={sectionOrder} />
+      </div>
+    </div>
+  );
+}
+
+/* ============ 12. 右栏简约(主内容 + 右侧浅灰栏)============ */
+function RightRailLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutProps) {
+  const b = r.basics;
+  const railKeys: SectionKey[] = ["skills", "languages", "certificates", "awards"];
+  const mainOrder = sectionOrder.filter((k) => !railKeys.includes(k));
+  const railOrder = sectionOrder.filter((k) => railKeys.includes(k));
+  return (
+    <div className="sheet flex overflow-hidden" id="resume-sheet" style={{ fontFamily: fontCss, minHeight: 560 }}>
+      <div className="flex-1 p-6">
+        <p className="font-cn text-2xl font-bold">{b.name || "你的姓名"}</p>
+        {b.headline && <p className="mt-0.5 text-[0.78rem]" style={{ color: accent }}>{b.headline}</p>}
+        {b.summary && <p className="mt-3 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
+        <div className="mt-4">
+          <Sections resume={r} accent={accent} sp={sp} order={mainOrder} />
+        </div>
+      </div>
+      <div className="w-[31%] p-5" style={{ background: "oklch(0.975 0.004 255)" }}>
+        <p className="mb-1.5 text-[0.6rem] font-bold uppercase tracking-wider text-muted">联系方式</p>
+        <div className="space-y-1 text-[0.66rem] leading-relaxed text-ink-2">
+          {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => <div key={i}>{c}</div>)}
+        </div>
+        {railOrder.filter((k) => hasSectionContent(r, k)).map((key) => (
+          <div key={key} className="mt-4">
+            <p className="mb-1.5 text-[0.6rem] font-bold tracking-wider" style={{ color: accent }}>{sectionMeta[key].title}</p>
+            <SectionContent sectionKey={key} resume={r} accent={accent} sp={{ ...sp, item: "space-y-1.5" }} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ============ 13. 大字标题(Statement,超大姓名 + 粗短下划线)============ */
+function StatementLayout({ resume: r, accent, sp, fontCss, sectionOrder }: LayoutProps) {
+  const b = r.basics;
+  return (
+    <div className={`sheet ${sp.pad}`} id="resume-sheet" style={{ fontFamily: fontCss }}>
+      <p className="font-cn text-[2.3rem] font-black leading-tight tracking-tight">{b.name || "你的姓名"}</p>
+      <div className="mt-1.5 h-[5px] w-16" style={{ background: accent }} />
+      <div className="mt-3 flex flex-wrap items-baseline justify-between gap-2">
+        {b.headline && <p className="text-[0.82rem] font-medium text-ink-2">{b.headline}</p>}
+        <div className="flex flex-wrap gap-x-3 text-[0.62rem] text-faint">
+          {[b.email, b.phone, b.location, b.availability].filter(Boolean).map((c, i) => <span key={i}>{c}</span>)}
+        </div>
+      </div>
+      {b.summary && <p className="mt-4 text-[0.74rem] leading-relaxed text-ink-2" dangerouslySetInnerHTML={{ __html: b.summary }} />}
+      <Sections resume={r} accent={accent} sp={sp} order={sectionOrder} />
     </div>
   );
 }

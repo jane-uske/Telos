@@ -123,7 +123,7 @@ function EditorPageInner() {
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" strokeWidth="1.5" className={`ml-0.5 transition-transform ${tplPickerOpen ? "rotate-180" : ""}`}><path d="M1.5 2.5L4 5.5L6.5 2.5" /></svg>
               </button>
               {tplPickerOpen && (
-                <div className="dropdown-in absolute left-0 top-full z-50 mt-1.5 w-[420px] rounded-xl border border-line bg-white p-3 shadow-pop">
+                <div className="dropdown-in absolute left-0 top-full z-50 mt-1.5 max-h-[70vh] w-[420px] overflow-y-auto rounded-xl border border-line bg-white p-3 shadow-pop">
                   <div className="grid grid-cols-4 gap-2.5">
                     {templates.map((t) => (
                       <button
