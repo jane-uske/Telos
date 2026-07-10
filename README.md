@@ -57,7 +57,9 @@ npm run lint     # ESLint
 
 | 文档 | 内容 |
 |---|---|
-| [AUTH.md](./AUTH.md) | 统一登录网关（id.xsticq.com）接入契约与开关 |
+| [DEPLOY.md](./DEPLOY.md) | 部署上线（xsticq 全站：网关 + Telos + Kairos + Caddy + 验收清单） |
+| [AUTH.md](./AUTH.md) | 统一登录网关（id.xsticq.com）接入契约与双模式说明 |
+| [TEMPLATES-PLAN.md](./TEMPLATES-PLAN.md) | 模板体系方案（TemplateSpec / vibe coding / 分享，已实现） |
 | [MONETIZATION.md](./MONETIZATION.md) | 收费方案（分产品 / 不订阅 / 按导出计费，暂缓实现） |
 
 ## 部署要点

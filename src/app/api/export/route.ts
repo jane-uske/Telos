@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
 
   const format = body.format === "html" ? "html" : "pdf";
   const token = putExport(body);
-  const origin = req.nextUrl.origin;
+  // 生产在反代后面时，让无头浏览器走本机回环渲染打印页，不绕公网
+  const origin = process.env.EXPORT_BASE_URL || req.nextUrl.origin;
   const name = body.resume?.basics?.name?.trim() || "我的简历";
   let browser: Browser | undefined;
   try {

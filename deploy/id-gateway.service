@@ -1,0 +1,21 @@
+# systemd 守护统一登录网关（FastAPI/uvicorn，绑 127.0.0.1 只让 Caddy 反代）。
+# <GATEWAY> 换成 id-gateway 仓库绝对路径、<USER> 换成运行用户。
+# 装到 /etc/systemd/system/id-gateway.service → daemon-reload → enable --now id-gateway
+
+[Unit]
+Description=xsticq ID Gateway (uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=<USER>
+WorkingDirectory=<GATEWAY>
+# 配置从 <GATEWAY>/.env 读（config.py 自行加载）
+ExecStart=<GATEWAY>/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8020
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

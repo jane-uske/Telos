@@ -1,0 +1,22 @@
+# systemd 守护 Telos（Next.js，绑 127.0.0.1 只让 Caddy 反代）。
+# <REPO> 换成仓库绝对路径、<USER> 换成运行用户（建议非 root 部署账号）。
+# 装到 /etc/systemd/system/telos.service → daemon-reload → enable --now telos
+
+[Unit]
+Description=Telos resume builder (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=<USER>
+WorkingDirectory=<REPO>
+# 生产环境变量从 .env.local 读（Next 自动加载）；PATH 指向 Node 22
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/npx next start -H 127.0.0.1 -p 3000
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
