@@ -1,12 +1,46 @@
 import { anthropic } from "@ai-sdk/anthropic";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import type { LanguageModel } from "ai";
 import type { Resume } from "./schema";
 
-export function getModel() {
+/**
+ * AI provider 可配置：
+ * - OpenAI 兼容（DeepSeek / 中转站 / one-api…）：设 AI_BASE_URL + AI_API_KEY(+AI_MODEL)
+ * - Anthropic（默认）：设 ANTHROPIC_API_KEY
+ * 只要配了 AI_BASE_URL + AI_API_KEY 就走 OpenAI 兼容，否则回落 Anthropic。
+ */
+function useCompat(): boolean {
+  return Boolean(process.env.AI_BASE_URL && process.env.AI_API_KEY);
+}
+
+function compatProvider() {
+  return createOpenAICompatible({
+    name: "custom",
+    baseURL: process.env.AI_BASE_URL!,
+    apiKey: process.env.AI_API_KEY!,
+  });
+}
+
+/** 文本/结构化模型。DeepSeek 用 deepseek-chat（支持函数调用/JSON），别用纯 reasoner。 */
+export function getModel(): LanguageModel {
+  if (useCompat()) {
+    return compatProvider()(process.env.AI_MODEL ?? "deepseek-chat");
+  }
   return anthropic(process.env.AI_MODEL ?? "claude-sonnet-5");
 }
 
+/** 视觉模型（截图生成模板用）。需支持图片输入；不设则回落到 getModel。 */
+export function getVisionModel(): LanguageModel {
+  if (useCompat()) {
+    const visionId = process.env.AI_VISION_MODEL;
+    if (visionId) return compatProvider()(visionId);
+    return getModel();
+  }
+  return anthropic(process.env.AI_VISION_MODEL ?? process.env.AI_MODEL ?? "claude-sonnet-5");
+}
+
 export function hasApiKey() {
-  return Boolean(process.env.ANTHROPIC_API_KEY);
+  return useCompat() || Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
 /**

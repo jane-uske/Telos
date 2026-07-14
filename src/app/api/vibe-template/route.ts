@@ -1,5 +1,5 @@
 import { streamObject } from "ai";
-import { getModel, hasApiKey } from "@/lib/ai";
+import { getVisionModel, hasApiKey } from "@/lib/ai";
 import { templateSpecSchema } from "@/lib/template-spec";
 import { rateLimit, RL } from "@/lib/rate-limit";
 
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
   }
 
   const result = streamObject({
-    model: getModel(),
+    model: getVisionModel(),
     schema: templateSpecSchema,
     system: SYSTEM_VIBE,
     messages: [
