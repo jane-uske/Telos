@@ -208,8 +208,8 @@ function AiSection() {
       </div>
 
       <div style={{ ...noteStyle, marginTop: 16 }}>
-        隐私说明：Key 只保存在你自己的浏览器里，请求时经由你本机运行的 ProofCV 服务原样转发给上面填写的 AI
-        服务商——不落盘、不记日志。ProofCV 没有服务端数据库，不上传、不托管你的任何资料。
+        隐私说明：Key 只保存在你自己的浏览器里，请求时经由你本机运行的 RoleReady 服务原样转发给上面填写的 AI
+        服务商——不落盘、不记日志。RoleReady 没有服务端数据库，不上传、不托管你的任何资料。
       </div>
     </div>
   );
@@ -255,7 +255,7 @@ function DataSection() {
     const blob = new Blob([json], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "proofcv-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download = "roleready-backup-" + new Date().toISOString().slice(0, 10) + ".json";
     a.click();
     URL.revokeObjectURL(a.href);
     showToast("备份已导出 · 妥善保存，可用于换设备迁移");
@@ -372,7 +372,7 @@ function DataSection() {
 
 export default function Settings() {
   return (
-    <Page title="设置" sub="AI 接入与本机数据管理。Key 和资料都只存在你自己的设备上，ProofCV 不托管任何用户数据。">
+    <Page title="设置" sub="AI 接入与本机数据管理。Key 和资料都只存在你自己的设备上，RoleReady 不托管任何用户数据。">
       <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 760 }}>
         <AiSection />
         <DataSection />

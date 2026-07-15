@@ -15,7 +15,7 @@ const arr = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
 
 export function buildBackup(data: PersistedState): string {
   return JSON.stringify(
-    { app: "proofcv", version: BACKUP_VERSION, exportedAt: new Date().toISOString(), data },
+    { app: "roleready", version: BACKUP_VERSION, exportedAt: new Date().toISOString(), data },
     null,
     2
   );
@@ -53,11 +53,12 @@ export function parseBackup(
   } catch {
     return { ok: false, error: "文件不是有效 JSON" };
   }
-  if (!isObj(raw) || raw.app !== "proofcv" || !isObj(raw.data)) {
-    return { ok: false, error: "这不是 ProofCV 导出的备份文件" };
+  // 兼容改名前（ProofCV 时期）导出的备份
+  if (!isObj(raw) || (raw.app !== "roleready" && raw.app !== "proofcv") || !isObj(raw.data)) {
+    return { ok: false, error: "这不是 RoleReady 导出的备份文件" };
   }
   if (typeof raw.version === "number" && raw.version > BACKUP_VERSION) {
-    return { ok: false, error: "备份来自更新版本的 ProofCV，请先升级应用再导入" };
+    return { ok: false, error: "备份来自更新版本的 RoleReady，请先升级应用再导入" };
   }
   const d = raw.data as Dict;
   const jobs = arr<PersistedState["jobs"][number]>(d.jobs).filter(

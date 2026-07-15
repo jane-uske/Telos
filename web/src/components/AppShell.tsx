@@ -16,6 +16,7 @@ import Qa from "./screens/Qa";
 import Mock from "./screens/Mock";
 import Records from "./screens/Records";
 import Settings from "./screens/Settings";
+import BrandMark from "./BrandMark";
 
 const titles: Record<Tab, string> = {
   dashboard: "工作台",
@@ -107,9 +108,9 @@ export default function AppShell() {
     <div style={{ display: "grid", gridTemplateColumns: "236px 1fr", minHeight: "100vh" }}>
       {/* sidebar */}
       <aside style={{ background: "#fff", borderRight: "1px solid #eceae4", padding: "18px 14px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
-        <div onClick={() => setScreen("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 18, padding: "6px 8px 18px" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontFamily: "'JetBrains Mono'" }}>P</div>
-          ProofCV
+        <div onClick={() => setScreen("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 18, padding: "6px 8px 18px", letterSpacing: "-.02em" }}>
+          <BrandMark size={28} />
+          RoleReady
         </div>
         <div style={sectionLabel}>职业资产</div>
         <NavItem tabKey="dashboard" label="工作台" />

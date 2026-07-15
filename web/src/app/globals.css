@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ProofCV design tokens — see handoff README "Design Tokens" */
+/* RoleReady（原 ProofCV）design tokens — see handoff README "Design Tokens" */
 :root {
   --iris: #5850ec;
   --iris-hover: #4840d8;

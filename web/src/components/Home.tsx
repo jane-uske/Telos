@@ -7,6 +7,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import BrandMark from "./BrandMark";
 
 /* ============================== hooks ============================== */
 
@@ -198,8 +199,8 @@ function HvHeader() {
     >
       <div className="hv-container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 20, letterSpacing: "-.02em" }}>
-          <div style={{ width: 30, height: 30, borderRadius: 8, background: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", ...mono, fontWeight: 700 }}>P</div>
-          ProofCV
+          <BrandMark size={30} />
+          RoleReady
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 26 }}>
           <a href="#story" className="hv-desktop-only" style={link}>经历整理</a>
@@ -1111,13 +1112,13 @@ function HvFooter() {
     <footer style={{ borderTop: "1px solid #eceae4" }}>
       <div className="hv-container" style={{ padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 900, fontSize: 15 }}>
-          <div style={{ width: 24, height: 24, borderRadius: 7, background: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", ...mono, fontSize: 12 }}>P</div>
-          ProofCV
+          <BrandMark size={24} />
+          RoleReady
           <span style={{ fontSize: 12.5, color: "#8a8578", fontWeight: 400, marginLeft: 6 }}>从旧简历到面试准备，一次完成。</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20, fontSize: 12.5, color: "#8a8578" }}>
           <span onClick={enterDemo} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>进入演示</span>
-          <span>© 2026 ProofCV</span>
+          <span>© 2026 RoleReady</span>
         </div>
       </div>
     </footer>

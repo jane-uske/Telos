@@ -1,6 +1,7 @@
-# ProofCV · 实现现状
+# RoleReady（原 ProofCV）· 实现现状
 
 > 记录设计稿到代码的落地进度。设计源见 `project/ProofCV.dc.html`，需求脉络见 `chats/`，交接说明见 `project/design_handoff_proofcv/README.md`。
+> 品牌：产品正式定名 **RoleReady**，标识为深色圆角方块 + 白色 R + 紫蓝渐变上行箭头（`web/src/components/BrandMark.tsx`，favicon 为 `web/src/app/icon.svg`）。本机存储键仍沿用 `proofcv*` 以保证老用户数据不丢；备份文件导出标识改为 `roleready`，导入兼容旧标识。
 
 ## 一句话现状
 
