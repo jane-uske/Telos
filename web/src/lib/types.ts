@@ -12,7 +12,8 @@ export type Tab =
   | "resume"
   | "qa"
   | "mock"
-  | "records";
+  | "records"
+  | "settings";
 
 export type EvidenceStatus = "confirmed" | "pending" | "insufficient";
 

@@ -1,14 +1,14 @@
-// AI interface. In the prototype this called window.claude.complete (Anthropic).
+// AI interface.
 //
-// This build ships in MOCK mode: ask() resolves to null after a short delay, so
-// every handler falls back to its seeded demo data (exactly like the prototype's
-// failure path) while the loading spinner/progress animation still shows.
-//
-// To go live: set NEXT_PUBLIC_AI_LIVE=1 and implement /api/ai as a server route
-// that calls the Anthropic API with ANTHROPIC_API_KEY, returning { text }.
-// ask() already posts there when live — nothing else needs to change.
+// 模式由设置页的运行时配置决定（lib/aiConfig.ts，存用户本机 localStorage）：
+// - 未填 API URL + Key：mock 模式，ask() 延迟后返回 null，调用方回落到
+//   各自「不编造事实」的确定性兜底（与原型的失败路径一致）。
+// - 填了 URL + Key：真实模式，POST /api/ai 纯透传路由（支持 Anthropic 原生 /
+//   OpenAI 兼容双协议），Key 随请求经用户本机服务转发，不落盘、不记日志。
+//   调用失败时提示用户并照常回落兜底，不会假装成功。
 
 import type { InterviewMsg } from "./types";
+import { useAiConfig, aiConfigured } from "./aiConfig";
 
 export interface AskOpts {
   model?: string;
@@ -16,16 +16,28 @@ export interface AskOpts {
   system?: string;
 }
 
-const LIVE = process.env.NEXT_PUBLIC_AI_LIVE === "1";
 const MOCK_LATENCY = 750;
 
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// 失败提示回调由 store 注册（避免 ai.ts ↔ store.ts 循环依赖）
+let onAiError: ((msg: string) => void) | null = null;
+export function setAiErrorHandler(fn: (msg: string) => void) {
+  onAiError = fn;
+}
+
+function fail(msg: string): null {
+  useAiConfig.setState({ lastError: msg });
+  onAiError?.("AI 调用失败：" + msg + " · 本次结果由本地兜底生成");
+  return null;
+}
 
 export async function ask(
   prompt: string | InterviewMsg[],
   opts: AskOpts = {}
 ): Promise<string | null> {
-  if (!LIVE) {
+  const cfg = useAiConfig.getState();
+  if (!aiConfigured(cfg)) {
     // Mock: simulate latency, then signal "no AI result" so callers use fallbacks.
     await delay(MOCK_LATENCY);
     return null;
@@ -38,7 +50,10 @@ export async function ask(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: opts.model || "claude-sonnet-4-5",
+        protocol: cfg.protocol,
+        url: cfg.url,
+        key: cfg.key,
+        model: opts.model || cfg.model,
         max_tokens: opts.max_tokens || 1400,
         system:
           opts.system ||
@@ -46,11 +61,14 @@ export async function ask(
         messages,
       }),
     });
-    if (!res.ok) return null;
-    const data = await res.json();
-    return typeof data?.text === "string" ? data.text : null;
+    const data = await res.json().catch(() => null);
+    if (!res.ok || typeof data?.text !== "string") {
+      return fail(data?.error || "HTTP " + res.status);
+    }
+    useAiConfig.setState({ lastError: null });
+    return data.text;
   } catch {
-    return null;
+    return fail("无法连接本机服务 /api/ai");
   }
 }
 

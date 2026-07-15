@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Page, Btn } from "../ui";
+import { parseBossJson, type BossJobDraft } from "@/lib/bossImport";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -43,10 +44,105 @@ function AddJobCard() {
   );
 }
 
+function BossImportPanel({ onClose }: { onClose: () => void }) {
+  const createJobsFromImport = useStore((x) => x.createJobsFromImport);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pasted, setPasted] = useState("");
+  const [drafts, setDrafts] = useState<BossJobDraft[] | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
+
+  const runParse = (inputs: { name: string; text: string }[]) => {
+    const r = parseBossJson(inputs);
+    setErrors(r.errors);
+    setDrafts(r.drafts.length ? r.drafts : null);
+  };
+  const onFiles = async (files: FileList | null) => {
+    if (!files || !files.length) return;
+    const inputs = await Promise.all(Array.from(files).map(async (f) => ({ name: f.name, text: await f.text() })));
+    runParse(inputs);
+  };
+  const toggle = (key: string) => setDrafts((ds) => (ds ? ds.map((d) => (d.key === key ? { ...d, selected: !d.selected } : d)) : ds));
+  const selected = (drafts || []).filter((d) => d.selected);
+
+  return (
+    <div style={{ gridColumn: "1 / -1", background: "#fff", border: "1.5px solid #5850ec", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 14 }}>导入 Boss 直聘数据</div>
+        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4, lineHeight: 1.7 }}>
+          支持 boss-zhipin-scraper 导出的 <span style={{ fontFamily: "'JetBrains Mono'" }}>boss_jobs_*.json</span> / <span style={{ fontFamily: "'JetBrains Mono'" }}>boss_details_*.json</span>（可同时选择，自动按岗位合并），也可以直接粘贴 JSON。抓取在你本地的 Chrome 完成，这里只读产物、不发请求，缺 JD 详情会如实标注。
+        </div>
+      </div>
+      <input ref={fileRef} type="file" accept=".json,application/json" multiple style={{ display: "none" }} onChange={(e) => { onFiles(e.target.files); e.target.value = ""; }} />
+      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+        <Btn label="选择 JSON 文件" onClick={() => fileRef.current?.click()} />
+        <Btn label="解析粘贴内容" kind="ghost" onClick={() => (pasted.trim() ? runParse([{ name: "粘贴内容", text: pasted }]) : setErrors(["请先在右侧粘贴 JSON"]))} />
+        <textarea
+          placeholder="或直接把 JSON 粘贴到这里…"
+          rows={2}
+          value={pasted}
+          onChange={(e) => setPasted(e.target.value)}
+          style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 9, padding: "8px 11px", fontSize: 12, outline: "none", background: "#fbfbfd", fontFamily: "'JetBrains Mono'", resize: "vertical", lineHeight: 1.6 }}
+        />
+      </div>
+      {errors.length ? (
+        <div style={{ background: "#fff5f5", border: "1px solid #f3d2d2", borderRadius: 10, padding: "9px 12px", fontSize: 12, color: "#d64545", lineHeight: 1.7 }}>
+          {errors.map((e, i) => (
+            <div key={i}>⚠ {e}</div>
+          ))}
+        </div>
+      ) : null}
+      {drafts ? (
+        <>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700 }}>解析出 {drafts.length} 个岗位 · 已选 {selected.length}</div>
+            <div
+              onClick={() => setDrafts(drafts.map((d) => ({ ...d, selected: selected.length !== drafts.length })))}
+              style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}
+            >
+              {selected.length === drafts.length ? "全不选" : "全选"}
+            </div>
+          </div>
+          <div style={{ maxHeight: 280, overflow: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+            {drafts.map((d) => (
+              <div key={d.key} onClick={() => toggle(d.key)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: "1px solid " + (d.selected ? "#d8d4ff" : "#eef0f4"), background: d.selected ? "#faf9ff" : "#fff", borderRadius: 10, padding: "9px 12px" }}>
+                <div style={{ width: 17, height: 17, borderRadius: 5, flexShrink: 0, border: "1.5px solid " + (d.selected ? "#5850ec" : "#c9ccd6"), background: d.selected ? "#5850ec" : "#fff", color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>{d.selected ? "✓" : ""}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <span style={{ fontSize: 13, fontWeight: 700 }}>{d.company}</span>
+                  <span style={{ fontSize: 12.5, color: "#4b5060" }}> · {d.role}</span>
+                  {d.salary ? <span style={{ marginLeft: 8, fontSize: 11, fontFamily: "'JetBrains Mono'", color: "#12805c", fontWeight: 700 }}>{d.salary}</span> : null}
+                  {d.city ? <span style={{ marginLeft: 8, fontSize: 11, color: "#8a919e" }}>{d.city}</span> : null}
+                </div>
+                {d.jdFull ? (
+                  <span style={{ fontSize: 11, color: "#a3a8b5", whiteSpace: "nowrap" }}>JD {d.jd.length} 字</span>
+                ) : (
+                  <span style={{ fontSize: 11, color: "#c2810c", whiteSpace: "nowrap" }}>仅摘要 · 缺 JD 详情</span>
+                )}
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Btn
+              label={"创建 " + selected.length + " 个申请包 →"}
+              onClick={() => {
+                if (!selected.length) return;
+                createJobsFromImport(selected.map((d) => ({ company: d.company, role: d.role, jd: d.jd })));
+                onClose();
+              }}
+            />
+            <Btn label="取消" kind="ghost" onClick={onClose} />
+            <span style={{ fontSize: 11.5, color: "#a3a8b5" }}>已存在相同「公司 + 岗位」的会自动跳过，不会覆盖你已准备的内容。</span>
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Jobs() {
   const s = useStore();
   const openPackage = useStore((x) => x.openPackage);
   const moveJobStatus = useStore((x) => x.moveJobStatus);
+  const [bossOpen, setBossOpen] = useState(false);
 
   return (
     <Page
@@ -54,6 +150,7 @@ export default function Jobs() {
       sub="每个岗位对应一个申请包：JD 分析、专属简历、面试 QA、模拟面试和真实复盘都在包里。新增岗位时直接复用你的证据库，不用重来。"
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+        {bossOpen ? <BossImportPanel onClose={() => setBossOpen(false)} /> : null}
         {s.jobs.map((j) => {
           const qaCount = (s.qa[j.id] || []).length;
           const mockCount = (s.mocks[j.id] || []).length;
@@ -99,6 +196,16 @@ export default function Jobs() {
           );
         })}
         <AddJobCard />
+        {!bossOpen ? (
+          <div
+            onClick={() => setBossOpen(true)}
+            style={{ cursor: "pointer", background: "#fbfbfd", border: "1px dashed #d5d8e3", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#4b5060", minHeight: 170 }}
+          >
+            <div style={{ fontSize: 22, marginBottom: 6 }}>⇪</div>
+            <div style={{ fontWeight: 700, fontSize: 14 }}>导入 Boss 直聘数据</div>
+            <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4, textAlign: "center" }}>boss_jobs / boss_details JSON<br />批量创建申请包</div>
+          </div>
+        ) : null}
       </div>
     </Page>
   );

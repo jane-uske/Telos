@@ -73,10 +73,11 @@ function SheetExp({ spec, r, dc, onColor }: { spec: TemplateSpec; r: Resume; dc:
                 <span style={{ color: ac, marginTop: 6, fontSize: 7, flexShrink: 0 }}>●</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: dc.body, color: onColor ? "rgba(255,255,255,.92)" : "#2f333d", lineHeight: dc.line }}>{b.text}</span>
-                  <span style={{ marginLeft: 6, fontSize: dc.body - 2, color: b.evStatus === "pending" ? "#c2810c" : b.evStatus === "none" ? "#9098a6" : "#12805c", whiteSpace: "nowrap" }}>
+                  {/* data-pcv-annot：内部准备标注，PDF 导出时隐藏（不能出现在给企业的简历上） */}
+                  <span data-pcv-annot="" style={{ marginLeft: 6, fontSize: dc.body - 2, color: b.evStatus === "pending" ? "#c2810c" : b.evStatus === "none" ? "#9098a6" : "#12805c", whiteSpace: "nowrap" }}>
                     {b.evStatus === "pending" ? "· 待确认" : b.evStatus === "none" ? "· 证据不足" : "· 已核验"}
                   </span>
-                  {b.hook ? <span style={{ marginLeft: 4, fontSize: dc.body - 2, color: "#c8622a", whiteSpace: "nowrap" }} title="面试钩子">★</span> : null}
+                  {b.hook ? <span data-pcv-annot="" style={{ marginLeft: 4, fontSize: dc.body - 2, color: "#c8622a", whiteSpace: "nowrap" }} title="面试钩子">★</span> : null}
                 </div>
               </div>
             ))}

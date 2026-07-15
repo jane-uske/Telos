@@ -195,6 +195,39 @@ export default function Resume() {
   const r = s.resumes[j.id];
   const spec = computeSpec(s.resumeSpec, s.resumeTpl);
   const rail = s.resumeRail;
+  const sheetRef = React.useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const exportPdf = async () => {
+    if (exporting || !sheetRef.current) return;
+    const fileName = j.company + "-" + j.role + "-简历.pdf";
+    setExporting(true);
+    try {
+      const res = await fetch("/api/export/pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ html: sheetRef.current.innerHTML, fileName }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        showToast((err && err.error) || "导出失败（HTTP " + res.status + "）");
+        return;
+      }
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+      showToast("PDF 已导出 · 本地 Chrome 渲染，ATS 可解析");
+    } catch {
+      showToast("导出失败：无法连接导出服务");
+    } finally {
+      setExporting(false);
+    }
+  };
 
   if (!r) {
     return (
@@ -240,11 +273,13 @@ export default function Resume() {
             <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280" }}>{j.company} 专属 · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4 · ATS 可解析</div>
             <div style={{ display: "flex", gap: 8 }}>
               <div onClick={() => generateResume()} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}>重新生成</div>
-              <div onClick={() => showToast("已导出文字版 PDF（ATS 可解析，演示）")} style={{ cursor: "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 7, background: "#16181d", color: "#fff" }}>导出 PDF</div>
+              <div onClick={exportPdf} style={{ cursor: exporting ? "wait" : "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 7, background: exporting ? "#6b7280" : "#16181d", color: "#fff" }}>{exporting ? "导出中…" : "导出 PDF"}</div>
             </div>
           </div>
           <div style={{ padding: "26px 30px", maxHeight: "calc(100vh - 210px)", overflow: "auto" }}>
-            <RenderSheet r={r} spec={spec} />
+            <div ref={sheetRef}>
+              <RenderSheet r={r} spec={spec} />
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
