@@ -25,10 +25,14 @@ function endpointFor(protocol: string, raw: string): string {
   return /\/v\d+$/.test(u) ? u + "/chat/completions" : u + "/v1/chat/completions";
 }
 
+// 部分中转站/推理模型（DeepSeek-R1、Doubao-thinking、QwQ 等）不严格遵循标准
+// 响应结构：有的把 content 直接给字符串而不是块数组，有的把正文放进
+// reasoning_content，兼容这些常见变体，尽量取到正文。
 function extractText(protocol: string, data: unknown): string | null {
   const d = data as Record<string, unknown>;
   if (protocol === "anthropic") {
     const content = d?.content;
+    if (typeof content === "string") return content || null;
     if (!Array.isArray(content)) return null;
     const text = content
       .filter((c) => c && (c as { type?: string }).type === "text")
@@ -38,8 +42,28 @@ function extractText(protocol: string, data: unknown): string | null {
   }
   const choices = d?.choices;
   if (!Array.isArray(choices)) return null;
-  const msg = (choices[0] as { message?: { content?: unknown } })?.message;
-  return typeof msg?.content === "string" && msg.content ? msg.content : null;
+  const msg = (choices[0] as { message?: { content?: unknown; reasoning_content?: unknown } })?.message;
+  if (typeof msg?.content === "string" && msg.content) return msg.content;
+  if (Array.isArray(msg?.content)) {
+    const text = (msg.content as unknown[])
+      .filter((c) => c && (c as { type?: string }).type === "text")
+      .map((c) => (c as { text?: string }).text || "")
+      .join("");
+    if (text) return text;
+  }
+  return typeof msg?.reasoning_content === "string" && msg.reasoning_content ? msg.reasoning_content : null;
+}
+
+// content 里只有思考块、没有正文块，且是被 max_tokens 截断——说明思考没结束，
+// 不是格式不对，给出更准确的提示引导用户调大 max_tokens。
+function truncatedWhileThinking(protocol: string, data: unknown): boolean {
+  const d = data as Record<string, unknown>;
+  if (protocol !== "anthropic") return false;
+  const content = d?.content;
+  if (!Array.isArray(content) || !content.length) return false;
+  const hasThinking = content.some((c) => c && /thinking/.test((c as { type?: string }).type || ""));
+  const hasText = content.some((c) => c && (c as { type?: string }).type === "text");
+  return hasThinking && !hasText && d?.stop_reason === "max_tokens";
 }
 
 // 上游报错时尽量把服务商的原话带回给用户，方便排查（错 Key / 错模型名 / 欠费…）
@@ -110,6 +134,11 @@ export async function POST(req: NextRequest) {
   if (!res.ok) return Response.json({ error: upstreamError(data, res.status) }, { status: 502 });
 
   const text = extractText(protocol, data);
-  if (!text) return Response.json({ error: "AI 返回内容为空或格式不识别（检查协议类型是否选对）" }, { status: 502 });
+  if (!text) {
+    const error = truncatedWhileThinking(protocol, data)
+      ? "AI 还在思考阶段就被 max_tokens 截断，没来得及输出正文，请调大 max_tokens 后重试"
+      : "AI 返回内容为空或格式不识别（检查协议类型是否选对）";
+    return Response.json({ error }, { status: 502 });
+  }
   return Response.json({ text });
 }
