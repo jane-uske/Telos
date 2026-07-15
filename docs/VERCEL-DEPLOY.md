@@ -1,5 +1,11 @@
 # RoleReady · Vercel 部署指南
 
+> **当前线上（2026-07-16）**：Vercel 项目 **`roleready`**（team janes-projects），生产域名
+> **https://roleready.remi.run**（Cloudflare CNAME → cname.vercel-dns.com，misconfigured=false）。
+> 未接 Git 集成，发版走 CLI：`cd web && npx vercel deploy --prod`。
+> Deployment Protection 已设为仅保护 Preview（production 公开）。
+> `NEXT_PUBLIC_RR_API_BASE` 未设置，走代码默认 `https://api.remi.run`（后端已上线，见 `docs/BACKEND-API.md`）。
+
 ## 一次性设置
 
 1. Vercel 新建项目，导入本仓库。

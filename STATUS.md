@@ -10,7 +10,7 @@
 1. **新用户与演示彻底分离**：默认空白状态（0 经历 0 岗位）；「查看演示」是显式动作，进入前自动把真实数据快照到独立 IndexedDB key、退出演示时原样恢复，全程显示演示徽标——示例数据与真实数据零混合。旧的假登录页（`Auth.tsx`）删除，价值先行、不强制登录。
 2. **数据模型 ID 化 + 迁移**：`ResumeBullet.evId` / `MatchItem.evId` 成为正式关联（标题只是展示缓存），persist v1→v2 迁移按标题回填 ID（简历、历史版本、匹配全部覆盖；备份导入同样迁移）；改经历标题不再断联，ID 失配时明确提示「原经历已不在库中」而非静默丢失。
 3. **Match 成为正式生成输入**：`matchBrief()` 把强匹配（优先突出）/ 弱匹配（谨慎表达）/ 未匹配（禁止虚构）/ 建议弱化 / 风险表述（生成对应追问）作为硬约束注入简历生成、QA 生成与模拟面试官 system prompt。每条简历 bullet 显示来源经历（⛁ 按 evId 实时解析）、对应岗位要求（🎯 jdReq）与修改原因。
-4. **登录与三态 AI**：`aiMode()` = BYOK（自带 Key，透传 `/api/ai`，无需登录）→ hosted（登录走 api.remi.run，契约见 `docs/BACKEND-API.md`，前端已对接，**后端模块待部署**）→ none（基础模式）。匿名点在线 AI 功能弹门控（登录 / 基础模式继续 / 取消）；登录（GitHub 整页跳转带 `#rr_token` 回跳 / 邮箱验证码）成功后**自动续跑**被拦下的操作（挂起动作存 sessionStorage，跨整页跳转存活）。登录/退出/删除账号都不动本机数据。
+4. **登录与三态 AI**：`aiMode()` = BYOK（自带 Key，透传 `/api/ai`，无需登录）→ hosted（登录走 api.remi.run，契约见 `docs/BACKEND-API.md`，前后端均已上线）→ none（基础模式）。匿名点在线 AI 功能弹门控（登录 / 基础模式继续 / 取消）；登录（GitHub 整页跳转带 `#rr_token` 回跳 / 邮箱验证码）成功后**自动续跑**被拦下的操作（挂起动作存 sessionStorage，跨整页跳转存活）。登录/退出/删除账号都不动本机数据。
 5. **诚实性**：所有生成物带来源标注（`genSource`：在线 AI 生成 / 基础模式·本地规则 / 演示数据）；AI 失败不再静默回落——结果不写入、原样报错；聊天失败把用户输入退回输入框。假的「上传录音四段流水线」删除，改为「录音自动转录即将上线」静态说明 + 粘贴转写为唯一路径；导入解析的基础模式改用真实的本地规则切分器（`lib/resumeParse.ts`），不再返回预制假内容。
 6. **整理经历两入口**：「我有旧简历」= 粘贴 / 上传 TXT、Markdown、带文本层的 PDF（`pdfjs-dist` 浏览器本地解析、不上传；扫描版明确拒绝并提示；DOCX 明确不支持给出替代路径），解析先预览、逐段确认才入库；「我没有简历」= AI 访谈从零整理，支持工作/实习/项目/个人项目/开源五类。
 7. **岗位与进度**：侧边栏单入口，页内「找目标岗位 / 我的申请」双视图；投递进度（七态）与准备完成度（五步 n/5 分段条）视觉分离、各有说明。「准备这个岗位」首屏收敛为：岗位卡（含投递状态+完成度）+ 五步流水线 + 「当前最应该做的一步」黑条主按钮；JD 拆解/证据匹配/风险默认折叠。
@@ -18,7 +18,7 @@
 9. **简历页眉真实化 + 打印 PDF**：新增本机 `profile`（姓名/头衔/城市/邮箱/链接，简历编辑器「个人信息」栏），`SpecRenderer` 不再硬编码「林深」。默认导出 = 浏览器「打印/保存为 PDF」（portal 到 body 的干净版挂载点 + `@media print`，内部标注 evStatus/★钩子在打印 DOM 里**不渲染**）；服务端 Chrome 导出降级为本地开发可选项。
 10. **Vercel 就绪**：`/api/health`、安全响应头（nosniff / DENY / Referrer-Policy / Permissions-Policy，麦克风 self）、`/api/*` no-store、`.env.example`（全部可选）、构建零外部依赖；`/admin` 最小用量页（总量/按功能/按模型/失败率/Top/异常，服务端管理员鉴权）。部署见 `docs/VERCEL-DEPLOY.md`。
 
-**已知阻断项**：api.remi.run 的 roleready 后端模块（登录/AI 代理/用量）待在 remi gateway 实现与部署——前端在该后端就绪前自动表现为「基础模式 + BYOK」，不影响本地功能。
+**上线状态（2026-07-16）**：前端已部署 **https://roleready.remi.run**（Vercel 项目 `roleready`，CLI 部署：`cd web && npx vercel deploy --prod`）。后端模块已在 remi gateway 实现并部署到 **api.remi.run/roleready/v1/\***（remi 仓库 `server/gateway/roleready/`，commit `79a5bc1f`；单测 13 条 + E2E 29 断言 + 生产真实 Claude 调用冒烟全绿）。AI 链路 api.remi.run → sub2api.remi.run → Claude 订阅已打通（sub2api 专用 key `roleready`）。**剩余需人工配置**：GitHub OAuth App（`ROLEREADY_GITHUB_CLIENT_ID/SECRET`）与 Resend 发信（`ROLEREADY_RESEND_API_KEY`）——两者配一即可登录；配好前线上表现为「基础模式 + BYOK」，登录弹窗诚实提示「暂未开通」。
 
 ## 一句话现状（v2 历史）
 
