@@ -49,3 +49,123 @@ input, textarea, select, button { font-family: inherit; }
 @keyframes pcvPulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
 @keyframes pcvSpin { to { transform: rotate(360deg); } }
 @keyframes pcvBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
+
+/* ===================== Home v3 · narrative landing ===================== */
+
+html { scroll-behavior: smooth; }
+
+.hv { background: var(--home-bg); color: var(--ink); overflow-x: clip; }
+
+.hv-container { max-width: 1180px; margin: 0 auto; padding: 0 32px; width: 100%; }
+
+/* --- reveal on enter viewport: slight rise + fade --- */
+.hv-reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .8s cubic-bezier(.22,1,.36,1), transform .8s cubic-bezier(.22,1,.36,1);
+  will-change: opacity, transform;
+}
+.hv-reveal.in { opacity: 1; transform: none; }
+
+/* --- step fade: element already occupies layout, fades into place --- */
+.hv-step {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .65s ease, transform .65s cubic-bezier(.22,1,.36,1);
+}
+.hv-step.in { opacity: 1; transform: none; }
+
+/* --- glass: only for floating annotation/QA/status cards --- */
+.hv-glass {
+  background: rgba(255,255,255,.62);
+  -webkit-backdrop-filter: blur(14px) saturate(1.12);
+  backdrop-filter: blur(14px) saturate(1.12);
+  border: 1px solid rgba(22,24,29,.08);
+  box-shadow: 0 18px 44px -30px rgba(22,24,29,.3);
+}
+
+/* --- text highlighter sweep (analysis feel: slow, left→right, once) --- */
+.hv-mark {
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  background-image: linear-gradient(transparent 60%, rgba(88,80,236,.18) 60%);
+  transition: background-size .9s cubic-bezier(.22,1,.36,1) .12s;
+  border-radius: 2px;
+}
+.hv-mark.warn { background-image: linear-gradient(transparent 60%, rgba(194,129,12,.22) 60%); }
+.hv-mark.on { background-size: 100% 100%; }
+
+/* --- content swap (job-angle switch, hook switch): fade+rise, marks re-sweep --- */
+.hv-swap { animation: hvSwapIn .45s ease both; }
+@keyframes hvSwapIn { from { opacity: 0; transform: translateY(10px); } }
+.hv-swap .hv-mark { animation: hvSweep .85s cubic-bezier(.22,1,.36,1) .5s both; }
+@keyframes hvSweep { from { background-size: 0% 100%; } to { background-size: 100% 100%; } }
+
+/* --- scrollytelling: tall section + sticky pin --- */
+.hv-scrolly { position: relative; }
+.hv-pin {
+  position: sticky;
+  top: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 48px 0;
+}
+
+.hv-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+.hv-hero-grid { display: grid; grid-template-columns: 1.02fr .98fr; gap: 56px; align-items: center; }
+
+/* --- buttons --- */
+.hv-btn {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 15px;
+  padding: 14px 26px;
+  border: 1px solid transparent;
+  transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+.hv-btn:active { transform: translateY(1px) scale(.99); }
+.hv-btn-primary { background: var(--iris); color: #fff; box-shadow: 0 6px 20px rgba(88,80,236,.26); }
+.hv-btn-primary:hover { background: var(--iris-hover); transform: translateY(-1px); box-shadow: 0 10px 26px rgba(88,80,236,.32); }
+.hv-btn-ghost { background: #fff; border-color: #e6e3db; color: var(--ink); font-weight: 500; }
+.hv-btn-ghost:hover { transform: translateY(-1px); box-shadow: 0 8px 22px -14px rgba(22,24,29,.35); }
+.hv-btn-dark { background: var(--ink); color: #fff; font-weight: 500; font-size: 13.5px; padding: 9px 18px; border-radius: 9px; }
+.hv-btn-dark:hover { background: #2a2d38; }
+
+/* --- waveform bars (recording replay stage) --- */
+.hv-wave-bar { transform-origin: 50% 50%; }
+.hv-wave-bar.live { animation: hvWave 1.5s ease-in-out infinite; }
+@keyframes hvWave { 0%, 100% { transform: scaleY(.5); } 50% { transform: scaleY(1); } }
+
+/* --- interactive rows --- */
+.hv-hook { cursor: pointer; transition: background .3s ease, border-color .3s ease; border-radius: 8px; }
+.hv-hook:hover { background: var(--iris-025); }
+
+.hv-tab { cursor: pointer; transition: background .3s ease, color .3s ease, border-color .3s ease; }
+
+/* --- responsive --- */
+@media (max-width: 880px) {
+  .hv-container { padding: 0 20px; }
+  .hv-cols, .hv-hero-grid { grid-template-columns: 1fr; gap: 32px; }
+  .hv-scrolly { height: auto !important; }
+  .hv-pin { position: static; min-height: 0; padding: 0; }
+  .hv-desktop-only { display: none !important; }
+}
+
+/* --- reduced motion: everything lands in its final state, no autoplay --- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .hv-reveal, .hv-step { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .hv-mark { transition: none !important; }
+  .hv-mark.on { background-size: 100% 100% !important; }
+  .hv-swap, .hv-swap .hv-mark { animation: none !important; }
+  .hv-swap .hv-mark { background-size: 100% 100%; }
+  .hv-wave-bar.live { animation: none !important; }
+  .hv-btn { transition: none; }
+}

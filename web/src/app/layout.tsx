@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ProofCV · AI 职业资产与求职作战平台",
+  title: "ProofCV · 从旧简历到面试准备，一次完成",
   description:
-    "从零散经历中提取可追溯的职业证据，生成可信、可核验的简历与求职材料。",
+    "导入旧简历，AI 帮你找回遗漏的项目细节，针对目标岗位生成专属简历、面试 QA 和模拟面试。每参加一次面试，下一次准备都会更充分。",
 };
 
 export default function RootLayout({
