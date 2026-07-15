@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ProofCV design tokens — see handoff README "Design Tokens" */
+:root {
+  --iris: #5850ec;
+  --iris-hover: #4840d8;
+  --iris-050: #f1f0fb;
+  --iris-025: #faf9ff;
+  --ink: #16181d;
+  --ink-2: #2f333d;
+  --ink-3: #4b5060;
+  --muted: #6b7280;
+  --muted-2: #8a919e;
+  --muted-3: #a3a8b5;
+  --border: #ececf2;
+  --border-2: #eef0f4;
+  --border-3: #f0f0f5;
+  --border-input: #e6e8ee;
+  --app-bg: #f6f7fb;
+  --home-bg: #faf9f7;
+  --ok: #12805c;
+  --ok-050: #e6f5ee;
+  --ok-025: #eef8f2;
+  --warn: #c2810c;
+  --warn-050: #fdf3e0;
+  --warn-025: #fdf7ec;
+  --risk: #d64545;
+  --risk-050: #fff5f5;
+  --coach: #e8896b;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+  color: #16181d;
+  background: #f6f7fb;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: #5850ec; text-decoration: none; }
+a:hover { color: #4840d8; }
+::selection { background: #dcd9ff; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #d5d8e3; border-radius: 8px; border: 3px solid #f6f7fb; }
+
+input, textarea, select, button { font-family: inherit; }
+
+@keyframes pcvFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes pcvPulse { 0%, 100% { opacity: .35; } 50% { opacity: 1; } }
+@keyframes pcvSpin { to { transform: rotate(360deg); } }
+@keyframes pcvBar { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
