@@ -111,11 +111,28 @@ export default function AppShell() {
         <NavItem tabKey="evidence" label="职业证据库" badge={String(evidenceCount)} />
         <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>求职作战</div>
         <NavItem tabKey="jobs" label="岗位列表" badge={String(jobsCount)} />
-        <NavItem tabKey="pkg" label="岗位申请包" />
-        <NavItem tabKey="resume" label="简历编辑器" />
-        <NavItem tabKey="qa" label="面试 QA" />
-        <NavItem tabKey="mock" label="模拟面试" />
-        <NavItem tabKey="records" label="面试记录与复盘" badge={pendingSugs ? String(pendingSugs) : undefined} />
+
+        {/* 当前申请包：简历 / QA / 模拟 / 复盘都从属于它，用分组表达层级 */}
+        <div style={{ marginTop: 12, border: "1px solid #e6e2f7", background: "#faf9ff", borderRadius: 12, padding: "8px 6px 6px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 6px 8px" }}>
+            <span style={{ fontSize: 10.5, letterSpacing: ".05em", color: "#a3a8b5", fontWeight: 700 }}>当前申请包</span>
+            <span onClick={() => go("jobs")} className="pcv-link" style={{ fontSize: 11 }}>切换</span>
+          </div>
+          {activeJob ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 6px 10px" }}>
+              <div style={{ width: 26, height: 26, borderRadius: 8, background: "#16181d", color: "#fff", fontSize: 11.5, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>{activeJob.logo}</div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.company}</div>
+                <div style={{ fontSize: 10.5, color: "#8a919e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.role}</div>
+              </div>
+            </div>
+          ) : null}
+          <NavItem tabKey="pkg" label="申请包总览" />
+          <NavItem tabKey="resume" label="专属简历" />
+          <NavItem tabKey="qa" label="面试 QA" />
+          <NavItem tabKey="mock" label="模拟面试" />
+          <NavItem tabKey="records" label="面试复盘" badge={pendingSugs ? String(pendingSugs) : undefined} />
+        </div>
         <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid #f0efe9", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 99, background: "#dcd9ff", color: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>林</div>
           <div style={{ flex: 1, minWidth: 0 }}>
