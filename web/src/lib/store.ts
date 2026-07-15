@@ -125,6 +125,7 @@ interface State {
 
   // 岗位
   createJob: () => void;
+  createJobsFromImport: (list: { company: string; role: string; jd: string }[]) => void;
   updateJd: (id: string, val: string) => void;
   moveJobStatus: (id: string, dir: number) => void;
   analyzeJd: () => Promise<void>;
@@ -336,6 +337,40 @@ export const useStore = create<State>((set, get) => ({
     set((st) => ({ jobs: st.jobs.concat([job]), activeJobId: job.id, recJobId: job.id, jobDraft: null }));
     get().go("pkg");
     get().showToast("岗位申请包已创建 · 先分析 JD");
+  },
+
+  createJobsFromImport: (list) => {
+    const existing = new Set(get().jobs.map((j) => (j.company + "|" + j.role).toLowerCase()));
+    const fresh: Job[] = [];
+    let skipped = 0;
+    for (const item of list) {
+      const company = item.company.trim();
+      const jd = item.jd.trim();
+      if (!company || !jd) continue;
+      const k = (company + "|" + item.role.trim()).toLowerCase();
+      if (existing.has(k)) {
+        skipped++;
+        continue;
+      }
+      existing.add(k);
+      fresh.push({
+        id: uid("j"),
+        company,
+        role: item.role.trim() || "目标岗位",
+        status: "saved",
+        statusLabel: "收藏",
+        match: 0,
+        updated: "刚刚",
+        logo: company.slice(0, 1),
+        jd,
+      });
+    }
+    if (!fresh.length) {
+      get().showToast(skipped ? "全部 " + skipped + " 个岗位已存在，未重复导入" : "没有可导入的岗位");
+      return;
+    }
+    set((st) => ({ jobs: st.jobs.concat(fresh) }));
+    get().showToast("已导入 " + fresh.length + " 个岗位申请包" + (skipped ? "，跳过 " + skipped + " 个重复岗位" : "") + " · 逐个分析 JD 开始准备");
   },
 
   updateJd: (id, val) =>

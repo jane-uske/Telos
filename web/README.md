@@ -64,13 +64,21 @@ To go live:
   header / section / typography / colors; no code flows through, so A4/ATS stays
   safe) with 14 presets; `src/components/SpecRenderer.tsx` is the ported
   **SpecRenderer** (single / sidebar-left / sidebar-right / banner skeletons).
-  Production should reuse Telos's Zod schema and its Puppeteer PDF/HTML export.
-- **boss-zhipin-scraper** (`eatmoreduck/boss-zhipin-scraper`) → the 岗位市场
-  module. The 7 market dimensions and the optimization-prompt match
-  `scripts/job_summary.py` (`build_summary` / `build_prompt`). Scraping needs a
-  local logged-in Chrome via CDP and can't run in the browser — production runs
-  that Python as a backend/CLI and the frontend reads its `boss_jobs_*.json` /
-  `boss_details_*.json` output.
+  **PDF export is real now**: `src/app/api/export/pdf/route.ts` is a
+  Telos-style Puppeteer HTML→PDF server route (`puppeteer-core` + your local
+  Chrome, located by `src/lib/chrome.ts` — env `CHROME_PATH` overrides). The
+  editor posts the rendered SpecRenderer DOM (all inline styles) to it, so
+  there is no duplicated rendering logic; internal prep annotations
+  (`data-pcv-annot`: 已核验/待确认/证据不足/★钩子) are stripped from the
+  employer-facing PDF.
+- **boss-zhipin-scraper** (`eatmoreduck/boss-zhipin-scraper`) → 岗位列表's
+  「导入 Boss 直聘数据」. Scraping needs a local logged-in Chrome via CDP and
+  can't run in the browser — you run the Python locally and import its
+  `boss_jobs_*.json` / `boss_details_*.json` output (file picker or paste;
+  `src/lib/bossImport.ts` merges jobs+details by job id, tolerates field-name
+  variants, flags entries that lack a real JD, and dedupes against existing
+  jobs — nothing is fabricated for missing fields). Each imported job becomes
+  an application package.
 
 ## Notes
 
