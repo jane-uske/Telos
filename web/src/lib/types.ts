@@ -1,6 +1,6 @@
-// ProofCV domain types — v2 iteration: 8-page scope, application-package-centric.
+// RoleReady domain types — Beta: application-package-centric, local-first.
 
-export type Screen = "home" | "auth" | "app";
+export type Screen = "home" | "app";
 
 export type Tab =
   | "dashboard"
@@ -17,9 +17,13 @@ export type Tab =
 
 export type EvidenceStatus = "confirmed" | "pending" | "insufficient";
 
+/** 经历类型：工作 / 实习 / 项目 / 个人项目 / 开源 */
+export type EvidenceKind = "work" | "intern" | "project" | "personal" | "opensource";
+
 export interface Evidence {
   id: string;
   title: string;
+  kind?: EvidenceKind;
   project: string;
   background: string;
   /** 用户实际负责内容（区分个人 vs 团队） */
@@ -68,6 +72,9 @@ export interface Analysis {
 
 export interface MatchItem {
   req: string;
+  /** 关联证据的稳定 ID（v2 起的正式关联；null = 无证据） */
+  evId?: string | null;
+  /** 证据标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
   ev: string | null;
   note: string;
 }
@@ -101,9 +108,13 @@ export interface ResumeBullet {
   /** 风险修正类建议（去夸大） */
   risk?: boolean;
   decision?: "accepted" | "rejected" | "edited";
-  /** 关联的职业证据标题；null = 无证据支撑 */
+  /** 关联证据的稳定 ID（v2 起的正式关联；null = 无证据支撑） */
+  evId?: string | null;
+  /** 证据标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
   ev: string | null;
   evStatus: BulletEvStatus;
+  /** 对应的岗位要求（来自 Match，说明这条为什么这样写） */
+  jdReq?: string;
   /** 面试钩子：主动引导面试官追问 */
   hook: boolean;
   /** 容易被继续追问的点 */
@@ -281,4 +292,40 @@ export interface ImportSegment {
   company: string;
   period: string;
   bullets: string[];
+}
+
+/** 简历页眉用的个人信息（本机保存，不上传） */
+export interface UserProfile {
+  name: string;
+  headline: string;
+  city: string;
+  email: string;
+  link: string;
+}
+
+export const emptyProfile = (): UserProfile => ({ name: "", headline: "", city: "", email: "", link: "" });
+
+/** 生成物来源：在线 AI / 基础模式（本地规则） / 演示数据 */
+export type GenSource = "ai" | "basic" | "demo";
+
+/** 登录 / 授权门控里挂起的 AI 操作——登录成功后自动续跑 */
+export interface PendingAiAction {
+  type:
+    | "analyzeJd"
+    | "batchAnalyze"
+    | "prepPackage"
+    | "generateResume"
+    | "generateQa"
+    | "startMock"
+    | "sendMock"
+    | "endMock"
+    | "analyzeRecord"
+    | "doImport"
+    | "startInterview"
+    | "sendInterview"
+    | "endInterview";
+  jobId?: string;
+  /** startInterview 需要的项目上下文（可序列化） */
+  projId?: string;
+  projTitle?: string;
 }

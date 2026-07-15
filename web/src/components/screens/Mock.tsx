@@ -102,13 +102,13 @@ export default function Mock() {
   const endMock = useStore((x) => x.endMock);
   const exitMock = useStore((x) => x.exitMock);
 
-  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
-  const r = s.resumes[j.id];
-  const sessions = s.mocks[j.id] || [];
-  const qa = s.qa[j.id] || [];
+  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0] || null;
+  const r = j ? s.resumes[j.id] : undefined;
+  const sessions = j ? s.mocks[j.id] || [] : [];
+  const qa = j ? s.qa[j.id] || [] : [];
   const hooks = (r?.exp || []).flatMap((x) => x.bullets).filter((b) => b.hook);
   const weakQa = qa.filter((q) => q.prep === "risk" || (q.highRisk && q.prep !== "done"));
-  const lastRec = s.records.filter((x) => x.jobId === j.id).slice(-1)[0];
+  const lastRec = j ? s.records.filter((x) => x.jobId === j.id).slice(-1)[0] : undefined;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -121,6 +121,14 @@ export default function Mock() {
     useStore.setState((st) => ({ mockInput: st.mockInput + t }))
   );
 
+  if (!j) {
+    return (
+      <Page title="模拟面试" sub="面试官读过你的简历、知道你的钩子和薄弱点，像真实面试一样连续追问。">
+        <Empty title="还没有目标岗位" desc="模拟面试基于具体岗位的专属简历。先添加岗位、生成简历，再来模拟。" action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />} />
+      </Page>
+    );
+  }
+
   // 进行中的模拟面试
   if (s.mockActive && !s.mockReport) {
     return (
@@ -129,7 +137,9 @@ export default function Mock() {
           <div style={{ padding: "14px 18px", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <div style={{ fontWeight: 700, fontSize: 14 }}>模拟面试：{j.company} · {j.role}</div>
-              <div style={{ fontSize: 11.5, color: "#8a919e" }}>面试官基于你的当前简历提问 · 会优先追问钩子与薄弱点</div>
+              <div style={{ fontSize: 11.5, color: s.mockBasic ? "#c2810c" : "#8a919e" }}>
+                {s.mockBasic ? "基础模式 · 本地预设面试官（固定套路问题，不调用在线 AI）" : "面试官基于你的当前简历提问 · 会优先追问钩子与薄弱点"}
+              </div>
             </div>
             <div onClick={() => exitMock()} style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }}>退出</div>
           </div>

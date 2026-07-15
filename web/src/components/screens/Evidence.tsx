@@ -153,8 +153,10 @@ export default function Evidence() {
   const evidence = useStore((s) => s.evidence);
   const filt = useStore((s) => s.evidenceFilter);
   const go = useStore((s) => s.go);
+  const jobsCount = useStore((s) => s.jobs.length);
 
   const list = evidence.filter((e) => filt === "all" || e.status === filt);
+  const confirmed = evidence.filter((e) => e.status === "confirmed").length;
   const counts = {
     all: evidence.length,
     confirmed: evidence.filter((e) => e.status === "confirmed").length,
@@ -174,31 +176,57 @@ export default function Evidence() {
   return (
     <Page
       title="整理我的经历"
-      sub="把过去做过的事情重新想清楚。每条经历都标注来源与确认状态——AI 不会替你编造数据，缺什么就用访谈补什么。新增岗位时直接复用，不用重复填写。"
+      sub="把过去做过的事情重新想清楚。每段经历都标注来源与确认状态——不会替你编造数据，缺什么就用访谈补什么。所有岗位共用这份经历库。"
       actions={
         <div style={{ display: "flex", gap: 10 }}>
-          <Btn label="导入旧简历" kind="ghost" onClick={() => go("import")} />
-          <Btn label="AI 访谈补全经历" kind="soft" onClick={() => go("interview")} />
+          <Btn label="我有旧简历 · 上传/粘贴" kind="ghost" onClick={() => go("import")} />
+          <Btn label="我没有简历 · AI 从零整理" kind="soft" onClick={() => go("interview")} />
         </div>
       }
     >
-      <div style={{ display: "flex", gap: 9, marginBottom: 18 }}>
-        {fbtn("all", "全部")}
-        {fbtn("confirmed", "已确认")}
-        {fbtn("pending", "待确认")}
-        {fbtn("insufficient", "证据不足")}
-      </div>
-      {list.length ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          {list.map((e) => (
-            <EvidenceCard key={e.id} e={e} />
-          ))}
+      {!evidence.length ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, maxWidth: 860 }}>
+          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 22 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>我有旧简历</div>
+            <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.7, marginBottom: 14 }}>
+              粘贴文本，或上传 .txt / .md / 带文本层的 .pdf（在浏览器本地解析，不上传服务器）。拆解出的每段经历都先预览、再由你确认。
+            </div>
+            <Btn label="上传 / 粘贴旧简历 →" onClick={() => go("import")} />
+          </div>
+          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 22 }}>
+            <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>我没有简历</div>
+            <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.7, marginBottom: 14 }}>
+              用 AI 访谈从零整理：工作、实习、项目、个人项目、开源经历都行。像面试官一样连续追问背景、职责、行动、难点、结果和证据，确认后才保存。
+            </div>
+            <Btn label="开始 AI 访谈 →" kind="dark" onClick={() => go("interview")} />
+          </div>
         </div>
       ) : (
-        <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.8 }}>
-          这个状态下还没有证据卡。{"\n"}
-          <span onClick={() => go("import")} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>导入旧简历</span> 或 <span onClick={() => go("interview")} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>发起 AI 访谈</span> 来沉淀你的第一张证据卡。
-        </div>
+        <>
+          {confirmed > 0 && !jobsCount ? (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, background: "#e6f5ee", border: "1px solid #bfe6d4", borderRadius: 12, padding: "11px 14px", marginBottom: 16, flexWrap: "wrap" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#12805c" }}>✓ 已确认 {confirmed} 段经历——可以开始准备岗位了。</span>
+              <Btn label="下一步：添加目标岗位 →" kind="dark" onClick={() => go("jobs")} />
+            </div>
+          ) : null}
+          <div style={{ display: "flex", gap: 9, marginBottom: 18 }}>
+            {fbtn("all", "全部")}
+            {fbtn("confirmed", "已确认")}
+            {fbtn("pending", "待确认")}
+            {fbtn("insufficient", "证据不足")}
+          </div>
+          {list.length ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              {list.map((e) => (
+                <EvidenceCard key={e.id} e={e} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.8 }}>
+              这个状态下还没有经历。
+            </div>
+          )}
+        </>
       )}
     </Page>
   );

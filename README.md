@@ -1,25 +1,52 @@
-# CODING AGENTS: READ THIS FIRST
+# RoleReady
 
-This is a **handoff bundle** from Claude Design (claude.ai/design).
+> 你的职业资料属于你，不属于平台。
 
-A user mocked up designs in HTML/CSS/JS using an AI design tool, then exported this bundle so a coding agent can implement the designs for real.
+把零散经历整理成**站得住脚的证据**，再针对每个目标岗位生成专属简历、面试 QA、模拟面试与真实面试复盘——每面一次，下一次准备得更充分。
 
-## What you should do — IMPORTANT
+**核心主流程**：开始使用 → 整理经历（上传旧简历 / AI 访谈从零整理）→ 添加目标岗位 → 分析岗位 → 生成岗位专属简历 → 生成面试 QA → 模拟面试 → 粘贴真实面试转写复盘 → 确认后反哺简历 / QA / 经历 → 工作台给出下一步。
 
-**Read the chat transcripts first.** There are 1 chat transcript(s) in `chats/`. The transcripts show the full back-and-forth between the user and the design assistant — they tell you **what the user actually wants** and **where they landed** after iterating. Don't skip them. The final HTML files are the output, but the chat is where the intent lives.
+## 隐私模型（产品底线）
 
-**Read `project/ProofCV.dc.html` in full.** The user had this file open when they triggered the handoff, so it's almost certainly the primary design they want built. Read it top to bottom — don't skim. Then **follow its imports**: open every file it pulls in (shared components, CSS, scripts) so you understand how the pieces fit together before you start implementing.
+- 简历、经历、岗位、QA、模拟与复盘**默认只存当前浏览器的 IndexedDB**，平台没有你的求职正文。
+- 只有你主动使用在线 AI 时，完成该任务所需内容才被**临时发送处理，用完即弃**，服务端只记身份与用量元数据。
+- 登录（GitHub / 邮箱验证码）只管在线 AI 的身份与额度：登录不会上传本机数据，退出登录、删除账号都不影响本机数据。
+- 未登录 = **基础模式**：全部本地功能可用（整理/编辑/岗位/模板/导入导出/打印 PDF），规则生成的结果会明确标注「基础模式 · 未调用在线 AI」，绝不伪装成 AI。
+- 换设备迁移 = 设置页导出备份 JSON + 新设备导入；可随时清空本机数据。
 
-**If anything is ambiguous, ask the user to confirm before you start implementing.** It's much cheaper to clarify scope up front than to build the wrong thing.
+## AI 三种通路
 
-## About the design files
+| 模式 | 触发条件 | 链路 |
+|---|---|---|
+| 在线 AI（默认） | 已登录 | 浏览器 → api.remi.run → sub2api.remi.run → 模型（契约见 [docs/BACKEND-API.md](docs/BACKEND-API.md)） |
+| 自带 Key（高级） | 设置页填自己的 URL+Key | 浏览器 → 本应用 `/api/ai` 纯透传 → 你填的服务商（无需登录） |
+| 基础模式 | 两者皆无 | 本地确定性规则，不联网，明确标注 |
 
-The design medium is **HTML/CSS/JS** — these are prototypes, not production code. Your job is to **recreate them pixel-perfectly** in whatever technology makes sense for the target codebase (React, Vue, native, whatever fits). Match the visual output; don't copy the prototype's internal structure unless it happens to fit.
+## 开发
 
-**Don't render these files in a browser or take screenshots unless the user asks you to.** Everything you need — dimensions, colors, layout rules — is spelled out in the source. Read the HTML and CSS directly; a screenshot won't tell you anything they don't.
+```bash
+cd web
+npm install
+npm run dev          # http://localhost:3000
+npm run build        # 生产构建（无需任何环境变量 / Chrome / AI）
+npx tsc --noEmit && npx eslint src
+```
 
-## Bundle contents
+- 技术栈：Next.js 16 App Router + React 19 + TypeScript + Tailwind v4 + Zustand（persist → IndexedDB）。
+- 本地联调托管后端：`NEXT_PUBLIC_RR_API_BASE=http://localhost:8787 npm run dev`（假后端见 `docs/BACKEND-API.md` 末尾）。
+- 部署：Vercel，Root Directory 设为 `web`，见 [docs/VERCEL-DEPLOY.md](docs/VERCEL-DEPLOY.md)。
 
-- `README.md` — this file
-- `chats/` — conversation transcripts (read these!)
-- `project/` — the `产品UI设计` project files (HTML prototypes, assets, components)
+## 仓库结构
+
+| 路径 | 内容 |
+|---|---|
+| `web/` | 应用本体（唯一需要部署的目录） |
+| `docs/PRODUCT-PLAN.md` | 产品规划与分阶段实施记录 |
+| `docs/BACKEND-API.md` | api.remi.run 托管后端契约（登录 / AI 代理 / 用量审计） |
+| `docs/VERCEL-DEPLOY.md` | 部署指南 |
+| `STATUS.md` | 实现现状（按版本迭代记录） |
+| `project/`, `chats/` | 最初的 Claude Design 高保真交接稿（历史资料，勿删） |
+
+## 明确不做
+
+云端保存简历正文、多设备同步、自动投递、自动打招呼、社区、企业端、复杂会员、公开职业主页、DOCX 复杂解析、真实录音转录（「即将上线」占位，不做假动画）、大规模视觉重构。

@@ -1,24 +1,36 @@
-// AI interface.
+// AI interface — 三种模式，统一从 ask() 走：
 //
-// 模式由设置页的运行时配置决定（lib/aiConfig.ts，存用户本机 localStorage）：
-// - 未填 API URL + Key：mock 模式，ask() 延迟后返回 null，调用方回落到
-//   各自「不编造事实」的确定性兜底（与原型的失败路径一致）。
-// - 填了 URL + Key：真实模式，POST /api/ai 纯透传路由（支持 Anthropic 原生 /
-//   OpenAI 兼容双协议），Key 随请求经用户本机服务转发，不落盘、不记日志。
-//   调用失败时提示用户并照常回落兜底，不会假装成功。
+// - "hosted"：已登录，走托管链路 浏览器 → api.remi.run → sub2api.remi.run → 模型。
+//   服务端只记身份与用量元数据，请求正文临时处理、不落库。
+// - "byok"（高级模式）：设置页填了自己的 API URL + Key，走本应用 /api/ai 纯透传
+//   （Anthropic 原生 / OpenAI 兼容双协议），Key 不落盘、不记日志，无需登录。
+// - "none"（基础模式）：未登录也没有 Key。ask() 立即返回 null；调用方只能在用户
+//   明确选择「基础模式」后使用本地确定性规则生成，并如实标注「未调用在线 AI」。
+//
+// 调用失败一律提示用户，不伪装成功、不静默回落。
 
 import type { InterviewMsg } from "./types";
 import { useAiConfig, aiConfigured } from "./aiConfig";
+import { hostedChat, loggedIn, type AiFeature } from "./apiClient";
+
+export type { AiFeature } from "./apiClient";
+
+export type AiMode = "byok" | "hosted" | "none";
+
+/** 当前 AI 通路：BYOK 优先（用户显式配置过），其次托管，否则基础模式 */
+export function aiMode(): AiMode {
+  if (aiConfigured()) return "byok";
+  if (loggedIn()) return "hosted";
+  return "none";
+}
 
 export interface AskOpts {
   model?: string;
   max_tokens?: number;
   system?: string;
+  /** 托管链路的用量归类（岗位分析/简历/QA/访谈/模拟/复盘） */
+  feature?: AiFeature;
 }
-
-const MOCK_LATENCY = 750;
-
-const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 // 失败提示回调由 store 注册（避免 ai.ts ↔ store.ts 循环依赖）
 let onAiError: ((msg: string) => void) | null = null;
@@ -27,25 +39,43 @@ export function setAiErrorHandler(fn: (msg: string) => void) {
 }
 
 function fail(msg: string): null {
-  useAiConfig.setState({ lastError: msg });
-  onAiError?.("AI 调用失败：" + msg + " · 本次结果由本地兜底生成");
+  if (aiConfigured()) useAiConfig.setState({ lastError: msg });
+  onAiError?.("AI 调用失败：" + msg);
   return null;
 }
+
+const DEFAULT_SYSTEM = "你是资深职业教练与技术招聘专家，语气专业而有温度。只输出要求的内容。";
 
 export async function ask(
   prompt: string | InterviewMsg[],
   opts: AskOpts = {}
 ): Promise<string | null> {
-  const cfg = useAiConfig.getState();
-  if (!aiConfigured(cfg)) {
-    // Mock: simulate latency, then signal "no AI result" so callers use fallbacks.
-    await delay(MOCK_LATENCY);
-    return null;
+  const mode = aiMode();
+  if (mode === "none") return null;
+
+  const messages = (Array.isArray(prompt) ? prompt : [{ role: "user" as const, content: prompt }]).map((m) => ({
+    role: m.role,
+    content: m.content,
+  }));
+
+  if (mode === "hosted") {
+    const r = await hostedChat({
+      feature: opts.feature || "job_analysis",
+      system: opts.system || DEFAULT_SYSTEM,
+      messages,
+      max_tokens: opts.max_tokens || 1400,
+    });
+    if (!r.ok) {
+      if (r.status === 401) return fail("登录已过期，请重新登录");
+      if (r.code === "quota_exceeded") return fail("本周期 AI 额度已用完（可在设置查看额度）");
+      return fail(r.error);
+    }
+    return r.data.text;
   }
+
+  // BYOK 透传
+  const cfg = useAiConfig.getState();
   try {
-    const messages = Array.isArray(prompt)
-      ? prompt
-      : [{ role: "user" as const, content: prompt }];
     const res = await fetch("/api/ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,9 +85,7 @@ export async function ask(
         key: cfg.key,
         model: opts.model || cfg.model,
         max_tokens: opts.max_tokens || 1400,
-        system:
-          opts.system ||
-          "你是资深职业教练与技术招聘专家，语气专业而有温度。只输出要求的内容。",
+        system: opts.system || DEFAULT_SYSTEM,
         messages,
       }),
     });
@@ -72,7 +100,7 @@ export async function ask(
   }
 }
 
-// ---- Agent 工具循环（仅 Anthropic 原生协议；OpenAI 兼容档回落普通生成）----
+// ---- Agent 工具循环（仅 BYOK + Anthropic 原生协议；其余模式回落普通生成）----
 
 export interface AgentTool {
   name: string;
@@ -93,7 +121,7 @@ interface Block {
 
 const MAX_TOOL_ROUNDS = 4;
 
-/** 真实模式 + Anthropic 原生协议才有 Agent 能力 */
+/** BYOK + Anthropic 原生协议才有 Agent 工具能力（托管链路暂不透传 tools） */
 export function agentAvailable(): boolean {
   const cfg = useAiConfig.getState();
   return aiConfigured(cfg) && cfg.protocol === "anthropic";
@@ -165,7 +193,7 @@ export async function askAgent(
 
   function fail(msg: string): null {
     useAiConfig.setState({ lastError: msg });
-    onAiError?.("AI 调用失败：" + msg + " · 本次结果由本地兜底生成");
+    onAiError?.("AI 调用失败：" + msg);
     return null;
   }
 }

@@ -193,3 +193,13 @@ html { scroll-behavior: smooth; }
   .hv-wave-bar.live { animation: none !important; }
   .hv-btn { transition: none; }
 }
+
+/* ---- 打印：只输出干净简历（#rr-print-mount，无内部标注），应用本体全部隐藏 ---- */
+#rr-print-mount { display: none; }
+@media print {
+  body { background: #fff !important; }
+  body > *:not(#rr-print-mount) { display: none !important; }
+  #rr-print-mount { display: block !important; }
+  #rr-print-mount [data-pcv-annot] { display: none !important; }
+}
+@page { size: A4; margin: 12mm; }

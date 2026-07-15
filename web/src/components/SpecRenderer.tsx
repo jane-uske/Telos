@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { Resume, TemplateSpec, TplPreset } from "@/lib/types";
+import type { Resume, TemplateSpec, TplPreset, UserProfile } from "@/lib/types";
 import { fontFam, densityCfg, nameSize, contactList } from "@/lib/templates";
 
 // Faithful port of Telos SpecRenderer — four skeletons, header/title styles,
@@ -22,18 +22,18 @@ function SheetTitle({ spec, zh, en, onColor }: { spec: TemplateSpec; zh: string;
   return <div style={{ ...base, color: c }}>{t}</div>;
 }
 
-function SheetHeader({ spec, ctx }: { spec: TemplateSpec; ctx?: "band" }) {
+function SheetHeader({ spec, ctx, profile }: { spec: TemplateSpec; ctx?: "band"; profile: UserProfile }) {
   const ac = spec.colors.accent;
   const onBand = ctx === "band";
   const center = spec.header.align === "center";
   const nameC = onBand ? "#fff" : "#16181d";
   const subC = onBand ? "rgba(255,255,255,.85)" : "#6b7280";
   const metaC = onBand ? "rgba(255,255,255,.75)" : "#9098a6";
-  const name = <div style={{ fontWeight: 800, fontSize: nameSize(spec.header.nameScale), lineHeight: 1.15, color: nameC, whiteSpace: "nowrap" }}>林深</div>;
-  const head = <div style={{ marginTop: 3, fontSize: 12, color: subC }}>全栈 / 高级前端工程师</div>;
+  const name = <div style={{ fontWeight: 800, fontSize: nameSize(spec.header.nameScale), lineHeight: 1.15, color: nameC, whiteSpace: "nowrap" }}>{profile.name || "（右侧「个人信息」填写姓名）"}</div>;
+  const head = profile.headline ? <div style={{ marginTop: 3, fontSize: 12, color: subC }}>{profile.headline}</div> : null;
   const meta = (
     <div style={{ display: "flex", flexWrap: "wrap", gap: center ? "0 14px" : "0", justifyContent: center ? "center" : "flex-start", flexDirection: center ? "row" : "column", fontSize: 10.5, color: metaC, lineHeight: 1.7, textAlign: center ? "center" : "right", flexShrink: 0 }}>
-      {contactList().map((c, i) => (
+      {contactList(profile).map((c, i) => (
         <span key={i}>{c}</span>
       ))}
     </div>
@@ -57,7 +57,7 @@ function SheetHeader({ spec, ctx }: { spec: TemplateSpec; ctx?: "band" }) {
   return <div style={underline ? { borderBottom: "2px solid " + ac, paddingBottom: 12 } : undefined}>{inner}</div>;
 }
 
-function SheetExp({ spec, r, dc, onColor }: { spec: TemplateSpec; r: Resume; dc: ReturnType<typeof densityCfg>; onColor?: boolean }) {
+function SheetExp({ spec, r, dc, onColor, internal }: { spec: TemplateSpec; r: Resume; dc: ReturnType<typeof densityCfg>; onColor?: boolean; internal?: boolean }) {
   const ac = onColor ? "#fff" : spec.colors.accent;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: dc.gap }}>
@@ -73,11 +73,13 @@ function SheetExp({ spec, r, dc, onColor }: { spec: TemplateSpec; r: Resume; dc:
                 <span style={{ color: ac, marginTop: 6, fontSize: 7, flexShrink: 0 }}>●</span>
                 <div style={{ flex: 1 }}>
                   <span style={{ fontSize: dc.body, color: onColor ? "rgba(255,255,255,.92)" : "#2f333d", lineHeight: dc.line }}>{b.text}</span>
-                  {/* data-pcv-annot：内部准备标注，PDF 导出时隐藏（不能出现在给企业的简历上） */}
-                  <span data-pcv-annot="" style={{ marginLeft: 6, fontSize: dc.body - 2, color: b.evStatus === "pending" ? "#c2810c" : b.evStatus === "none" ? "#9098a6" : "#12805c", whiteSpace: "nowrap" }}>
-                    {b.evStatus === "pending" ? "· 待确认" : b.evStatus === "none" ? "· 证据不足" : "· 已核验"}
-                  </span>
-                  {b.hook ? <span data-pcv-annot="" style={{ marginLeft: 4, fontSize: dc.body - 2, color: "#c8622a", whiteSpace: "nowrap" }} title="面试钩子">★</span> : null}
+                  {/* data-pcv-annot：内部准备标注，打印/导出（internal=false）时完全不渲染 */}
+                  {internal ? (
+                    <span data-pcv-annot="" style={{ marginLeft: 6, fontSize: dc.body - 2, color: b.evStatus === "pending" ? "#c2810c" : b.evStatus === "none" ? "#9098a6" : "#12805c", whiteSpace: "nowrap" }}>
+                      {b.evStatus === "pending" ? "· 待确认" : b.evStatus === "none" ? "· 证据不足" : "· 已核验"}
+                    </span>
+                  ) : null}
+                  {internal && b.hook ? <span data-pcv-annot="" style={{ marginLeft: 4, fontSize: dc.body - 2, color: "#c8622a", whiteSpace: "nowrap" }} title="面试钩子">★</span> : null}
                 </div>
               </div>
             ))}
@@ -99,7 +101,7 @@ function SheetSkills({ spec, r, onColor }: { spec: TemplateSpec; r: Resume; onCo
   );
 }
 
-export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
+export function RenderSheet({ r, spec, profile, internal = true, print }: { r: Resume; spec: TemplateSpec; profile: UserProfile; internal?: boolean; print?: boolean }) {
   const dc = densityCfg(spec.section.density);
   const ac = spec.colors.accent;
   const fam = fontFam(spec.typography.font);
@@ -108,7 +110,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
     <div>
       <SheetTitle spec={spec} zh="工作经历" en="EXPERIENCE" onColor={onColor} />
       <div style={{ marginTop: 2 }}>
-        <SheetExp spec={spec} r={r} dc={dc} onColor={onColor} />
+        <SheetExp spec={spec} r={r} dc={dc} onColor={onColor} internal={internal} />
       </div>
     </div>
   );
@@ -121,7 +123,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
     </div>
   );
   const sheet = (children: React.ReactNode) => (
-    <div style={{ fontFamily: fam, background: "#fff", borderRadius: 6, overflow: "hidden", boxShadow: "0 10px 40px -18px rgba(30,30,60,.35)", border: "1px solid #ececf2", color: "#16181d" }}>{children}</div>
+    <div style={{ fontFamily: fam, background: "#fff", borderRadius: print ? 0 : 6, overflow: "hidden", boxShadow: print ? "none" : "0 10px 40px -18px rgba(30,30,60,.35)", border: print ? "none" : "1px solid #ececf2", color: "#16181d" }}>{children}</div>
   );
 
   if (spec.skeleton === "sidebar-left" || spec.skeleton === "sidebar-right") {
@@ -133,7 +135,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
         <div>
           <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: ".08em", opacity: 0.7, marginBottom: 6, color: onC ? "#fff" : "#9098a6" }}>联系方式</div>
           <div style={{ fontSize: 10.5, lineHeight: 1.8, color: onC ? "rgba(255,255,255,.9)" : "#4b5060" }}>
-            {contactList().map((c, i) => (
+            {contactList(profile).map((c, i) => (
               <div key={i}>{c}</div>
             ))}
           </div>
@@ -143,7 +145,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
     );
     const main = (
       <div style={{ flex: 1, padding: dc.pad, display: "flex", flexDirection: "column", gap: dc.gap + 2 }}>
-        <SheetHeader spec={spec} />
+        <SheetHeader spec={spec} profile={profile} />
         {summary}
         {expBlock(false)}
       </div>
@@ -159,7 +161,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
     return sheet(
       <div>
         <div style={{ background: bg, padding: "24px 32px" }}>
-          <SheetHeader spec={spec} ctx="band" />
+          <SheetHeader spec={spec} ctx="band" profile={profile} />
         </div>
         <div style={{ padding: dc.pad, display: "flex", flexDirection: "column", gap: dc.gap + 3 }}>
           {summary}
@@ -171,7 +173,7 @@ export function RenderSheet({ r, spec }: { r: Resume; spec: TemplateSpec }) {
   }
   return sheet(
     <div style={{ padding: dc.pad, display: "flex", flexDirection: "column", gap: dc.gap + 3 }}>
-      <SheetHeader spec={spec} />
+      <SheetHeader spec={spec} profile={profile} />
       {summary}
       {expBlock(false)}
       {skillBlock(false)}

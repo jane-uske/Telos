@@ -2,7 +2,7 @@
 // A "template" is a constrained set of JSON design params — no code flows through,
 // so A4 / ATS output stays safe. Colors accept only #hex / oklch().
 
-import type { TemplateSpec, TplPreset } from "./types";
+import type { TemplateSpec, TplPreset, UserProfile } from "./types";
 
 const B = "#5850ec";
 
@@ -58,9 +58,6 @@ export const densityCfg = (d: TemplateSpec["section"]["density"]) =>
 export const nameSize = (n: TemplateSpec["header"]["nameScale"]) =>
   n === "md" ? 21 : n === "xl" ? 34 : 26;
 
-export const contactList = (): string[] => [
-  "杭州",
-  "5 年经验",
-  "lin.shen@demo.dev",
-  "github.com/linshen",
-];
+/** 简历页眉联系信息：来自用户本机保存的个人资料，没填的项不显示 */
+export const contactList = (p?: UserProfile | null): string[] =>
+  p ? [p.city, p.email, p.link].map((x) => (x || "").trim()).filter(Boolean) : [];

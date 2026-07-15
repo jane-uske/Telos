@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useStore } from "@/lib/store";
 import { Page, Btn, Spinner, Empty, JobChips, PrepPill, prepMeta } from "../ui";
+import { GenBadge } from "../AuthGate";
 import type { QaItem, QaPrep, QaCategory } from "@/lib/types";
 
 const catLabels: Record<QaCategory, string> = {
@@ -99,10 +100,18 @@ export default function Qa() {
   const openPackage = useStore((x) => x.openPackage);
   const generateQa = useStore((x) => x.generateQa);
 
-  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
+  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0] || null;
+  if (!j) {
+    return (
+      <Page title="面试问题" sub="面试问题绑定具体岗位和它的专属简历。">
+        <Empty title="还没有目标岗位" desc="先添加岗位并生成专属简历，再来准备面试问题。" action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />} />
+      </Page>
+    );
+  }
   const items = s.qa[j.id] || [];
   const r = s.resumes[j.id];
   const filt = s.qaFilter;
+  const genSrc = s.genSource["qa:" + j.id];
   const bulletById = new Map((r?.exp || []).flatMap((x) => x.bullets).map((b) => [b.id, b.text]));
 
   if (!items.length) {
@@ -149,6 +158,11 @@ export default function Qa() {
       }
     >
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
+      {genSrc ? (
+        <div style={{ marginBottom: 12 }}>
+          <GenBadge source={genSrc} />
+        </div>
+      ) : null}
       {s.qaStale[j.id] ? (
         <div style={{ background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 12, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <span>⚠ 简历内容已更新——以下问题基于旧版简历生成，可能需要刷新。</span>

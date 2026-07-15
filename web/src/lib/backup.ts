@@ -5,8 +5,10 @@
 // 导入永远先校验、再由用户在设置页确认覆盖，不会自动执行。
 
 import type { PersistedState } from "./store";
+import { migrateV1toV2 } from "./store";
+import { emptyProfile } from "./types";
 
-export const BACKUP_VERSION = 1;
+export const BACKUP_VERSION = 2;
 
 type Dict = Record<string, unknown>;
 const isObj = (v: unknown): v is Dict => !!v && typeof v === "object" && !Array.isArray(v);
@@ -60,18 +62,29 @@ export function parseBackup(
   if (typeof raw.version === "number" && raw.version > BACKUP_VERSION) {
     return { ok: false, error: "备份来自更新版本的 RoleReady，请先升级应用再导入" };
   }
-  const d = raw.data as Dict;
+  // v1 备份（标题字符串关联）→ 迁移为稳定 ID 关联
+  const d = (typeof raw.version === "number" && raw.version >= 2 ? (raw.data as Dict) : migrateV1toV2({ ...(raw.data as Dict) })) as Dict;
   const jobs = arr<PersistedState["jobs"][number]>(d.jobs).filter(
     (j) => isObj(j) && typeof (j as unknown as Dict).id === "string" && typeof (j as unknown as Dict).company === "string"
   );
-  if (!jobs.length) return { ok: false, error: "备份里没有岗位数据，无法导入" };
+  const evidence = arr<PersistedState["evidence"][number]>(d.evidence);
+  if (!jobs.length && !evidence.length) {
+    return { ok: false, error: "备份里没有任何经历或岗位数据，无法导入" };
+  }
+  const firstJob = jobs[0]?.id || "";
   const data: PersistedState = {
     screen: "app",
     tab: "settings",
     guideDismissed: !!d.guideDismissed,
-    evidence: arr(d.evidence),
+    demoMode: !!d.demoMode,
+    profile: isObj(d.profile) ? { ...emptyProfile(), ...(d.profile as Partial<PersistedState["profile"]>) } : emptyProfile(),
+    genSource: rec(d.genSource),
+    aiConsented: !!d.aiConsented,
+    lastWorkTab: null,
+    evidence,
     jobs,
-    activeJobId: typeof d.activeJobId === "string" ? d.activeJobId : jobs[0].id,
+    activeJobId: typeof d.activeJobId === "string" && jobs.some((j) => j.id === d.activeJobId) ? (d.activeJobId as string) : firstJob,
+    jobsView: d.jobsView === "track" ? "track" : "find",
     analyses: rec(d.analyses),
     matches: rec(d.matches),
     resumes: rec(d.resumes),
@@ -82,8 +95,15 @@ export function parseBackup(
     qaStale: rec(d.qaStale),
     mocks: rec(d.mocks),
     mockStale: rec(d.mockStale),
+    mockActive: false,
+    mockMsgs: [],
+    mockBasic: false,
+    ivProject: null,
+    ivMsgs: [],
+    ivDraft: null,
+    ivBasic: false,
     records: arr(d.records),
-    recJobId: typeof d.recJobId === "string" ? d.recJobId : jobs[0].id,
+    recJobId: typeof d.recJobId === "string" && jobs.some((j) => j.id === d.recJobId) ? (d.recJobId as string) : firstJob,
     activeRecordId: null,
   };
   return { ok: true, data };

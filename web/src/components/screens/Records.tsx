@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { useStore } from "@/lib/store";
-import { Page, Btn, JobChips } from "../ui";
+import { Page, Btn, JobChips, Empty, Spinner } from "../ui";
+import { GenBadge } from "../AuthGate";
 import type { InterviewRecord, SegFlag } from "@/lib/types";
 
 const flagMeta: Record<SegFlag, { label: string; fg: string; bg: string }> = {
@@ -15,38 +16,6 @@ const flagMeta: Record<SegFlag, { label: string; fg: string; bg: string }> = {
 const sample =
   "面试官：先自我介绍一下吧。\n我：我是林深，5 年前端/全栈，主导过实时协作编辑器的冲突算法重构，同编延迟从 800ms 降到 120ms……\n面试官：CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？\n我：呃…主要是 CRDT 收敛性更好，内存我们做了增量 GC，不过具体数字我记不太清了。\n面试官：120ms 是在什么环境测的？\n我：本地压测环境，真实环境可能会高一些，这块我没细看。\n面试官：如果放到抖音电商这种亿级流量，你会怎么设计？\n我：我需要再想想，可能要加分片和边缘节点……\n面试官：好，那我们聊聊你在团队里的角色。\n我：我主要负责协同层，也带过两个新人。";
 
-const phaseSteps: [string, string][] = [
-  ["upload", "上传音频"],
-  ["transcribe", "语音转录"],
-  ["diarize", "区分说话人"],
-  ["analyze", "AI 复盘分析"],
-];
-
-function Pipeline({ phase }: { phase: string }) {
-  const idx = phaseSteps.findIndex((p) => p[0] === phase);
-  return (
-    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: "26px 24px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 16 }}>
-        {phaseSteps.map((p, i) => {
-          const done = i < idx;
-          const cur = i === idx;
-          return (
-            <React.Fragment key={p[0]}>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, minWidth: 90 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 99, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, background: done ? "#12805c" : cur ? "#5850ec" : "#f2f3f6", color: done || cur ? "#fff" : "#a3a8b5", animation: cur ? "pcvPulse 1.2s ease-in-out infinite" : undefined }}>
-                  {done ? "✓" : i + 1}
-                </div>
-                <div style={{ fontSize: 11.5, fontWeight: cur ? 700 : 500, color: cur ? "#5850ec" : done ? "#12805c" : "#a3a8b5" }}>{p[1]}</div>
-              </div>
-              {i < phaseSteps.length - 1 ? <div style={{ flex: 1, height: 2, background: i < idx ? "#12805c" : "#eee", margin: "0 4px 22px" }} /> : null}
-            </React.Fragment>
-          );
-        })}
-      </div>
-      <div style={{ textAlign: "center", fontSize: 12.5, color: "#8a919e" }}>处理中，请稍候…（演示模式下为模拟流水线）</div>
-    </div>
-  );
-}
 
 function SuggestionCard({ rec }: { rec: InterviewRecord }) {
   const applySuggestion = useStore((s) => s.applySuggestion);
@@ -90,6 +59,7 @@ function SuggestionCard({ rec }: { rec: InterviewRecord }) {
 function RecordDetail({ rec }: { rec: InterviewRecord }) {
   const s = useStore();
   const j = s.jobs.find((x) => x.id === rec.jobId);
+  const genSrc = s.genSource["record:" + rec.id];
   const bulletById = new Map((s.resumes[rec.jobId]?.exp || []).flatMap((x) => x.bullets).map((b) => [b.id, b.text]));
 
   const listCard = (title: string, items: string[], color: string, prefix: string) =>
@@ -122,8 +92,9 @@ function RecordDetail({ rec }: { rec: InterviewRecord }) {
           </div>
         ) : null}
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 20, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 6 }}>
-            {j ? j.company + " · " + j.role : ""} · {rec.date} · {rec.source}{rec.duration ? " · " + rec.duration : ""}
+          <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 6, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            <span>{j ? j.company + " · " + j.role : ""} · {rec.date} · {rec.source}{rec.duration ? " · " + rec.duration : ""}</span>
+            <GenBadge source={genSrc} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 600, lineHeight: 1.6, color: "#2f333d" }}>{rec.verdict}</div>
         </div>
@@ -219,19 +190,31 @@ function RecordDetail({ rec }: { rec: InterviewRecord }) {
 export default function Records() {
   const s = useStore();
   const analyzeRecordingText = useStore((x) => x.analyzeRecordingText);
-  const uploadRecording = useStore((x) => x.uploadRecording);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const go = useStore((x) => x.go);
 
-  const j = s.jobs.find((x) => x.id === s.recJobId) || s.jobs[0];
+  const j = s.jobs.find((x) => x.id === s.recJobId) || s.jobs[0] || null;
+  if (!j) {
+    return (
+      <Page title="面试后复盘" sub="把真实面试转化为下一次进步：粘贴面试转写，提取问答与追问链、分析薄弱回答、生成更好答案——修改建议逐条确认后更新到问题、简历和经历。">
+        <Empty
+          title="还没有目标岗位"
+          desc="复盘挂在具体岗位下。先添加一个岗位，面试后再回来粘贴转写。"
+          action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />}
+        />
+      </Page>
+    );
+  }
   const recs = s.records.filter((r) => r.jobId === j.id);
   const active = recs.find((r) => r.id === s.activeRecordId) || recs.slice(-1)[0];
 
   return (
-    <Page title="面试后复盘" sub="把真实面试转化为下一次进步。上传录音会自动转录、区分说话人、提取问题与追问链、标记含糊和缺证据的回答——复盘结果经你确认后，更新到下一版面试问题和简历。">
+    <Page title="面试后复盘" sub="把真实面试转化为下一次进步：粘贴面试转写，提取问答与追问链、分析薄弱回答、生成更好答案——修改建议逐条确认后更新到问题、简历和经历。">
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => useStore.setState({ recJobId: id, activeRecordId: null })} />
 
       {s.recPhase !== "idle" ? (
-        <Pipeline phase={s.recPhase} />
+        <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18 }}>
+          <Spinner text="正在提取问答与追问链、标记含糊与缺证据的回答、生成修改建议…" />
+        </div>
       ) : (
         <>
           {/* 新建复盘 */}
@@ -241,20 +224,8 @@ export default function Records() {
                 <div style={{ fontWeight: 700, fontSize: 14 }}>新建一次复盘 · {j.company}</div>
                 <div onClick={() => useStore.setState({ recInput: sample })} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec" }}>填入示例转写</div>
               </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="audio/*,.mp3,.m4a,.wav,.aac"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) uploadRecording(f.name);
-                  e.target.value = "";
-                }}
-              />
-              <div onClick={() => fileRef.current?.click()} style={{ cursor: "pointer", border: "1.5px dashed #d8d4ff", borderRadius: 10, padding: "14px", textAlign: "center", fontSize: 12.5, color: "#5850ec", background: "#faf9ff", marginBottom: 10, lineHeight: 1.6 }}>
-                🎙 点击上传面试录音（mp3 / m4a / wav）<br />
-                <span style={{ fontSize: 11.5, color: "#8a919e" }}>自动转录并区分面试官与候选人 · 或直接在下方粘贴转写文本</span>
+              <div style={{ border: "1px solid #eef0f4", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#8a919e", background: "#fbfbfd", marginBottom: 10, lineHeight: 1.6 }}>
+                🎙 录音自动转录<b style={{ color: "#5850ec" }}>即将上线</b>。目前请把面试录音先用你常用的转写工具转成文本，粘贴到下面（用「面试官：」「我：」区分说话人）。
               </div>
               <textarea
                 value={s.recInput}
@@ -263,8 +234,8 @@ export default function Records() {
                 style={{ width: "100%", height: 160, border: "1px solid #e6e8ee", borderRadius: 12, padding: 14, fontSize: 13, lineHeight: 1.7, resize: "vertical", background: "#fbfbfd", outline: "none" }}
               />
               <div style={{ marginTop: 12, display: "flex", gap: 10, alignItems: "center" }}>
-                <Btn label="AI 复盘这场面试 →" onClick={() => analyzeRecordingText()} />
-                <div style={{ fontSize: 12, color: "#a3a8b5" }}>录音仅本地转写，不上云</div>
+                <Btn label="复盘这场面试 →" onClick={() => analyzeRecordingText()} />
+                <div style={{ fontSize: 12, color: "#a3a8b5" }}>转写只在复盘时临时处理，复盘结果保存在本机</div>
               </div>
             </div>
             <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: 18, fontSize: 12.5, color: "#6b7280", lineHeight: 1.8 }}>

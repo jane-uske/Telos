@@ -1,11 +1,40 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import { useStore } from "@/lib/store";
+
+const noopSubscribe = () => () => {};
 import { Page, Btn, Spinner, Empty } from "../ui";
 import { RenderSheet, TplThumb } from "../SpecRenderer";
+import { GenBadge } from "../AuthGate";
 import { tplPresets, computeSpec } from "@/lib/templates";
 import type { ResumeBullet } from "@/lib/types";
+
+/** 简历页眉个人信息：只存本机，打印/导出时进入简历页眉 */
+function ProfilePanel() {
+  const profile = useStore((s) => s.profile);
+  const patchProfile = useStore((s) => s.patchProfile);
+  const input: React.CSSProperties = { width: "100%", border: "1px solid #e6e8ee", borderRadius: 9, padding: "9px 11px", fontSize: 13, outline: "none", background: "#fbfbfd" };
+  const row = (label: string, key: keyof typeof profile, placeholder: string) => (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontSize: 11.5, fontWeight: 700, color: "#8a919e", marginBottom: 5 }}>{label}</div>
+      <input style={input} value={profile[key]} placeholder={placeholder} onChange={(e) => patchProfile({ [key]: e.target.value })} />
+    </div>
+  );
+  return (
+    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 16 }}>
+      <div style={{ fontSize: 11.5, color: "#8a919e", marginBottom: 14, lineHeight: 1.6 }}>
+        显示在简历页眉。只保存在本机浏览器，不上传。没填的项不会出现在简历上。
+      </div>
+      {row("姓名", "name", "你的姓名")}
+      {row("头衔 / 定位", "headline", "如：高级前端工程师")}
+      {row("城市", "city", "如：杭州")}
+      {row("邮箱", "email", "you@example.com")}
+      {row("链接", "link", "GitHub / 个人主页（可选）")}
+    </div>
+  );
+}
 
 function TemplatePanel() {
   const resumeTpl = useStore((s) => s.resumeTpl);
@@ -81,6 +110,8 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
   const decideBullet = useStore((s) => s.decideBullet);
   const editBulletText = useStore((s) => s.editBulletText);
   const toggleHook = useStore((s) => s.toggleHook);
+  // 证据关联以稳定 ID 为准：改经历标题不断联；ID 找不到时退回标题快照并提示
+  const liveTitle = useStore((s) => (b.evId ? s.evidence.find((e) => e.id === b.evId)?.title || null : null));
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(b.text);
   const hasOpenSug = !!b.suggestion && !b.decision;
@@ -119,15 +150,22 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
         </div>
       ) : null}
 
-      {/* 元信息：证据 / 钩子 / 追问提示 */}
+      {/* 元信息：来源经历 / 对应岗位要求 / 钩子 / 追问提示 */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 9 }}>
-        {b.ev ? (
-          <span style={{ fontSize: 11, fontWeight: 600, color: b.evStatus === "confirmed" ? "#12805c" : "#c2810c", background: b.evStatus === "confirmed" ? "#e6f5ee" : "#fdf3e0", padding: "3px 9px", borderRadius: 99 }}>
-            ⛁ {b.ev}{b.evStatus === "pending" ? " · 证据待确认" : ""}
+        {liveTitle || b.ev ? (
+          <span title="这条内容的来源经历" style={{ fontSize: 11, fontWeight: 600, color: b.evStatus === "confirmed" ? "#12805c" : "#c2810c", background: b.evStatus === "confirmed" ? "#e6f5ee" : "#fdf3e0", padding: "3px 9px", borderRadius: 99 }}>
+            ⛁ {liveTitle || b.ev}
+            {b.evStatus === "pending" ? " · 证据待确认" : ""}
+            {!liveTitle && b.ev ? " · 原经历已不在库中" : ""}
           </span>
         ) : (
-          <span style={{ fontSize: 11, fontWeight: 600, color: "#8a919e", background: "#f2f3f5", padding: "3px 9px", borderRadius: 99 }}>○ 未关联证据</span>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#8a919e", background: "#f2f3f5", padding: "3px 9px", borderRadius: 99 }}>○ 未关联经历</span>
         )}
+        {b.jdReq ? (
+          <span title="这条内容对应的岗位要求" style={{ fontSize: 11, fontWeight: 600, color: "#3b5bdb", background: "#eef3ff", padding: "3px 9px", borderRadius: 99 }}>
+            🎯 {b.jdReq}
+          </span>
+        ) : null}
         <span
           onClick={() => toggleHook(jobId, b.id)}
           title="面试钩子：主动引导面试官追问的内容"
@@ -191,12 +229,31 @@ export default function Resume() {
   const generateResume = useStore((x) => x.generateResume);
   const showToast = useStore((x) => x.showToast);
 
-  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
-  const r = s.resumes[j.id];
+  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0] || null;
+  const r = j ? s.resumes[j.id] : undefined;
   const spec = computeSpec(s.resumeSpec, s.resumeTpl);
   const rail = s.resumeRail;
   const sheetRef = React.useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  // 打印挂载点走 portal 到 body：打印时隐藏应用本体、只输出干净简历（可靠分页）。
+  // SSR/注水期间不渲染 portal，客户端接管后再挂。
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
+
+  if (!j) {
+    return (
+      <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
+        <Empty title="还没有目标岗位" desc="先添加岗位并分析 JD，再为它生成专属简历。" action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />} />
+      </Page>
+    );
+  }
+
+  // 默认导出方式：浏览器打印 / 另存为 PDF（不依赖服务端 Chrome，Vercel 可用）。
+  // 打印时只渲染 #rr-print-mount 里 internal=false 的干净版本——
+  // 内部标注（已核验/证据不足/★钩子/追问提示）绝不出现在给企业的简历里。
+  const printPdf = () => {
+    if (!s.profile.name.trim()) showToast("提示：还没填姓名——右侧「个人信息」补全后简历页眉才完整");
+    setTimeout(() => window.print(), 50);
+  };
 
   const exportPdf = async () => {
     if (exporting || !sheetRef.current) return;
@@ -234,20 +291,20 @@ export default function Resume() {
       <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
         {s.resumeLoading ? (
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, maxWidth: 620 }}>
-            <Spinner text="AI 正在基于你整理好的经历为该岗位定制简历，每一句都会标注来源…" />
+            <Spinner text="正在基于你整理好的经历为该岗位定制简历，每一句都会标注来源…" />
           </div>
         ) : (
           <Empty
             title={j.company + " · " + j.role}
             desc={
               s.analyses[j.id]
-                ? "还没有为这个岗位生成简历。生成时会优先放匹配分析中「重点写」的经历，所有描述可追溯——不会自动编造数据。"
-                : "建议先在「准备这个岗位」里分析 JD（知道重点写什么再生成），也可以直接基于已确认经历生成。"
+                ? "还没有为这个岗位生成简历。生成时会遵守匹配分析：强匹配优先突出、弱匹配谨慎表达、无证据不虚构。"
+                : "建议先在「准备这个岗位」里分析岗位（知道重点写什么再生成），也可以直接基于已确认经历生成。"
             }
             action={
               <>
-                {!s.analyses[j.id] ? <Btn label="先去分析 JD" kind="ghost" onClick={() => go("pkg")} /> : null}
-                <Btn label="基于证据生成定制简历 →" onClick={() => generateResume()} />
+                {!s.analyses[j.id] ? <Btn label="先去分析岗位" kind="ghost" onClick={() => go("pkg")} /> : null}
+                <Btn label="基于经历生成定制简历 →" onClick={() => generateResume()} />
               </>
             }
           />
@@ -265,26 +322,32 @@ export default function Resume() {
     <div onClick={() => useStore.setState({ resumeRail: k })} style={{ cursor: "pointer", flex: 1, textAlign: "center", padding: 7, fontSize: 12.5, fontWeight: rail === k ? 700 : 500, color: rail === k ? "#5850ec" : "#8a919e", background: rail === k ? "#fff" : "transparent", borderRadius: 8, boxShadow: rail === k ? "0 1px 3px rgba(0,0,0,.06)" : "none" }}>{label}</div>
   );
 
+  const genSrc = s.genSource["resume:" + j.id];
+
   return (
     <Page title="简历编辑器">
       <div style={{ display: "grid", gridTemplateColumns: "1fr 372px", gap: 18, alignItems: "start" }}>
         <div style={{ background: "#eef0f4", border: "1px solid #e3e5ec", borderRadius: 16, overflow: "hidden" }}>
-          <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280" }}>{j.company} 专属 · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4 · ATS 可解析</div>
-            <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280", display: "flex", alignItems: "center", gap: 8 }}>
+              <span>{j.company} 专属 · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4</span>
+              <GenBadge source={genSrc} />
+            </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div onClick={() => generateResume()} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}>重新生成</div>
-              <div onClick={exportPdf} style={{ cursor: exporting ? "wait" : "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 7, background: exporting ? "#6b7280" : "#16181d", color: "#fff" }}>{exporting ? "导出中…" : "导出 PDF"}</div>
+              <div onClick={exportPdf} title="需要本机 Chrome 的服务端导出（部署到 Vercel 时不可用，请用「打印」）" style={{ cursor: exporting ? "wait" : "pointer", fontSize: 12, color: "#8a919e" }}>{exporting ? "导出中…" : "服务端导出"}</div>
+              <div onClick={printPdf} style={{ cursor: "pointer", fontSize: 12, padding: "4px 12px", borderRadius: 7, background: "#16181d", color: "#fff", fontWeight: 600 }}>打印 / 保存 PDF</div>
             </div>
           </div>
           <div style={{ padding: "26px 30px", maxHeight: "calc(100vh - 210px)", overflow: "auto" }}>
             <div ref={sheetRef}>
-              <RenderSheet r={r} spec={spec} />
+              <RenderSheet r={r} spec={spec} profile={s.profile} />
             </div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ background: "#eef8f2", border: "1px solid #cfeadd", borderRadius: 14, padding: "12px 14px", fontSize: 12.5, color: "#12805c", lineHeight: 1.6 }}>
-            ✓ 可追溯：{bullets.length} 条内容中 {confirmedN} 条已绑定确认经历{openSugs ? "；" + openSugs + " 条 AI 建议待决策" : ""}。无自动编造数据。
+            ✓ 可追溯：{bullets.length} 条内容中 {confirmedN} 条已绑定确认经历{openSugs ? "；" + openSugs + " 条建议待决策" : ""}。无自动编造数据；打印版不含任何内部标注。
           </div>
           {stale ? (
             <div onClick={() => go("qa")} style={{ cursor: "pointer", background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 14, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", lineHeight: 1.6 }}>
@@ -293,12 +356,23 @@ export default function Resume() {
           ) : null}
           <div style={{ background: "#f2f3f6", borderRadius: 11, padding: 4, display: "flex", gap: 2 }}>
             {seg("content", "内容")}
+            {seg("profile", "个人信息")}
             {seg("template", "模板")}
             {seg("custom", "自定义")}
           </div>
-          {rail === "content" ? <ContentPanel jobId={j.id} /> : rail === "template" ? <TemplatePanel /> : <CustomPanel />}
+          {rail === "content" ? <ContentPanel jobId={j.id} /> : rail === "profile" ? <ProfilePanel /> : rail === "template" ? <TemplatePanel /> : <CustomPanel />}
         </div>
       </div>
+
+      {/* 打印挂载点：无内部标注的干净版，仅 @media print 时可见（见 globals.css） */}
+      {mounted
+        ? createPortal(
+            <div id="rr-print-mount" aria-hidden>
+              <RenderSheet r={r} spec={spec} profile={s.profile} internal={false} print />
+            </div>,
+            document.body
+          )
+        : null}
     </Page>
   );
 }

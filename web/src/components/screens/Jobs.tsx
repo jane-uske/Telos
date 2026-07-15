@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { useStore } from "@/lib/store";
+import { useStore, prepDone } from "@/lib/store";
 import { Page, Btn } from "../ui";
 import { parseBossJson, type BossJobDraft } from "@/lib/bossImport";
+import type { Job, JobStatus } from "@/lib/types";
 
 const inputStyle: React.CSSProperties = {
   width: "100%",
@@ -209,76 +210,164 @@ function PriorityPanel() {
   );
 }
 
-export default function Jobs() {
+/** 准备完成度小条（五步）——和投递进度是两回事，分开标注 */
+function PrepBar({ done }: { done: number }) {
+  return (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#8a919e", marginBottom: 4 }}>
+        <span>准备完成度</span>
+        <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>{done}/5</span>
+      </div>
+      <div style={{ display: "flex", gap: 3 }}>
+        {[0, 1, 2, 3, 4].map((i) => (
+          <span key={i} style={{ flex: 1, height: 5, borderRadius: 99, background: i < done ? "#5850ec" : "#eceae4" }} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function JobCard({ j }: { j: Job }) {
   const s = useStore();
   const openPackage = useStore((x) => x.openPackage);
   const moveJobStatus = useStore((x) => x.moveJobStatus);
+  const done = prepDone(s, j.id);
+  return (
+    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ width: 42, height: 42, borderRadius: 11, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.company}</div>
+          <div style={{ fontSize: 12, color: "#8a919e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.role}</div>
+        </div>
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ fontSize: 10.5, color: "#a3a8b5" }}>投递进度</span>
+          <div onClick={() => moveJobStatus(j.id, -1)} title="上一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>‹</div>
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#f1f0fb", color: "#5850ec" }}>{j.statusLabel}</span>
+          <div onClick={() => moveJobStatus(j.id, 1)} title="下一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>›</div>
+        </div>
+        <span style={{ fontSize: 11.5, color: "#a3a8b5" }}>更新 {j.updated}</span>
+      </div>
+      <PrepBar done={done} />
+      {j.match ? (
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "#8a919e" }}>
+          <span>证据覆盖度（来自岗位分析）</span>
+          <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>{j.match}/100</span>
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: "#c2810c" }}>尚未分析岗位</div>
+      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", borderTop: "1px solid #f2f2f6", paddingTop: 10 }}>
+        <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#5850ec" }}>去准备这个岗位 →</div>
+      </div>
+    </div>
+  );
+}
+
+const STATUS_ORDER: JobStatus[] = ["saved", "preparing", "applied", "replied", "interviewing", "offer", "rejected"];
+const STATUS_LABELS: Record<JobStatus, string> = { saved: "收藏", preparing: "准备投递", applied: "已投递", replied: "已回复", interviewing: "面试中", offer: "Offer", rejected: "拒绝" };
+
+/** 「我的申请」视图：按投递进度分组，回答「我投到哪一步了」 */
+function TrackView() {
+  const s = useStore();
+  const openPackage = useStore((x) => x.openPackage);
+  const moveJobStatus = useStore((x) => x.moveJobStatus);
+  const groups = STATUS_ORDER.map((st) => ({ st, jobs: s.jobs.filter((j) => j.status === st) })).filter((g) => g.jobs.length);
+  if (!groups.length) {
+    return (
+      <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.8 }}>
+        还没有任何岗位。切到「找目标岗位」新增一个，或导入 Boss 直聘数据。
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div style={{ fontSize: 12, color: "#8a919e", lineHeight: 1.6 }}>
+        <b style={{ color: "#4b5060" }}>投递进度</b> = 招聘流程走到哪（收藏 → 投递 → 回复 → 面试 → 结果）；每张卡里的<b style={{ color: "#4b5060" }}>准备完成度</b> = 分析/简历/问题/模拟/复盘五步做完多少——两者是独立的两件事。
+      </div>
+      {groups.map((g) => (
+        <div key={g.st}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 13, fontWeight: 800 }}>{STATUS_LABELS[g.st]}</span>
+            <span style={{ fontFamily: "'JetBrains Mono'", fontSize: 11.5, color: "#8a919e" }}>{g.jobs.length}</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {g.jobs.map((j) => {
+              const done = prepDone(s, j.id);
+              return (
+                <div key={j.id} className="pcv-row" style={{ display: "flex", alignItems: "center", gap: 12, background: "#fff", border: "1px solid #ececf2", borderRadius: 13, padding: "12px 16px" }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 9, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{j.logo}</div>
+                  <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 13.5 }}>{j.company} <span style={{ fontWeight: 400, color: "#8a919e", fontSize: 12 }}>{j.role}</span></div>
+                    <div style={{ fontSize: 11, color: "#a3a8b5", marginTop: 2 }}>更新 {j.updated}</div>
+                  </div>
+                  <div style={{ width: 130, flexShrink: 0 }}>
+                    <PrepBar done={done} />
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+                    <div onClick={() => moveJobStatus(j.id, -1)} title="上一状态" style={{ cursor: "pointer", fontSize: 15, color: "#c9ccd6", padding: "0 3px" }}>‹</div>
+                    <div onClick={() => moveJobStatus(j.id, 1)} title="下一状态" style={{ cursor: "pointer", fontSize: 15, color: "#c9ccd6", padding: "0 3px" }}>›</div>
+                  </div>
+                  <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#5850ec", flexShrink: 0 }}>准备 →</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function Jobs() {
+  const s = useStore();
+  const view = useStore((x) => x.jobsView);
   const [bossOpen, setBossOpen] = useState(false);
+
+  const seg = (k: "find" | "track", label: string) => (
+    <div
+      onClick={() => useStore.setState({ jobsView: k })}
+      style={{ cursor: "pointer", padding: "7px 16px", borderRadius: 99, fontSize: 13, fontWeight: view === k ? 700 : 500, background: view === k ? "#16181d" : "#fff", color: view === k ? "#fff" : "#4b5060", border: "1px solid " + (view === k ? "#16181d" : "#e3e5ec") }}
+    >
+      {label}
+    </div>
+  );
 
   return (
     <Page
-      title="找目标岗位"
-      sub="选择你真正准备投递的职位。新增岗位时直接复用你整理好的经历，不用重新填写；每张卡片也会显示这个岗位当前的准备与投递进展。"
+      title="岗位与进度"
+      sub="「找目标岗位」新增和分析岗位；「我的申请」按投递进度看全局。每个岗位都有自己独立的简历、面试问题、模拟和复盘。"
     >
-      <PriorityPanel />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
-        {bossOpen ? <BossImportPanel onClose={() => setBossOpen(false)} /> : null}
-        {s.jobs.map((j) => {
-          const qaCount = (s.qa[j.id] || []).length;
-          const mockCount = (s.mocks[j.id] || []).length;
-          const recCount = s.records.filter((r) => r.jobId === j.id).length;
-          const stage = !s.analyses[j.id] ? "① 待分析 JD" : !s.resumes[j.id] ? "② 待生成简历" : !qaCount ? "③ 待生成 QA" : null;
-          return (
-            <div key={j.id} style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-              <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 42, height: 42, borderRadius: 11, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.company}</div>
-                  <div style={{ fontSize: 12, color: "#8a919e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.role}</div>
-                </div>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  <div onClick={() => moveJobStatus(j.id, -1)} title="上一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>‹</div>
-                  <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#f1f0fb", color: "#5850ec" }}>{j.statusLabel}</span>
-                  <div onClick={() => moveJobStatus(j.id, 1)} title="下一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>›</div>
-                </div>
-                <span style={{ fontSize: 11.5, color: "#a3a8b5" }}>更新 {j.updated}</span>
-              </div>
-              {j.match ? (
-                <div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "#8a919e", marginBottom: 4 }}>
-                    <span>匹配覆盖度</span>
-                    <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>{j.match}</span>
-                  </div>
-                  <div style={{ height: 6, background: "#eee", borderRadius: 99, overflow: "hidden" }}>
-                    <div style={{ width: j.match + "%", height: "100%", background: "#5850ec" }} />
-                  </div>
-                </div>
-              ) : (
-                <div style={{ fontSize: 12, color: "#c2810c" }}>尚未分析 JD</div>
-              )}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f2f2f6", paddingTop: 10 }}>
-                <div style={{ fontSize: 11.5, color: "#a3a8b5" }}>
-                  {stage ? <span style={{ color: "#c2810c", fontWeight: 600 }}>{stage}</span> : "QA " + qaCount + " · 模拟 " + mockCount + " · 复盘 " + recCount}
-                </div>
-                <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#5850ec" }}>打开申请包 →</div>
-              </div>
-            </div>
-          );
-        })}
-        <AddJobCard />
-        {!bossOpen ? (
-          <div
-            onClick={() => setBossOpen(true)}
-            style={{ cursor: "pointer", background: "#fbfbfd", border: "1px dashed #d5d8e3", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#4b5060", minHeight: 170 }}
-          >
-            <div style={{ fontSize: 22, marginBottom: 6 }}>⇪</div>
-            <div style={{ fontWeight: 700, fontSize: 14 }}>导入 Boss 直聘数据</div>
-            <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4, textAlign: "center" }}>boss_jobs / boss_details JSON<br />批量创建申请包</div>
-          </div>
-        ) : null}
+      <div style={{ display: "flex", gap: 9, marginBottom: 18 }}>
+        {seg("find", "找目标岗位")}
+        {seg("track", "我的申请")}
       </div>
+      {view === "track" ? (
+        <TrackView />
+      ) : (
+        <>
+          <PriorityPanel />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+            {bossOpen ? <BossImportPanel onClose={() => setBossOpen(false)} /> : null}
+            {s.jobs.map((j) => (
+              <JobCard key={j.id} j={j} />
+            ))}
+            <AddJobCard />
+            {!bossOpen ? (
+              <div
+                onClick={() => setBossOpen(true)}
+                style={{ cursor: "pointer", background: "#fbfbfd", border: "1px dashed #d5d8e3", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#4b5060", minHeight: 170 }}
+              >
+                <div style={{ fontSize: 22, marginBottom: 6 }}>⇪</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>导入 Boss 直聘数据</div>
+                <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4, textAlign: "center" }}>boss_jobs / boss_details JSON<br />批量创建岗位</div>
+              </div>
+            ) : null}
+          </div>
+        </>
+      )}
     </Page>
   );
 }

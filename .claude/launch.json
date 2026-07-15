@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "roleready-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "web",
+      "port": 3000,
+      "autoPort": true,
+      "env": { "NEXT_PUBLIC_RR_API_BASE": "http://localhost:8787" }
+    }
+  ]
+}

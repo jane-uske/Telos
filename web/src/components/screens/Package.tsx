@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useStore } from "@/lib/store";
-import { Page, Btn, Spinner, JobChips } from "../ui";
+import { Page, Btn, Spinner, JobChips, Empty } from "../ui";
+import { GenBadge } from "../AuthGate";
 import type { Analysis, Match, Tab } from "@/lib/types";
 
 const mono: React.CSSProperties = { fontFamily: "'JetBrains Mono', monospace" };
@@ -228,8 +229,21 @@ export default function Package() {
   const analyzeJd = useStore((x) => x.analyzeJd);
   const prepPackage = useStore((x) => x.prepPackage);
   const [jdOpen, setJdOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
 
-  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
+  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0] || null;
+
+  if (!j) {
+    return (
+      <Page title="准备这个岗位" sub="为一个具体岗位准备简历和面试内容：岗位分析、定制简历、面试问题、模拟面试、面试后复盘，全部围绕这一个岗位互相联动。">
+        <Empty
+          title="还没有目标岗位"
+          desc="先添加一个你真正想投的岗位（粘贴 JD 即可），这里就会出现它的五步准备流程。"
+          action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />}
+        />
+      </Page>
+    );
+  }
   const a = s.analyses[j.id];
   const m = s.matches[j.id];
   const r = s.resumes[j.id];
@@ -290,21 +304,39 @@ export default function Package() {
     },
   ];
 
+  // 当前最应该做的一步：先看告警，再看第一个没完成的
+  const current = steps.find((st) => st.state === "warn") || steps.find((st) => st.state === "todo") || null;
+  const genSrc = s.genSource["analysis:" + j.id];
+  const done = steps.filter((st) => st.state !== "todo").length;
+
   return (
-    <Page title="准备这个岗位" sub="为这份岗位准备简历和面试内容：JD 分析、匹配情况、定制简历与面试问题，全部围绕这一个岗位生成、互相联动。">
+    <Page title="准备这个岗位" sub="为这份岗位准备简历和面试内容：岗位分析、定制简历与面试问题全部围绕这一个岗位生成、互相联动。">
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
 
-      {/* 岗位信息 + JD */}
+      {/* 首屏①：公司岗位 + 投递状态 + 准备完成度 */}
       <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 18, marginBottom: 14 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 42, height: 42, borderRadius: 11, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 700, fontSize: 15 }}>{j.company} · {j.role}</div>
-            <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>{j.statusLabel} · 更新 {j.updated}</div>
+            <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>
+              投递进度：<b style={{ color: "#5850ec" }}>{j.statusLabel}</b> · 更新 {j.updated}
+            </div>
+          </div>
+          <div style={{ width: 150, flexShrink: 0 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#8a919e", marginBottom: 4 }}>
+              <span>准备完成度</span>
+              <span style={{ ...mono, fontWeight: 700, color: "#16181d" }}>{done}/5</span>
+            </div>
+            <div style={{ display: "flex", gap: 3 }}>
+              {steps.map((st) => (
+                <span key={st.n} style={{ flex: 1, height: 5, borderRadius: 99, background: st.state === "done" ? "#5850ec" : st.state === "warn" ? "#e2b23c" : "#eceae4" }} />
+              ))}
+            </div>
           </div>
           {a ? (
-            <div onClick={() => setJdOpen(!jdOpen)} className="pcv-link" style={{ fontSize: 12.5 }}>
-              {jdOpen ? "收起 JD ▲" : "查看完整 JD ▼"}
+            <div onClick={() => setJdOpen(!jdOpen)} className="pcv-link" style={{ fontSize: 12.5, flexShrink: 0 }}>
+              {jdOpen ? "收起 JD ▲" : "查看 JD ▼"}
             </div>
           ) : null}
         </div>
@@ -317,15 +349,15 @@ export default function Package() {
               style={{ width: "100%", height: a ? 140 : 180, border: "1px solid #e6e8ee", borderRadius: 10, padding: 12, fontSize: 12.5, lineHeight: 1.7, resize: "vertical", outline: "none", background: "#fbfbf9" }}
             />
             <div style={{ marginTop: 10, display: "flex", gap: 10, alignItems: "center" }}>
-              <Btn label={s.jdLoading ? "分析中…" : a ? "重新分析 JD" : "分析 JD →"} onClick={() => analyzeJd()} />
-              {!a ? <span style={{ fontSize: 12, color: "#a3a8b5" }}>AI 会拆解岗位要求，并和你的证据库逐条对照</span> : null}
+              <Btn label={s.jdLoading ? "分析中…" : a ? "重新分析岗位" : "分析岗位 →"} onClick={() => analyzeJd()} />
+              {!a ? <span style={{ fontSize: 12, color: "#a3a8b5" }}>拆解岗位要求，并和你整理好的经历逐条对照</span> : null}
             </div>
           </div>
         ) : null}
       </div>
 
-      {/* 准备进度流水线：先回答「到哪了、下一步做什么」，每一步可直接点进去 */}
-      <div style={{ marginBottom: 22 }}>
+      {/* 首屏②：五步流程 + 当前最该做的一步（主行动按钮） */}
+      <div style={{ marginBottom: 18 }}>
         <PrepBanner jobId={j.id} openSugs={openSugs.length} />
         <div style={{ display: "flex", gap: 6, alignItems: "stretch" }}>
           {steps.map((st, i) => (
@@ -337,45 +369,81 @@ export default function Package() {
             </React.Fragment>
           ))}
         </div>
+
+        {current ? (
+          <div style={{ marginTop: 12, background: "#16181d", color: "#fff", borderRadius: 14, padding: "14px 18px", display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ ...mono, fontSize: 10, color: "#9aa0b0", letterSpacing: ".1em", marginBottom: 4 }}>当前最应该做的</div>
+              <div style={{ fontSize: 14.5, fontWeight: 800 }}>{current.n} {current.title}</div>
+              <div style={{ fontSize: 12, color: "#c7cad5", marginTop: 3 }}>{current.warn || current.line}</div>
+            </div>
+            <div onClick={current.open} className="pcv-press" style={{ flexShrink: 0, background: "#5850ec", color: "#fff", fontWeight: 700, fontSize: 13, padding: "10px 18px", borderRadius: 10 }}>
+              去做这一步 →
+            </div>
+          </div>
+        ) : (
+          <div style={{ marginTop: 12, background: "#e6f5ee", border: "1px solid #bfe6d4", borderRadius: 14, padding: "12px 16px", fontSize: 13, fontWeight: 700, color: "#12805c" }}>
+            ✓ 五步都有产出了。保持迭代：简历改过就刷新问题、再模拟；每次真实面试后回来复盘。
+          </div>
+        )}
+
         {j.jd.trim() && (!a || !r || !qa.length) && (!s.prep || s.prep.jobId !== j.id || s.prep.stage === "done") ? (
           <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <Btn label="⚡ 一键准备这个岗位" kind="dark" onClick={() => prepPackage()} />
-            <span style={{ fontSize: 12, color: "#a3a8b5" }}>依次执行：分析 JD → 定制简历 →（停下来等你逐条确认 AI 建议）→ 生成面试问题</span>
+            <Btn label="⚡ 一键准备这个岗位" kind="ghost" onClick={() => prepPackage()} />
+            <span style={{ fontSize: 12, color: "#a3a8b5" }}>依次执行：分析岗位 → 定制简历 →（停下来等你逐条确认建议）→ 生成面试问题</span>
           </div>
         ) : null}
       </div>
 
+      {/* 详细拆解与匹配：默认折叠，主动展开才看细节 */}
       {s.jdLoading ? (
         <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 18 }}>
-          <Spinner text="识别核心职责、必要/加分能力与隐含要求，并对照你的证据…" />
+          <Spinner text="识别核心职责、必要/加分能力与隐含要求，并对照你的经历…" />
         </div>
-      ) : !a ? (
-        <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-line" }}>
-          准备这个岗位，从分析 JD 开始。{"\n"}AI 会告诉你：哪些经历重点写、哪些要弱化、哪些能力缺证据、哪些内容不能夸大——{"\n"}然后再定制简历和面试问题。
-        </div>
-      ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
-          <AnalysisView a={a} />
-          {m ? <MatchView m={m} /> : null}
+      ) : !a ? null : (
+        <div>
+          <div
+            onClick={() => setDetailOpen(!detailOpen)}
+            className="pcv-row"
+            style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", border: "1px solid #eceae4", borderRadius: 14, padding: "13px 18px", marginBottom: detailOpen ? 18 : 0 }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontWeight: 800, fontSize: 14 }}>岗位拆解 · 证据匹配 · 风险项</span>
+              <GenBadge source={genSrc} />
+              {m ? (
+                <span style={{ fontSize: 12, color: "#8a919e" }}>
+                  覆盖度 <b style={{ ...mono, color: "#16181d" }}>{m.metrics.coverage}</b>/100 · 风险 <b style={{ ...mono, color: m.metrics.risk ? "#d64545" : "#16181d" }}>{m.metrics.risk}</b> 处
+                </span>
+              ) : null}
+            </div>
+            <span style={{ fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>{detailOpen ? "收起 ▲" : "展开查看 ▼"}</span>
+          </div>
 
-          {/* 历次优化建议 */}
-          {history.length ? (
-            <div>
-              <SectionHead no="03" title="迭代记录" desc="每次模拟和真实面试的产出都沉淀在这里——系统越用越懂你。" />
-              <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: "6px 18px" }}>
-                {history.map((h, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderTop: i ? "1px solid #f4f2ec" : "none" }}>
-                    <span style={{ ...mono, fontSize: 11, color: "#a3a8b5", whiteSpace: "nowrap", marginTop: 2 }}>{h.date}</span>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 12.5, color: "#2f333d", lineHeight: 1.5 }}>{h.title}</div>
-                      <div style={{ fontSize: 11, color: "#a3a8b5", marginTop: 2 }}>{h.src}</div>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, whiteSpace: "nowrap", background: h.state === "accepted" ? "#e6f5ee" : h.state === "dismissed" ? "#f2f3f5" : h.state === "pending" ? "#fdf3e0" : "#f1f0fb", color: h.state === "accepted" ? "#12805c" : h.state === "dismissed" ? "#8a919e" : h.state === "pending" ? "#c2810c" : "#5850ec" }}>
-                      {h.state === "accepted" ? "已采纳" : h.state === "dismissed" ? "已忽略" : h.state === "pending" ? "待确认" : "参考"}
-                    </span>
+          {detailOpen ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+              <AnalysisView a={a} />
+              {m ? <MatchView m={m} /> : null}
+
+              {/* 历次优化建议 */}
+              {history.length ? (
+                <div>
+                  <SectionHead no="03" title="迭代记录" desc="每次模拟和真实面试的产出都沉淀在这里——系统越用越懂你。" />
+                  <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: "6px 18px" }}>
+                    {history.map((h, i) => (
+                      <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 0", borderTop: i ? "1px solid #f4f2ec" : "none" }}>
+                        <span style={{ ...mono, fontSize: 11, color: "#a3a8b5", whiteSpace: "nowrap", marginTop: 2 }}>{h.date}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12.5, color: "#2f333d", lineHeight: 1.5 }}>{h.title}</div>
+                          <div style={{ fontSize: 11, color: "#a3a8b5", marginTop: 2 }}>{h.src}</div>
+                        </div>
+                        <span style={{ fontSize: 11, fontWeight: 700, padding: "2px 8px", borderRadius: 99, whiteSpace: "nowrap", background: h.state === "accepted" ? "#e6f5ee" : h.state === "dismissed" ? "#f2f3f5" : h.state === "pending" ? "#fdf3e0" : "#f1f0fb", color: h.state === "accepted" ? "#12805c" : h.state === "dismissed" ? "#8a919e" : h.state === "pending" ? "#c2810c" : "#5850ec" }}>
+                          {h.state === "accepted" ? "已采纳" : h.state === "dismissed" ? "已忽略" : h.state === "pending" ? "待确认" : "参考"}
+                        </span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
         </div>

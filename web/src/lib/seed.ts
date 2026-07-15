@@ -1,7 +1,8 @@
 // Seeded demo data for the "林深 · 全栈/前端冲大厂" persona.
+// 只在用户显式点「查看演示」时加载（store.loadDemo），绝不默认混入真实数据。
 // j1（字节）预置完整申请包（分析/简历/QA/模拟/真实复盘），j2（腾讯）只有分析，
 // j3（AI 独角兽）完全空白 —— 用户可以在 j3 上从零走完整条闭环。
-// 同时导出 fallback* 系列：AI mock 模式下各处理器的兜底生成器（不编造事实）。
+// 同时导出 fallback* 系列：基础模式（不调用在线 AI）的确定性生成器（不编造事实）。
 
 import type {
   Evidence,
@@ -18,7 +19,17 @@ import type {
   TranscriptSeg,
   RecordQa,
   SegFlag,
+  UserProfile,
 } from "./types";
+
+/** 演示账号「林深」的简历页眉信息（仅演示模式加载） */
+export const demoProfile = (): UserProfile => ({
+  name: "林深",
+  headline: "全栈 / 高级前端工程师",
+  city: "杭州",
+  email: "lin.shen@demo.dev",
+  link: "github.com/linshen",
+});
 
 export const seedEvidence = (): Evidence[] => [
   {
@@ -132,11 +143,11 @@ export const seedMatches = (): Record<string, Match> => ({
   j1: {
     metrics: { coverage: 82, strength: 74, clarity: 88, risk: 2 },
     strong: [
-      { req: "React 深度经验", ev: "实时协作编辑器 · 协同冲突算法重构", note: "CRDT + React 大型协同，直接命中，应放在第一条重点写" },
-      { req: "前端性能优化", ev: "电商中台前端性能优化", note: "首屏 5.1s→1.6s，有监控佐证，重点写" },
-      { req: "工程化与监控", ev: "CI/CD 与前端工程化", note: "GitHub Actions + monorepo，作为支撑项写" },
+      { req: "React 深度经验", evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", note: "CRDT + React 大型协同，直接命中，应放在第一条重点写" },
+      { req: "前端性能优化", evId: "e2", ev: "电商中台前端性能优化", note: "首屏 5.1s→1.6s，有监控佐证，重点写" },
+      { req: "工程化与监控", evId: "e6", ev: "CI/CD 与前端工程化", note: "GitHub Actions + monorepo，作为支撑项写" },
     ],
-    weak: [{ req: "大型协同/中台经验", ev: "跨端埋点 SDK", note: "相关但主导/参与边界待在访谈中确认，确认前不要写「主导」" }],
+    weak: [{ req: "大型协同/中台经验", evId: "e5", ev: "跨端埋点 SDK", note: "相关但主导/参与边界待在访谈中确认，确认前不要写「主导」" }],
     none: [{ req: "数据驱动的体验优化", ev: null, note: "暂无以业务指标衡量体验改动的证据，建议访谈补充，简历先不写" }],
     downplay: [
       { text: "微服务 API 网关（Go）", why: "与前端岗位相关度低，且贡献边界未澄清——一句话带过即可，不要展开" },
@@ -150,10 +161,10 @@ export const seedMatches = (): Record<string, Match> => ({
   j2: {
     metrics: { coverage: 74, strength: 62, clarity: 80, risk: 1 },
     strong: [
-      { req: "Node/Go 服务端能力", ev: "微服务 API 网关", note: "Go 网关直接命中，但先在访谈中澄清个人边界再重点写" },
-      { req: "独立模块设计", ev: "实时协作编辑器 · 协同冲突算法重构", note: "独立负责协同层，可作为独立设计能力的主证据" },
+      { req: "Node/Go 服务端能力", evId: "e3", ev: "微服务 API 网关", note: "Go 网关直接命中，但先在访谈中澄清个人边界再重点写" },
+      { req: "独立模块设计", evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", note: "独立负责协同层，可作为独立设计能力的主证据" },
     ],
-    weak: [{ req: "微服务与网关理解", ev: "微服务 API 网关", note: "「20+ 服务」无来源，写之前先确认数字" }],
+    weak: [{ req: "微服务与网关理解", evId: "e3", ev: "微服务 API 网关", note: "「20+ 服务」无来源，写之前先确认数字" }],
     none: [{ req: "云产品/ToB 经验", ev: null, note: "暂无云产品经验证据，面试中如实说明并用中台经验类比" }],
     downplay: [{ text: "开源组件库", why: "与云产品全栈岗位关联弱，简历上一句话即可" }],
     risks: [{ text: "「统一接入 20+ 服务」缺少来源", fix: "确认数字或改为「统一接入多个内部服务」" }],
@@ -166,13 +177,13 @@ const j1Bullets = {
   b1: {
     id: "b1",
     text: "主导实时协作编辑器冲突算法重构，用 CRDT 替换原 OT 实现，将多人同编延迟从 800ms 降至 120ms",
-    ev: "实时协作编辑器 · 协同冲突算法重构", evStatus: "confirmed", hook: true,
+    evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", evStatus: "confirmed", hook: true,
     probe: "CRDT 的内存开销与 GC 策略、120ms 的测量环境（本地压测 vs 线上）",
   } as ResumeBullet,
   b2: {
     id: "b2",
     text: "设计 WebSocket 增量同步与断线补偿机制，显著降低协同丢字问题",
-    ev: "实时协作编辑器 · 协同冲突算法重构", evStatus: "confirmed", hook: false,
+    evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", evStatus: "confirmed", hook: false,
     probe: "断线补偿协议在极端弱网下会不会丢数据",
   } as ResumeBullet,
   b3: {
@@ -187,13 +198,13 @@ const j1Bullets = {
   b4: {
     id: "b4",
     text: "负责商家中台前端性能治理，首屏由 5.1s 优化至 1.6s，LCP 达标率 62%→94%",
-    ev: "电商中台前端性能优化", evStatus: "confirmed", hook: false,
+    evId: "e2", ev: "电商中台前端性能优化", evStatus: "confirmed", hook: false,
     probe: "收益如何归因到具体手段、监控口径怎么定的",
   } as ResumeBullet,
   b5: {
     id: "b5",
     text: "统一 Web/小程序埋点 SDK 接口并设计失败重试队列",
-    ev: "跨端埋点 SDK", evStatus: "pending", hook: false,
+    evId: "e5", ev: "跨端埋点 SDK", evStatus: "pending", hook: false,
     probe: "这段经历「主导还是参与」尚未确认，面试官追问边界时有风险",
   } as ResumeBullet,
   b6: {
@@ -359,6 +370,7 @@ export function fallbackResume(job: Job, evidence: Evidence[]): Resume {
       return {
         id: "fb" + n,
         text: e.title + "：" + (e.actions[0] || "") + (e.results[0] ? "，" + e.results[0] : ""),
+        evId: e.id,
         ev: e.title,
         evStatus: e.status === "confirmed" ? "confirmed" : "pending",
         hook: false,

@@ -173,10 +173,22 @@ function Ambient({ items }: { items: { top?: string; left?: string; right?: stri
   );
 }
 
+/** 查看演示：显式动作。已有真实数据时先确认，绝不静默覆盖 */
+function viewDemo() {
+  const st = useStore.getState();
+  const hasReal = !st.demoMode && (st.evidence.length || st.jobs.length || st.records.length);
+  if (hasReal && !window.confirm("进入演示模式：你当前的数据会先自动备份，退出演示时原样恢复（演示数据不会和你的数据混在一起）。继续？")) return;
+  st.loadDemo();
+}
+
+/** 开始使用：进入自己的空间（新用户 = 真正的空白状态，0 经历 0 岗位） */
+function startUsing() {
+  useStore.getState().go("dashboard");
+}
+
 /* ============================== header ============================== */
 
 function HvHeader() {
-  const enterDemo = () => useStore.setState({ screen: "app", tab: "dashboard" });
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 24);
@@ -207,7 +219,8 @@ function HvHeader() {
           <a href="#tailor" className="hv-desktop-only" style={link}>岗位定制</a>
           <a href="#prep" className="hv-desktop-only" style={link}>面试准备</a>
           <a href="#loop" className="hv-desktop-only" style={link}>复盘闭环</a>
-          <span className="hv-btn hv-btn-dark" onClick={enterDemo}>进入演示</span>
+          <span className="hv-btn hv-btn-ghost" onClick={viewDemo}>查看演示</span>
+          <span className="hv-btn hv-btn-dark" onClick={startUsing}>开始使用</span>
         </nav>
       </div>
     </header>
@@ -288,7 +301,7 @@ function HeroDemo() {
         {/* 1. 原文 */}
         <div className={cls(0)} style={{ transition: "opacity .65s ease", marginBottom: 14 }}>
           <div style={{ ...mono, fontSize: 10.5, color: "#a3a8b5", marginBottom: 6 }}>你的旧简历里写着</div>
-          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 12, padding: "13px 16px", fontSize: 13.5, lineHeight: 1.7, color: dim ? "#a3a8b5" : "#2f333d", transition: "color .8s ease", textDecoration: dim ? "line-through" : "none", textDecorationColor: "rgba(163,168,181,.5)" }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 12, padding: "13px 16px", fontSize: 13.5, lineHeight: 1.7, color: dim ? "#a3a8b5" : "#2f333d", transition: "color .8s ease", textDecorationLine: dim ? "line-through" : "none", textDecorationColor: "rgba(163,168,181,.5)" }}>
             “负责实时协作编辑器开发和性能优化。”
           </div>
         </div>
@@ -364,8 +377,6 @@ function HeroDemo() {
 }
 
 function Hero() {
-  const go = useStore((s) => s.go);
-  const enterDemo = () => useStore.setState({ screen: "app", tab: "dashboard" });
   return (
     <section style={{ position: "relative" }}>
       <div className="hv-container" style={{ padding: "64px 32px 96px" }}>
@@ -384,8 +395,8 @@ function Hero() {
               导入旧简历，AI 帮你找回遗漏的项目细节，针对目标岗位生成专属简历、面试 QA 和模拟面试。每参加一次面试，下一次准备都会更充分。
             </p>
             <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
-              <span className="hv-btn hv-btn-primary" onClick={() => go("import")}>导入简历开始 →</span>
-              <span className="hv-btn hv-btn-ghost" onClick={enterDemo}>查看完整演示</span>
+              <span className="hv-btn hv-btn-primary" onClick={startUsing}>开始使用 →</span>
+              <span className="hv-btn hv-btn-ghost" onClick={viewDemo}>查看演示（示例数据）</span>
             </div>
             <div style={{ marginTop: 30, fontSize: 13, color: "#8a8578", display: "flex", alignItems: "center", gap: 8 }}>
               <span style={{ width: 14, height: 14, borderRadius: 99, background: "#e6f5ee", color: "#12805c", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 9 }}>✓</span>
@@ -1058,7 +1069,7 @@ function FinalCta() {
             </p>
             <div style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap" }}>
               <span className="hv-btn hv-btn-primary" onClick={() => go("jobs")}>创建我的岗位申请包 →</span>
-              <span className="hv-btn hv-btn-ghost" onClick={() => openPackage("j1")}>先看一份准备完成的演示包</span>
+              <span className="hv-btn hv-btn-ghost" onClick={() => { viewDemo(); if (useStore.getState().demoMode) openPackage("j1"); }}>先看一份准备完成的演示包</span>
             </div>
           </Reveal>
 
@@ -1107,17 +1118,16 @@ function FinalCta() {
 /* ============================== footer ============================== */
 
 function HvFooter() {
-  const enterDemo = () => useStore.setState({ screen: "app", tab: "dashboard" });
   return (
     <footer style={{ borderTop: "1px solid #eceae4" }}>
       <div className="hv-container" style={{ padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 900, fontSize: 15 }}>
           <BrandMark size={24} />
           RoleReady
-          <span style={{ fontSize: 12.5, color: "#8a8578", fontWeight: 400, marginLeft: 6 }}>从旧简历到面试准备，一次完成。</span>
+          <span style={{ fontSize: 12.5, color: "#8a8578", fontWeight: 400, marginLeft: 6 }}>你的职业资料属于你，不属于平台——正文只存本机，AI 内容临时处理不落库。</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20, fontSize: 12.5, color: "#8a8578" }}>
-          <span onClick={enterDemo} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>进入演示</span>
+          <span onClick={viewDemo} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>查看演示</span>
           <span>© 2026 RoleReady</span>
         </div>
       </div>

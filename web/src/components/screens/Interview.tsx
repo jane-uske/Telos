@@ -42,6 +42,7 @@ export default function Interview() {
   const ivLoading = useStore((s) => s.ivLoading);
   const ivSummary = useStore((s) => s.ivSummary);
   const ivDraft = useStore((s) => s.ivDraft);
+  const ivBasic = useStore((s) => s.ivBasic);
   const startInterview = useStore((s) => s.startInterview);
   const sendInterview = useStore((s) => s.sendInterview);
   const endInterview = useStore((s) => s.endInterview);
@@ -60,12 +61,33 @@ export default function Interview() {
 
   if (!ivProject) {
     const cands = evidence.filter((e) => e.status !== "confirmed");
+    const kinds: { k: NonNullable<import("@/lib/types").EvidenceKind>; label: string }[] = [
+      { k: "work", label: "工作经历" },
+      { k: "intern", label: "实习" },
+      { k: "project", label: "公司项目" },
+      { k: "personal", label: "个人项目" },
+      { k: "opensource", label: "开源经历" },
+    ];
     return (
       <Page
-        title="AI 访谈补全经历"
-        sub="把过去做过的事情重新想清楚。选一个项目开始深挖，AI 会像资深面试官一样连续追问：背景、你的职责边界、关键决策、技术难点、协作方式、可量化结果与可验证证据——而不是帮你润色文字。"
+        title="AI 访谈整理经历"
+        sub="没有简历也能从零开始。AI 会像资深面试官一样连续追问：背景、你的职责边界、关键行动、难点、可量化结果与可验证证据——只记录你说过的事实，确认后才保存。"
       >
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ background: "#faf9ff", border: "1.5px dashed #c9c4f5", borderRadius: 14, padding: 18, gridColumn: cands.length ? undefined : "1 / -1" }}>
+            <div style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 6 }}>从零整理一段新经历</div>
+            <div style={{ fontSize: 12.5, color: "#6b7280", marginBottom: 12, lineHeight: 1.6 }}>选类型开始访谈，问清楚一段是一段：</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {kinds.map((x) => (
+                <Btn
+                  key={x.k}
+                  label={x.label + " →"}
+                  kind="soft"
+                  onClick={() => startInterview({ id: "new", title: "新经历深挖 · " + x.label, kind: x.k, project: "待确认", background: "", status: "insufficient" })}
+                />
+              ))}
+            </div>
+          </div>
           {cands.map((e) => (
             <div key={e.id} style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
@@ -73,14 +95,9 @@ export default function Interview() {
                 <Pill status={e.status} />
               </div>
               <div style={{ fontSize: 12.5, color: "#6b7280", margin: "8px 0 14px", lineHeight: 1.6 }}>{e.note || e.background}</div>
-              <Btn label="开始深挖这个项目 →" kind="soft" onClick={() => startInterview(e)} />
+              <Btn label="补全这段经历 →" kind="ghost" onClick={() => startInterview(e)} />
             </div>
           ))}
-          <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 14, padding: 18, display: "flex", flexDirection: "column", justifyContent: "center" }}>
-            <div style={{ fontWeight: 700, fontSize: 14.5, marginBottom: 6 }}>深挖一个全新项目</div>
-            <div style={{ fontSize: 12.5, color: "#6b7280", marginBottom: 14, lineHeight: 1.6 }}>简历里没写、但你做过的项目，直接从访谈开始沉淀成证据。</div>
-            <Btn label="自由访谈 →" onClick={() => startInterview({ id: "new", title: "新项目深挖", project: "待确认", background: "", status: "insufficient" })} />
-          </div>
         </div>
       </Page>
     );
@@ -93,9 +110,11 @@ export default function Interview() {
         <div style={{ padding: "14px 18px", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <div style={{ fontWeight: 700, fontSize: 14 }}>深挖：{ivProject.title}</div>
-            <div style={{ fontSize: 11.5, color: "#8a919e" }}>AI 职业教练 · 连续追问中</div>
+            <div style={{ fontSize: 11.5, color: ivBasic ? "#c2810c" : "#8a919e" }}>
+              {ivBasic ? "基础模式 · 本地预设问题，不调用在线 AI" : "AI 职业教练 · 连续追问中"}
+            </div>
           </div>
-          <div onClick={() => useStore.setState({ ivProject: null, ivMsgs: [], ivSummary: null, ivDraft: null })} style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }}>退出</div>
+          <div onClick={() => useStore.setState({ ivProject: null, ivMsgs: [], ivSummary: null, ivDraft: null, ivBasic: false })} style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }}>退出</div>
         </div>
         <div ref={scrollRef} style={{ flex: 1, overflow: "auto", padding: 18, display: "flex", flexDirection: "column", gap: 14 }}>
           {ivMsgs.map((m, i) => (

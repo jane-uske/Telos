@@ -3,6 +3,7 @@
 import React from "react";
 import { useStore } from "@/lib/store";
 import { useAiConfig, aiConfigured } from "@/lib/aiConfig";
+import { useAuth } from "@/lib/apiClient";
 import type { Tab } from "@/lib/types";
 
 import Dashboard from "./screens/Dashboard";
@@ -17,13 +18,14 @@ import Mock from "./screens/Mock";
 import Records from "./screens/Records";
 import Settings from "./screens/Settings";
 import BrandMark from "./BrandMark";
+import { AccountBox } from "./AuthGate";
 
 const titles: Record<Tab, string> = {
   dashboard: "开始准备",
   import: "导入旧简历",
-  interview: "AI 访谈补全经历",
+  interview: "AI 访谈整理经历",
   evidence: "整理我的经历",
-  jobs: "找目标岗位",
+  jobs: "岗位与进度",
   pkg: "准备这个岗位",
   resume: "定制简历",
   qa: "面试问题",
@@ -98,35 +100,47 @@ export default function AppShell() {
   );
   const setScreen = useStore((s) => s.setScreen);
   const go = useStore((s) => s.go);
-  const activeJob = useStore((s) => s.jobs.find((j) => j.id === s.activeJobId) || s.jobs[0]);
-  const aiLive = useAiConfig((s) => aiConfigured(s));
+  const demoMode = useStore((s) => s.demoMode);
+  const exitDemo = useStore((s) => s.exitDemo);
+  const activeJob = useStore((s) => s.jobs.find((j) => j.id === s.activeJobId) || s.jobs[0] || null);
+  const byok = useAiConfig((s) => aiConfigured(s));
+  const loggedIn = useAuth((s) => !!s.token);
   // 首次进入产品（还没点掉工作台的新手引导）时，把「整理我的经历」当作起点高亮出来
-  const firstTime = useStore((s) => !s.guideDismissed);
+  const firstTime = useStore((s) => !s.guideDismissed && !s.evidence.length);
 
   const Screen = SCREENS[tab] || Dashboard;
   const pkgScoped = tab === "pkg" || tab === "resume" || tab === "qa" || tab === "mock" || tab === "records";
+  const aiBadge = byok ? "自带 Key" : loggedIn ? "在线 AI" : "基础模式";
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "236px 1fr", minHeight: "100vh" }}>
       {/* sidebar */}
-      <aside style={{ background: "#fff", borderRight: "1px solid #eceae4", padding: "18px 14px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh" }}>
-        <div onClick={() => setScreen("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 18, padding: "6px 8px 18px", letterSpacing: "-.02em" }}>
+      <aside className="rr-no-print" style={{ background: "#fff", borderRight: "1px solid #eceae4", padding: "18px 14px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", overflowY: "auto" }}>
+        <div onClick={() => setScreen("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 18, padding: "6px 8px 14px", letterSpacing: "-.02em" }}>
           <BrandMark size={28} />
           RoleReady
         </div>
+
+        {demoMode ? (
+          <div style={{ margin: "0 0 12px", border: "1px solid #f3e2bd", background: "#fdf7ec", borderRadius: 11, padding: "9px 11px" }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#a3690f" }}>◎ 演示模式</div>
+            <div style={{ fontSize: 11, color: "#a3690f", opacity: 0.85, lineHeight: 1.55, margin: "3px 0 6px" }}>当前全部是示例数据，不会和你的真实数据混在一起。</div>
+            <span onClick={exitDemo} className="pcv-link" style={{ fontSize: 11.5, fontWeight: 700 }}>退出演示并清空示例数据 →</span>
+          </div>
+        ) : null}
 
         <NavItem tabKey="dashboard" label="开始准备" />
 
         <div style={sectionLabel}>整理我的经历</div>
         <NavItem tabKey="evidence" label="我的经历" badge={firstTime ? "从这里开始" : String(evidenceCount)} highlight={firstTime && tab !== "evidence"} />
 
-        <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>找目标岗位</div>
-        <NavItem tabKey="jobs" label="目标岗位" badge={String(jobsCount)} />
+        <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>岗位与进度</div>
+        <NavItem tabKey="jobs" label="岗位与进度" badge={String(jobsCount)} />
 
         {/* 准备这个岗位：核心流程入口，进入后内部展示岗位分析、匹配、简历与面试问题 */}
         <div style={{ marginTop: 12, border: "1px solid #e6e2f7", background: "#faf9ff", borderRadius: 12, padding: "8px 6px 6px" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "2px 6px 8px" }}>
-            <span style={{ fontSize: 10.5, letterSpacing: ".05em", color: "#a3a8b5", fontWeight: 700 }}>准备这个岗位</span>
+            <span style={{ fontSize: 10.5, letterSpacing: ".05em", color: "#a3a8b5", fontWeight: 700 }}>当前岗位</span>
             <span onClick={() => go("jobs")} className="pcv-link" style={{ fontSize: 11 }}>切换</span>
           </div>
           {activeJob ? (
@@ -137,7 +151,9 @@ export default function AppShell() {
                 <div style={{ fontSize: 10.5, color: "#8a919e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.role}</div>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <div style={{ padding: "0 6px 10px", fontSize: 11.5, color: "#a3a8b5", lineHeight: 1.5 }}>还没有目标岗位</div>
+          )}
           <NavItem tabKey="pkg" label="准备这个岗位" />
         </div>
 
@@ -145,29 +161,25 @@ export default function AppShell() {
         <NavItem tabKey="mock" label="模拟面试" />
         <NavItem tabKey="records" label="面试后复盘" badge={pendingSugs ? String(pendingSugs) : undefined} />
 
-        <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>求职进度</div>
-        <NavItem tabKey="jobs" label="求职进度" />
-
         <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>系统</div>
-        <NavItem tabKey="settings" label="设置" badge={aiLive ? "AI 已接入" : "Mock"} />
-        <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid #f0efe9", display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 34, height: 34, borderRadius: 99, background: "#dcd9ff", color: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>林</div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700 }}>林深</div>
-            <div style={{ fontSize: 11, color: "#8a919e" }}>演示账号 · 全栈工程师</div>
-          </div>
+        <NavItem tabKey="settings" label="设置" badge={aiBadge} />
+        <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid #f0efe9" }}>
+          <AccountBox />
         </div>
       </aside>
 
       {/* main */}
       <main style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <div style={{ height: 58, borderBottom: "1px solid #eceae4", background: "rgba(255,255,255,.78)", backdropFilter: "blur(12px) saturate(1.1)", WebkitBackdropFilter: "blur(12px) saturate(1.1)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 5 }}>
+        <div className="rr-no-print" style={{ height: 58, borderBottom: "1px solid #eceae4", background: "rgba(255,255,255,.78)", backdropFilter: "blur(12px) saturate(1.1)", WebkitBackdropFilter: "blur(12px) saturate(1.1)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 5 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ fontSize: 15, fontWeight: 700 }}>{titles[tab] || "开始准备"}</div>
             {pkgScoped && activeJob ? (
               <span style={{ fontSize: 12, color: "#5850ec", background: "#f1f0fb", padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
                 {activeJob.company} · {activeJob.role.split("·")[0].trim()}
               </span>
+            ) : null}
+            {demoMode ? (
+              <span style={{ fontSize: 11.5, color: "#a3690f", background: "#fdf3e0", padding: "3px 10px", borderRadius: 99, fontWeight: 700 }}>演示模式</span>
             ) : null}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>

@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useStore, snapshot } from "@/lib/store";
 import type { PersistedState } from "@/lib/store";
 import { useAiConfig, aiConfigured, DEFAULT_MODEL, type AiProtocol } from "@/lib/aiConfig";
+import { useAuth, serverLogout, deleteAccount, fetchMyUsage, API_BASE } from "@/lib/apiClient";
 import { buildBackup, parseBackup, backupCounts, type BackupCounts } from "@/lib/backup";
 import { Page, Btn } from "../ui";
 
@@ -32,6 +33,127 @@ function fmtBytes(n: number) {
   if (n < 1024) return n + " B";
   if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
   return (n / 1024 / 1024).toFixed(1) + " MB";
+}
+
+/** 两击确认按钮：危险操作先武装、4 秒内再点一次才执行 */
+function ArmedBtn({ label, confirmLabel, onConfirm }: { label: string; confirmLabel: string; onConfirm: () => void }) {
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    if (!armed) return;
+    const t = setTimeout(() => setArmed(false), 4000);
+    return () => clearTimeout(t);
+  }, [armed]);
+  return (
+    <Btn
+      kind="ghost"
+      label={armed ? <span style={{ color: "#d64545" }}>{confirmLabel}</span> : label}
+      onClick={() => {
+        if (!armed) {
+          setArmed(true);
+          return;
+        }
+        setArmed(false);
+        onConfirm();
+      }}
+    />
+  );
+}
+
+/** 账号与在线 AI：登录状态、用量额度、退出、删除账号（与本机数据完全无关） */
+function AccountSection() {
+  const user = useAuth((s) => s.user);
+  const token = useAuth((s) => s.token);
+  const quota = useAuth((s) => s.quota);
+  const showToast = useStore((s) => s.showToast);
+  const [usage, setUsage] = useState<Awaited<ReturnType<typeof fetchMyUsage>> | null>(null);
+  const [usageOpen, setUsageOpen] = useState(false);
+
+  const loadUsage = async () => {
+    setUsageOpen(true);
+    setUsage(await fetchMyUsage());
+  };
+
+  return (
+    <div style={card}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={cardTitle}>账号与在线 AI</div>
+        <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: token ? "#e6f5ee" : "#f2f3f5", color: token ? "#12805c" : "#8a919e" }}>
+          {token ? "已登录" : "未登录 · 基础模式"}
+        </span>
+      </div>
+      <div style={cardSub}>
+        登录只用于在线 AI 的身份、额度与限流（服务端：{API_BASE}）。登录、退出都不影响本机数据。
+      </div>
+
+      {!token ? (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+          <Btn label="登录（GitHub / 邮箱验证码）" onClick={() => useStore.setState({ loginOpen: true })} />
+          <span style={{ fontSize: 12, color: "#8a919e" }}>未登录也可使用全部本地功能（基础模式，不调用在线 AI）</span>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 700 }}>{user?.name || user?.email || "已登录用户"}</div>
+            {user?.email && user?.name ? <span style={{ fontSize: 12, color: "#8a919e" }}>{user.email}</span> : null}
+            {user?.provider ? <span style={{ fontSize: 11, color: "#8a919e", background: "#f2f3f5", padding: "2px 8px", borderRadius: 99 }}>{user.provider === "github" ? "GitHub" : "邮箱"}</span> : null}
+          </div>
+          {quota ? (
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#8a919e", marginBottom: 4 }}>
+                <span>本周期 AI 额度{quota.resetAt ? "（" + quota.resetAt.slice(0, 10) + " 重置）" : ""}</span>
+                <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>
+                  {quota.used} / {quota.limit} {quota.unit || ""}
+                </span>
+              </div>
+              <div style={{ height: 6, background: "#eee", borderRadius: 99, overflow: "hidden" }}>
+                <div style={{ width: Math.min(100, (quota.used / Math.max(1, quota.limit)) * 100) + "%", height: "100%", background: quota.used / Math.max(1, quota.limit) > 0.9 ? "#d64545" : "#5850ec" }} />
+              </div>
+            </div>
+          ) : null}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: usageOpen ? 14 : 0 }}>
+            <Btn kind="ghost" label="查看我的 AI 用量" onClick={loadUsage} />
+            <Btn
+              kind="ghost"
+              label="退出登录"
+              onClick={async () => {
+                await serverLogout();
+                showToast("已退出登录 · 本机数据原样保留");
+              }}
+            />
+            <ArmedBtn
+              label="删除账号…"
+              confirmLabel="再点一次确认删除账号"
+              onConfirm={async () => {
+                const r = await deleteAccount();
+                showToast(r.ok ? "账号已删除（服务端身份与用量记录）· 本机数据未受影响" : "删除失败：" + r.error);
+              }}
+            />
+          </div>
+          {usageOpen ? (
+            <div style={{ border: "1px solid #f0f0f5", borderRadius: 10, padding: "10px 12px", fontSize: 12, color: "#4b5060", lineHeight: 1.8, maxHeight: 220, overflow: "auto" }}>
+              {!usage ? (
+                "加载中…"
+              ) : !usage.ok ? (
+                <span style={{ color: "#d64545" }}>用量获取失败：{usage.error}</span>
+              ) : usage.data.recent.length ? (
+                usage.data.recent.map((u, i) => (
+                  <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
+                    <span>{u.createdAt.slice(0, 16).replace("T", " ")} · {u.feature} · {u.model}</span>
+                    <span style={{ fontFamily: "'JetBrains Mono'" }}>{u.inputTokens}+{u.outputTokens} tok · {u.status}</span>
+                  </div>
+                ))
+              ) : (
+                "还没有调用记录。"
+              )}
+            </div>
+          ) : null}
+          <div style={{ ...noteStyle, marginTop: 14 }}>
+            「删除账号」只删除服务端的身份与用量元数据，<b>不会</b>删除本机浏览器里的任何求职资料——清空本机数据请用下方「数据与隐私」里的独立按钮。
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function AiSection() {
@@ -86,7 +208,7 @@ function AiSection() {
         setTest({ ok: false, text: data?.error || "HTTP " + res.status });
       }
     } catch {
-      setTest({ ok: false, text: "无法连接本机服务 /api/ai" });
+      setTest({ ok: false, text: "无法连接 /api/ai" });
     }
     setTesting(false);
   };
@@ -94,7 +216,7 @@ function AiSection() {
   return (
     <div style={card}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={cardTitle}>AI 接入</div>
+        <div style={cardTitle}>高级：自带 API Key（BYOK）</div>
         <span
           style={{
             fontSize: 11.5,
@@ -105,12 +227,12 @@ function AiSection() {
             color: live ? "#12805c" : "#8a919e",
           }}
         >
-          {live ? "已接入真实 AI" : "Mock 演示模式"}
+          {live ? "已启用 · 优先于登录额度" : "未启用"}
         </span>
       </div>
       <div style={cardSub}>
-        用你自己的 API Key 和服务地址，填好即自动启用真实 AI；留空则保持 Mock 演示模式
-        （所有「AI」结果都是本地确定性生成的演示内容，不调用任何外部服务）。
+        有自己 API Key 的用户可以不走平台额度：填好 URL + Key 后，AI 请求经本应用透传直连你填的服务商，无需登录。
+        留空则使用登录后的在线 AI。
       </div>
 
       <div style={lbl}>接口协议</div>
@@ -208,15 +330,14 @@ function AiSection() {
       </div>
 
       <div style={{ ...noteStyle, marginTop: 16 }}>
-        隐私说明：Key 只保存在你自己的浏览器里，请求时经由你本机运行的 RoleReady 服务原样转发给上面填写的 AI
-        服务商——不落盘、不记日志。RoleReady 没有服务端数据库，不上传、不托管你的任何资料。
+        Key 只保存在你自己的浏览器里，请求经本应用原样转发给上面填写的服务商——不落盘、不记日志。
       </div>
     </div>
   );
 }
 
 const COUNT_ROWS: { key: keyof BackupCounts; label: string }[] = [
-  { key: "evidence", label: "职业证据" },
+  { key: "evidence", label: "经历" },
   { key: "jobs", label: "岗位" },
   { key: "resumes", label: "简历" },
   { key: "versions", label: "简历版本" },
@@ -228,12 +349,14 @@ const COUNT_ROWS: { key: keyof BackupCounts; label: string }[] = [
 function DataSection() {
   const showToast = useStore((s) => s.showToast);
   const applyBackup = useStore((s) => s.applyBackup);
-  const resetToSeed = useStore((s) => s.resetToSeed);
+  const clearLocalData = useStore((s) => s.clearLocalData);
+  const loadDemo = useStore((s) => s.loadDemo);
+  const exitDemo = useStore((s) => s.exitDemo);
+  const demoMode = useStore((s) => s.demoMode);
   const fileRef = useRef<HTMLInputElement>(null);
   const [usage, setUsage] = useState<string | null>(null);
   const [importErr, setImportErr] = useState<string | null>(null);
   const [preview, setPreview] = useState<{ data: PersistedState; counts: BackupCounts; cur: BackupCounts; fileName: string; exportedAt?: string } | null>(null);
-  const [resetArmed, setResetArmed] = useState(false);
 
   useEffect(() => {
     navigator.storage
@@ -243,12 +366,6 @@ function DataSection() {
       })
       .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    if (!resetArmed) return;
-    const t = setTimeout(() => setResetArmed(false), 4000);
-    return () => clearTimeout(t);
-  }, [resetArmed]);
 
   const doExport = () => {
     const json = buildBackup(snapshot(useStore.getState()));
@@ -288,36 +405,35 @@ function DataSection() {
 
   return (
     <div style={card}>
-      <div style={cardTitle}>数据与迁移</div>
+      <div style={cardTitle}>数据与隐私</div>
       <div style={cardSub}>
-        所有资料（证据、岗位、简历、QA、模拟、复盘）都存在本机浏览器的 IndexedDB 里
-        {usage ? "（当前站点存储约 " + usage + "）" : ""}，不上云。清除浏览器站点数据会把它们一起清掉——
-        重要节点请导出备份；换设备迁移 = 旧设备导出 + 新设备导入。
+        <b style={{ color: "#4b5060" }}>数据存储位置：</b>你的全部求职资料（经历、岗位、简历、QA、模拟、复盘）都保存在<b style={{ color: "#4b5060" }}>本机浏览器的 IndexedDB</b>
+        {usage ? "（当前站点存储约 " + usage + "）" : ""}——不在任何服务器上。只有你主动使用 AI 时，完成该任务所需的内容才会被临时发送处理、用完即弃。
+        清除浏览器站点数据会把资料一起清掉：重要节点请导出备份；换设备迁移 = 旧设备导出 + 新设备导入。
       </div>
 
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <Btn label="导出备份 JSON" onClick={doExport} />
+        <Btn label="导出完整备份 JSON" onClick={doExport} />
         <Btn kind="ghost" label="导入备份…" onClick={() => fileRef.current?.click()} />
-        <Btn
-          kind="ghost"
-          label={
-            resetArmed ? (
-              <span style={{ color: "#d64545" }}>再点一次确认清空</span>
-            ) : (
-              "恢复演示数据（清空本机数据）"
-            )
-          }
-          onClick={() => {
-            if (!resetArmed) {
-              setResetArmed(true);
-              return;
-            }
-            setResetArmed(false);
-            setPreview(null);
-            resetToSeed();
-          }}
+        <ArmedBtn
+          label="清空本机数据…"
+          confirmLabel="再点一次确认清空（建议先导出备份）"
+          onConfirm={clearLocalData}
         />
       </div>
+
+      <div style={{ marginTop: 14, borderTop: "1px solid #f2f2f6", paddingTop: 14, display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: "#4b5060" }}>演示数据</span>
+        {demoMode ? (
+          <>
+            <span style={{ fontSize: 11.5, color: "#a3690f", background: "#fdf3e0", padding: "3px 10px", borderRadius: 99, fontWeight: 700 }}>演示模式进行中</span>
+            <Btn kind="ghost" label="退出演示并清空示例数据" onClick={exitDemo} />
+          </>
+        ) : (
+          <ArmedBtn label="加载演示数据…" confirmLabel="当前数据会自动备份并在退出演示时恢复，再点确认" onConfirm={loadDemo} />
+        )}
+      </div>
+
       <input
         ref={fileRef}
         type="file"
@@ -352,7 +468,7 @@ function DataSection() {
             ))}
           </div>
           <div style={{ fontSize: 12, color: "#c2810c", margin: "8px 0 12px" }}>
-            确认后将<b>整体覆盖</b>当前本机数据（左边是现在的数量，右边是导入后的数量）。不放心可先「导出备份 JSON」留底。
+            确认后将<b>整体覆盖</b>当前本机数据（左边是现在的数量，右边是导入后的数量）。不放心可先「导出完整备份 JSON」留底。
           </div>
           <div style={{ display: "flex", gap: 10 }}>
             <Btn
@@ -366,16 +482,21 @@ function DataSection() {
           </div>
         </div>
       ) : null}
+
+      <div style={{ ...noteStyle, marginTop: 16 }}>
+        统一说明：正文本机保存；服务端只保存身份与用量元数据；AI 内容临时处理、不落库；登录不会自动同步本机数据；本机数据可随时导出与清空。
+      </div>
     </div>
   );
 }
 
 export default function Settings() {
   return (
-    <Page title="设置" sub="AI 接入与本机数据管理。Key 和资料都只存在你自己的设备上，RoleReady 不托管任何用户数据。">
+    <Page title="设置" sub="你的职业资料属于你，不属于平台。账号只管在线 AI 的身份与额度；资料全部保存在你自己的设备上。">
       <div style={{ display: "flex", flexDirection: "column", gap: 18, maxWidth: 760 }}>
-        <AiSection />
+        <AccountSection />
         <DataSection />
+        <AiSection />
       </div>
     </Page>
   );
