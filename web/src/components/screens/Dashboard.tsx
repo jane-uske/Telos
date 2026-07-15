@@ -39,7 +39,7 @@ function useNextAction() {
 
 function Stat({ label, val, sub, color }: { label: string; val: string; sub: string; color?: string }) {
   return (
-    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: "18px 20px" }}>
+    <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 14, padding: "18px 20px" }}>
       <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 8 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ fontSize: 30, fontWeight: 900, fontFamily: "'JetBrains Mono'", color: color || "#16181d" }}>{val}</span>
@@ -75,28 +75,28 @@ export default function Dashboard() {
   const recJob = lastRec ? s.jobs.find((x) => x.id === lastRec.jobId) : null;
 
   return (
-    <div style={{ animation: "pcvFade .3s ease both", maxWidth: 1080 }}>
-      <div style={{ marginBottom: 18 }}>
+    <div style={{ maxWidth: 1080 }}>
+      <div className="pcv-fade" style={{ marginBottom: 18 }}>
         <div style={{ fontFamily: "'Noto Serif SC'", fontWeight: 900, fontSize: 26 }}>早上好，林深 👋</div>
         <div style={{ color: "#6b7280", fontSize: 14, marginTop: 4 }}>
           每准备一个岗位、参加一次面试，系统都会更了解你——下一次就准备得更充分。
         </div>
       </div>
 
-      {/* 首次使用引导（可关闭） */}
+      {/* 首次使用引导（可关闭）——浮层提示卡，与首页毛玻璃语言一致 */}
       {!s.guideDismissed ? (
-        <div style={{ background: "#fff", border: "1px solid #ddd9f7", borderRadius: 14, padding: "14px 18px", marginBottom: 18 }}>
+        <div className="hv-glass pcv-fade" style={{ borderRadius: 14, padding: "14px 18px", marginBottom: 18, animationDelay: ".06s" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#5850ec" }}>第一次使用？这是一条完整闭环（当前为演示数据，可直接点通）</div>
-            <div onClick={() => useStore.setState({ guideDismissed: true })} style={{ cursor: "pointer", fontSize: 12, color: "#a3a8b5" }}>知道了 ✕</div>
+            <div onClick={() => useStore.setState({ guideDismissed: true })} className="pcv-link" style={{ fontSize: 12, color: "#a3a8b5", fontWeight: 400 }}>知道了 ✕</div>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
             {guideSteps.map((g, i) => (
               <React.Fragment key={i}>
-                <span onClick={() => go(g[1])} style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#4b5060", background: "#f5f5fa", padding: "5px 10px", borderRadius: 8 }}>
+                <span onClick={() => go(g[1])} className="pcv-press" style={{ fontSize: 12, fontWeight: 600, color: "#4b5060", background: "#fff", border: "1px solid #eceae4", padding: "5px 10px", borderRadius: 8 }}>
                   {i + 1} {g[0]}
                 </span>
-                {i < guideSteps.length - 1 ? <span style={{ color: "#c9ccd6", fontSize: 11 }}>→</span> : null}
+                {i < guideSteps.length - 1 ? <span style={{ color: "#c9c4b8", fontSize: 11 }}>→</span> : null}
               </React.Fragment>
             ))}
           </div>
@@ -104,31 +104,31 @@ export default function Dashboard() {
       ) : null}
 
       {/* 下一步行动 —— 你现在最应该继续做什么 */}
-      <div style={{ background: "#16181d", color: "#fff", borderRadius: 16, padding: "20px 24px", marginBottom: 18, display: "flex", alignItems: "center", gap: 18 }}>
+      <div className="pcv-fade" style={{ background: "#16181d", color: "#fff", borderRadius: 16, padding: "20px 24px", marginBottom: 18, display: "flex", alignItems: "center", gap: 18, animationDelay: ".12s" }}>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 11.5, color: "#9aa0b0", fontWeight: 700, letterSpacing: ".06em", marginBottom: 6 }}>你现在最应该继续做的</div>
+          <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 10.5, color: "#9aa0b0", letterSpacing: ".1em", marginBottom: 7 }}>你现在最应该继续做的</div>
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 5 }}>{next.title}</div>
           <div style={{ fontSize: 12.5, color: "#c7cad5", lineHeight: 1.6 }}>{next.desc}</div>
         </div>
-        <div onClick={() => go(next.tab)} style={{ cursor: "pointer", flexShrink: 0, background: "#5850ec", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "12px 20px", borderRadius: 11 }}>
+        <div onClick={() => go(next.tab)} className="pcv-press" style={{ flexShrink: 0, background: "#5850ec", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "12px 20px", borderRadius: 11, boxShadow: "0 6px 18px rgba(88,80,236,.35)" }}>
           {next.label}
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 18 }}>
+      <div className="pcv-fade" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 18, animationDelay: ".18s" }}>
         <Stat label="职业证据" val={String(s.evidence.length)} sub={confirmed + " 张已确认"} />
         <Stat label="进行中岗位" val={String(s.jobs.length)} sub="个申请包" color="#5850ec" />
         <Stat label="待准备问题" val={String(todoQa.length)} sub={"当前岗位 · 共 " + qa.length + " 题"} color="#c2810c" />
         <Stat label="面试记录" val={String(s.records.length)} sub="次复盘" color="#12805c" />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16 }}>
+      <div className="pcv-fade" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16, animationDelay: ".24s" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* 当前正在准备的岗位 */}
-          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>当前正在准备的岗位</div>
-              <div onClick={() => go("jobs")} style={{ cursor: "pointer", fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>全部岗位 →</div>
+              <div onClick={() => go("jobs")} className="pcv-link" style={{ fontSize: 12.5 }}>全部岗位 →</div>
             </div>
             {s.jobs.map((x, i) => {
               const hasPkg = !!s.analyses[x.id];
@@ -136,7 +136,7 @@ export default function Dashboard() {
               const hasQa = !!(s.qa[x.id] || []).length;
               const stage = !hasPkg ? "待分析 JD" : !hasResume ? "待生成简历" : !hasQa ? "待生成 QA" : "准备中";
               return (
-                <div key={x.id} onClick={() => openPackage(x.id)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderTop: i ? "1px solid #f2f2f6" : "none" }}>
+                <div key={x.id} onClick={() => openPackage(x.id)} className="pcv-row" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 10px", margin: "0 -10px", borderTop: i ? "1px solid #f4f2ec" : "none" }}>
                   <div style={{ width: 38, height: 38, borderRadius: 10, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>{x.logo}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 13.5 }}>{x.company} <span style={{ fontWeight: 400, color: "#8a919e", fontSize: 12 }}>{x.role}</span></div>
@@ -150,13 +150,13 @@ export default function Dashboard() {
           </div>
 
           {/* 最近一次面试复盘 */}
-          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>最近一次面试复盘</div>
-              <div onClick={() => go("records")} style={{ cursor: "pointer", fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>全部记录 →</div>
+              <div onClick={() => go("records")} className="pcv-link" style={{ fontSize: 12.5 }}>全部记录 →</div>
             </div>
             {lastRec ? (
-              <div onClick={() => { useStore.setState({ activeRecordId: lastRec.id, recJobId: lastRec.jobId }); go("records"); }} style={{ cursor: "pointer" }}>
+              <div onClick={() => { useStore.setState({ activeRecordId: lastRec.id, recJobId: lastRec.jobId }); go("records"); }} className="pcv-row" style={{ padding: "8px 10px", margin: "0 -10px" }}>
                 <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 6 }}>{recJob ? recJob.company + " · " + recJob.role : ""} · {lastRec.date} · {lastRec.source}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.6, color: "#2f333d", marginBottom: 8 }}>{lastRec.verdict}</div>
                 {lastRec.suggestions.filter((x) => x.state === "pending").length ? (
@@ -175,14 +175,14 @@ export default function Dashboard() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* 待完善的职业证据 */}
-          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>待完善的证据</div>
-              <div onClick={() => go("evidence")} style={{ cursor: "pointer", fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>证据库 →</div>
+              <div onClick={() => go("evidence")} className="pcv-link" style={{ fontSize: 12.5 }}>证据库 →</div>
             </div>
             {pendingEv.length ? (
               pendingEv.slice(0, 3).map((e, i) => (
-                <div key={e.id} style={{ padding: "10px 0", borderTop: i ? "1px solid #f2f2f6" : "none" }}>
+                <div key={e.id} style={{ padding: "10px 0", borderTop: i ? "1px solid #f4f2ec" : "none" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
                     <div style={{ fontSize: 12.5, fontWeight: 600, lineHeight: 1.5 }}>{e.title}</div>
                     <Pill status={e.status} />
@@ -196,14 +196,14 @@ export default function Dashboard() {
           </div>
 
           {/* 待准备的问题 */}
-          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 20 }}>
+          <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ fontWeight: 700, fontSize: 15 }}>待准备的问题</div>
-              <div onClick={() => go("qa")} style={{ cursor: "pointer", fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>面试 QA →</div>
+              <div onClick={() => go("qa")} className="pcv-link" style={{ fontSize: 12.5 }}>面试 QA →</div>
             </div>
             {todoQa.length ? (
               todoQa.slice(0, 4).map((q, i) => (
-                <div key={q.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start", padding: "9px 0", borderTop: i ? "1px solid #f2f2f6" : "none" }}>
+                <div key={q.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start", padding: "9px 0", borderTop: i ? "1px solid #f4f2ec" : "none" }}>
                   <div style={{ fontSize: 12.5, lineHeight: 1.5, color: "#2f333d" }}>{q.q}</div>
                   <PrepPill prep={q.prep} />
                 </div>

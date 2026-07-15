@@ -16,17 +16,17 @@ export function Btn({
 }) {
   const st: React.CSSProperties =
     kind === "ghost"
-      ? { background: "#fff", border: "1px solid #e3e5ec", color: "#16181d" }
+      ? { background: "#fff", border: "1px solid #e6e3db", color: "#16181d" }
       : kind === "dark"
       ? { background: "#16181d", color: "#fff" }
       : kind === "soft"
       ? { background: "#f1f0fb", color: "#5850ec" }
-      : { background: "#5850ec", color: "#fff" };
+      : { background: "#5850ec", color: "#fff", boxShadow: "0 4px 14px rgba(88,80,236,.24)" };
   return (
     <div
       onClick={onClick}
+      className="pcv-press"
       style={{
-        cursor: "pointer",
         padding: "10px 16px",
         borderRadius: 10,
         fontWeight: 600,
@@ -129,7 +129,8 @@ export function JobChips({
         <div
           key={x.id}
           onClick={() => onPick(x.id)}
-          style={{ cursor: "pointer", padding: "7px 13px", borderRadius: 99, fontSize: 12.5, fontWeight: 600, background: x.id === activeId ? "#16181d" : "#fff", color: x.id === activeId ? "#fff" : "#4b5060", border: "1px solid " + (x.id === activeId ? "#16181d" : "#e3e5ec") }}
+          className="pcv-press"
+          style={{ padding: "7px 13px", borderRadius: 99, fontSize: 12.5, fontWeight: 600, background: x.id === activeId ? "#16181d" : "#fff", color: x.id === activeId ? "#fff" : "#4b5060", border: "1px solid " + (x.id === activeId ? "#16181d" : "#e6e3db") }}
         >
           {x.company} · {x.role.split("·")[0].trim()}
         </div>

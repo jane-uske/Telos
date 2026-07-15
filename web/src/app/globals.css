@@ -16,7 +16,7 @@
   --border-2: #eef0f4;
   --border-3: #f0f0f5;
   --border-input: #e6e8ee;
-  --app-bg: #f6f7fb;
+  --app-bg: #faf9f7; /* 与首页统一为暖米白 */
   --home-bg: #faf9f7;
   --ok: #12805c;
   --ok-050: #e6f5ee;
@@ -34,14 +34,14 @@ html, body { margin: 0; padding: 0; }
 body {
   font-family: 'Noto Sans SC', system-ui, sans-serif;
   color: #16181d;
-  background: #f6f7fb;
+  background: var(--app-bg);
   -webkit-font-smoothing: antialiased;
 }
 a { color: #5850ec; text-decoration: none; }
 a:hover { color: #4840d8; }
 ::selection { background: #dcd9ff; }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #d5d8e3; border-radius: 8px; border: 3px solid #f6f7fb; }
+::-webkit-scrollbar-thumb { background: #d8d5cb; border-radius: 8px; border: 3px solid #faf9f7; }
 
 input, textarea, select, button { font-family: inherit; }
 
@@ -158,8 +158,32 @@ html { scroll-behavior: smooth; }
   .hv-desktop-only { display: none !important; }
 }
 
+/* ===== App ↔ Home 视觉同步：应用内共用的微交互 ===== */
+
+/* 可点击元素：悬停轻抬 + 按下轻压（与首页按钮一致） */
+.pcv-press {
+  cursor: pointer;
+  transition: transform .22s ease, box-shadow .25s ease, background .25s ease, border-color .25s ease, color .25s ease;
+}
+.pcv-press:hover { transform: translateY(-1px); }
+.pcv-press:active { transform: translateY(0) scale(.98); }
+
+/* 可点击列表行：悬停浅紫底（与首页钩子句一致） */
+.pcv-row { cursor: pointer; border-radius: 10px; transition: background .25s ease; }
+.pcv-row:hover { background: var(--iris-025); }
+
+/* 文字链接 */
+.pcv-link { cursor: pointer; color: var(--iris); font-weight: 600; transition: color .2s ease; }
+.pcv-link:hover { color: var(--iris-hover); }
+
+/* 区块入场：与首页相同的上移淡入，用 animationDelay 做级联 */
+.pcv-fade { animation: pcvFade .55s ease both; }
+
 /* --- reduced motion: everything lands in its final state, no autoplay --- */
 @media (prefers-reduced-motion: reduce) {
+  .pcv-fade { animation: none !important; }
+  .pcv-press, .pcv-row, .pcv-link { transition: none !important; }
+  .pcv-press:hover { transform: none !important; }
   html { scroll-behavior: auto; }
   .hv-reveal, .hv-step { opacity: 1 !important; transform: none !important; transition: none !important; }
   .hv-mark { transition: none !important; }
