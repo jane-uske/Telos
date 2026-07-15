@@ -173,12 +173,12 @@ export default function Evidence() {
 
   return (
     <Page
-      title="职业证据库"
-      sub="这是产品的核心资产。每张证据卡都标注来源与确认状态——AI 不会替你编造数据，缺什么就用访谈补什么。新增岗位时直接复用，不用重复填写经历。"
+      title="整理我的经历"
+      sub="把过去做过的事情重新想清楚。每条经历都标注来源与确认状态——AI 不会替你编造数据，缺什么就用访谈补什么。新增岗位时直接复用，不用重复填写。"
       actions={
         <div style={{ display: "flex", gap: 10 }}>
           <Btn label="导入旧简历" kind="ghost" onClick={() => go("import")} />
-          <Btn label="AI 访谈补充证据" kind="soft" onClick={() => go("interview")} />
+          <Btn label="AI 访谈补全经历" kind="soft" onClick={() => go("interview")} />
         </div>
       }
     >

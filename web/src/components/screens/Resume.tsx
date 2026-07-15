@@ -160,7 +160,7 @@ function ContentPanel({ jobId }: { jobId: string }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 16, maxHeight: "calc(100vh - 320px)", overflow: "auto" }}>
       <div style={{ fontSize: 11.5, color: "#8a919e", marginBottom: 12, lineHeight: 1.6 }}>
-        每条内容都关联职业证据。接受、拒绝或修改 AI 建议；把最想被问到的内容标为 ★ 面试钩子。
+        每条内容都关联你整理好的经历。接受、拒绝或修改 AI 建议；把最想被问到的内容标为 ★ 面试钩子。
       </div>
       {/* 版本 */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 14 }}>
@@ -234,15 +234,15 @@ export default function Resume() {
       <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
         {s.resumeLoading ? (
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, maxWidth: 620 }}>
-            <Spinner text="AI 正在基于你的证据库为该岗位定制简历，每一句都会标注来源…" />
+            <Spinner text="AI 正在基于你整理好的经历为该岗位定制简历，每一句都会标注来源…" />
           </div>
         ) : (
           <Empty
             title={j.company + " · " + j.role}
             desc={
               s.analyses[j.id]
-                ? "还没有为这个岗位生成简历。生成时会优先放匹配分析中「重点写」的证据，所有描述可追溯——不会自动编造数据。"
-                : "建议先在申请包里分析 JD（知道重点写什么再生成），也可以直接基于已确认证据生成。"
+                ? "还没有为这个岗位生成简历。生成时会优先放匹配分析中「重点写」的经历，所有描述可追溯——不会自动编造数据。"
+                : "建议先在「准备这个岗位」里分析 JD（知道重点写什么再生成），也可以直接基于已确认经历生成。"
             }
             action={
               <>
@@ -284,11 +284,11 @@ export default function Resume() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ background: "#eef8f2", border: "1px solid #cfeadd", borderRadius: 14, padding: "12px 14px", fontSize: 12.5, color: "#12805c", lineHeight: 1.6 }}>
-            ✓ 可追溯：{bullets.length} 条内容中 {confirmedN} 条已绑定确认证据{openSugs ? "；" + openSugs + " 条 AI 建议待决策" : ""}。无自动编造数据。
+            ✓ 可追溯：{bullets.length} 条内容中 {confirmedN} 条已绑定确认经历{openSugs ? "；" + openSugs + " 条 AI 建议待决策" : ""}。无自动编造数据。
           </div>
           {stale ? (
             <div onClick={() => go("qa")} style={{ cursor: "pointer", background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 14, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", lineHeight: 1.6 }}>
-              ⚠ 简历已更新——相关面试 QA{s.mockStale[j.id] ? "和模拟面试" : ""}可能需要刷新。点击去处理 →
+              ⚠ 简历已更新——相关面试问题{s.mockStale[j.id] ? "和模拟面试" : ""}可能需要刷新。点击去处理 →
             </div>
           ) : null}
           <div style={{ background: "#f2f3f6", borderRadius: 11, padding: 4, display: "flex", gap: 2 }}>

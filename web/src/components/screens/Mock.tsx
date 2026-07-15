@@ -194,7 +194,7 @@ export default function Mock() {
 
   // 入口页
   return (
-    <Page title="模拟面试" sub="不是泛泛的模拟题——面试官读过你的简历、知道你的钩子和薄弱点，像真实面试一样连续追问。">
+    <Page title="模拟面试" sub="提前练习面试官最可能追问的问题——面试官读过你的简历、知道你的钩子和薄弱点，像真实面试一样连续追问。">
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
       {!r ? (
         <Empty

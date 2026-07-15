@@ -107,7 +107,7 @@ export default function Qa() {
 
   if (!items.length) {
     return (
-      <Page title="面试 QA" sub="基于当前岗位、当前简历和职业证据生成——每题都标注来源、对应的岗位要求和准备状态。">
+      <Page title="面试问题" sub="为这份岗位准备被问到的问题和回答——基于当前简历和整理好的经历生成，每题都标注来源、对应的岗位要求和准备状态。">
         <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
         {s.qaLoading ? (
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, maxWidth: 620 }}>
@@ -116,8 +116,8 @@ export default function Qa() {
         ) : (
           <Empty
             title={j.company + " · " + j.role}
-            desc={r ? "还没有生成面试 QA。会包含：30 秒 / 2 分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术 / 业务 / 协作 / 风险 / 反问清单。" : "面试 QA 基于岗位专属简历生成——请先生成这个岗位的简历。"}
-            action={r ? <Btn label="生成面试 QA →" onClick={() => generateQa()} /> : <Btn label="先去生成简历" onClick={() => go("resume")} />}
+            desc={r ? "还没有生成面试问题。会包含：30 秒 / 2 分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术 / 业务 / 协作 / 风险 / 反问清单。" : "面试问题基于这份岗位的定制简历生成——请先生成这个岗位的简历。"}
+            action={r ? <Btn label="生成面试问题 →" onClick={() => generateQa()} /> : <Btn label="先去生成简历" onClick={() => go("resume")} />}
           />
         )}
       </Page>
@@ -139,11 +139,11 @@ export default function Qa() {
 
   return (
     <Page
-      title="面试 QA"
+      title="面试问题"
       sub={"共 " + items.length + " 题 · 已掌握 " + doneCount + " · 需要注意 " + riskCount + " 题高风险。逐题写好答案后，去模拟面试检验。"}
       actions={
         <div style={{ display: "flex", gap: 10 }}>
-          <Btn label={s.qaLoading ? "重新生成中…" : "重新生成 QA"} kind="ghost" onClick={() => generateQa()} />
+          <Btn label={s.qaLoading ? "重新生成中…" : "重新生成问题"} kind="ghost" onClick={() => generateQa()} />
           <Btn label="去模拟面试 →" kind="dark" onClick={() => go("mock")} />
         </div>
       }
@@ -151,7 +151,7 @@ export default function Qa() {
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
       {s.qaStale[j.id] ? (
         <div style={{ background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 12, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <span>⚠ 简历内容已更新——以下 QA 基于旧版简历生成，可能需要刷新。</span>
+          <span>⚠ 简历内容已更新——以下问题基于旧版简历生成，可能需要刷新。</span>
           <span onClick={() => generateQa()} style={{ cursor: "pointer", fontWeight: 700, color: "#5850ec" }}>重新生成 →</span>
         </div>
       ) : null}

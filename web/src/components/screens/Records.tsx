@@ -51,7 +51,7 @@ function Pipeline({ phase }: { phase: string }) {
 function SuggestionCard({ rec }: { rec: InterviewRecord }) {
   const applySuggestion = useStore((s) => s.applySuggestion);
   const dismissSuggestion = useStore((s) => s.dismissSuggestion);
-  const targetLabel = { qa: "面试 QA", resume: "简历", evidence: "职业证据" };
+  const targetLabel = { qa: "面试问题", resume: "简历", evidence: "经历" };
   const pending = rec.suggestions.filter((x) => x.state === "pending");
   const handled = rec.suggestions.filter((x) => x.state !== "pending");
   if (!rec.suggestions.length) return null;
@@ -227,7 +227,7 @@ export default function Records() {
   const active = recs.find((r) => r.id === s.activeRecordId) || recs.slice(-1)[0];
 
   return (
-    <Page title="面试记录与复盘" sub="上传真实面试录音：自动转录、区分说话人、提取问题与追问链、标记含糊和缺证据的回答——复盘结果经你确认后，更新到下一版 QA 和简历。">
+    <Page title="面试后复盘" sub="把真实面试转化为下一次进步。上传录音会自动转录、区分说话人、提取问题与追问链、标记含糊和缺证据的回答——复盘结果经你确认后，更新到下一版面试问题和简历。">
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => useStore.setState({ recJobId: id, activeRecordId: null })} />
 
       {s.recPhase !== "idle" ? (
@@ -270,7 +270,7 @@ export default function Records() {
             <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: 18, fontSize: 12.5, color: "#6b7280", lineHeight: 1.8 }}>
               <div style={{ fontWeight: 700, color: "#16181d", marginBottom: 8 }}>复盘会给你什么</div>
               <div style={{ whiteSpace: "pre-line" }}>
-                · 按时间轴的对话记录（区分说话人）{"\n"}· 提取的问题与连续追问链{"\n"}· 哪些问题由简历触发、钩子是否命中{"\n"}· 含糊 / 中断 / 缺证据 / 矛盾的标记{"\n"}· 每个弱回答的更好版本{"\n"}· 结构化面试笔记{"\n"}· 对 QA / 简历 / 证据的修改建议{"\n\n"}
+                · 按时间轴的对话记录（区分说话人）{"\n"}· 提取的问题与连续追问链{"\n"}· 哪些问题由简历触发、钩子是否命中{"\n"}· 含糊 / 中断 / 缺证据 / 矛盾的标记{"\n"}· 每个弱回答的更好版本{"\n"}· 结构化面试笔记{"\n"}· 对面试问题 / 简历 / 经历的修改建议{"\n\n"}
                 <span style={{ color: "#c2810c" }}>所有修改都需要你确认，不会自动覆盖。</span>
               </div>
             </div>

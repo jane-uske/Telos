@@ -18,8 +18,8 @@ export default function Import() {
 
   return (
     <Page
-      title="简历导入与解析"
-      sub="粘贴或上传你已有的简历，AI 会自动拆解出工作经历、项目、技能与成果——拆解结果需要你逐条确认，不会替你编造。"
+      title="导入旧简历"
+      sub="把过去做过的事情重新想清楚，从这份旧简历开始。粘贴或上传后，AI 会自动拆解出工作经历、项目、技能与成果——拆解结果需要你逐条确认，不会替你编造。"
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18 }}>

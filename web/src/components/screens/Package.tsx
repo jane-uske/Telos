@@ -189,8 +189,8 @@ function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
   const running = prep.stage === "analyzing" || prep.stage === "resume" || prep.stage === "qa";
   const stageText =
     prep.stage === "analyzing" ? "① 正在分析 JD 并对照证据库…" :
-    prep.stage === "resume" ? "② 正在基于已确认证据生成专属简历…" :
-    prep.stage === "qa" ? "③ 正在生成面试 QA…" : "";
+    prep.stage === "resume" ? "② 正在基于已确认证据定制简历…" :
+    prep.stage === "qa" ? "③ 正在生成面试问题…" : "";
   if (running) {
     return (
       <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f1f0fb", border: "1px solid #dcd9ff", borderRadius: 12, padding: "11px 14px", marginBottom: 14, fontSize: 13, fontWeight: 600, color: "#5850ec" }}>
@@ -203,18 +203,18 @@ function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
     return (
       <div style={{ background: "#fdf7ec", border: "1px solid #f3e2bd", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: "#c2810c" }}>
-          ⏸ 编排已暂停：简历生成好了，{openSugs ? "还有 " + openSugs + " 条 AI 建议等你逐条确认" : "AI 建议已处理完"}——确认后再继续生成 QA，不会替你做决定。
+          ⏸ 编排已暂停：简历生成好了，{openSugs ? "还有 " + openSugs + " 条 AI 建议等你逐条确认" : "AI 建议已处理完"}——确认后再继续生成面试问题，不会替你做决定。
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
           <Btn label="去简历编辑器逐条确认 →" kind="ghost" onClick={() => go("resume" as Tab)} />
-          <Btn label={openSugs ? "剩余建议稍后处理，先生成 QA" : "继续生成 QA →"} onClick={() => prepContinueQa()} />
+          <Btn label={openSugs ? "剩余建议稍后处理，先生成面试问题" : "继续生成面试问题 →"} onClick={() => prepContinueQa()} />
         </div>
       </div>
     );
   }
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#e6f5ee", border: "1px solid #bfe6d4", borderRadius: 12, padding: "11px 14px", marginBottom: 14, flexWrap: "wrap" }}>
-      <span style={{ fontSize: 13, fontWeight: 700, color: "#12805c" }}>✓ 申请包已备齐：岗位分析、专属简历、面试 QA 全部就绪。建议下一步：来一场模拟面试。</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: "#12805c" }}>✓ 这个岗位准备好了：岗位分析、定制简历、面试问题全部就绪。建议下一步：来一场模拟面试。</span>
       <Btn label="去模拟面试 →" kind="dark" onClick={() => go("mock" as Tab)} />
     </div>
   );
@@ -261,17 +261,17 @@ export default function Package() {
       open: () => setJdOpen(true),
     },
     {
-      n: "02", title: "专属简历",
+      n: "02", title: "定制简历",
       state: r ? (openSugs.length ? "warn" : "done") : "todo",
       line: r ? bullets.length + " 条内容 · " + hooks.length + " 个面试钩子" : "基于已确认证据生成，句句可溯源",
       warn: openSugs.length ? openSugs.length + " 条 AI 建议待决策" : null,
       open: () => go("resume" as Tab),
     },
     {
-      n: "03", title: "面试 QA",
+      n: "03", title: "面试问题",
       state: qa.length ? (s.qaStale[j.id] || qaByPrep("risk") ? "warn" : "done") : "todo",
       line: qa.length ? qa.length + " 题 · 已掌握 " + qaByPrep("done") + " · 高风险 " + qaByPrep("risk") : "每题标注来源与对应岗位要求",
-      warn: s.qaStale[j.id] ? "简历已更新，QA 需刷新" : qaByPrep("risk") ? qaByPrep("risk") + " 道高风险题待补强" : null,
+      warn: s.qaStale[j.id] ? "简历已更新，问题需刷新" : qaByPrep("risk") ? qaByPrep("risk") + " 道高风险题待补强" : null,
       open: () => go("qa" as Tab),
     },
     {
@@ -282,7 +282,7 @@ export default function Package() {
       open: () => go("mock" as Tab),
     },
     {
-      n: "05", title: "真实复盘",
+      n: "05", title: "面试后复盘",
       state: recs.length ? (pendingSugs.length ? "warn" : "done") : "todo",
       line: lastRec ? recs.length + " 次复盘 · 最近 " + lastRec.date : "面试后上传录音，反哺下一轮",
       warn: pendingSugs.length ? pendingSugs.length + " 条复盘建议待确认" : null,
@@ -291,7 +291,7 @@ export default function Package() {
   ];
 
   return (
-    <Page title="岗位申请包" sub="这个岗位的一切都在这里：JD 分析、专属简历、面试 QA、模拟面试与真实复盘——全部围绕当前岗位生成，互相联动。">
+    <Page title="准备这个岗位" sub="为这份岗位准备简历和面试内容：JD 分析、匹配情况、定制简历与面试问题，全部围绕这一个岗位生成、互相联动。">
       <JobChips jobs={s.jobs} activeId={j.id} onPick={(id) => openPackage(id)} />
 
       {/* 岗位信息 + JD */}
@@ -339,8 +339,8 @@ export default function Package() {
         </div>
         {j.jd.trim() && (!a || !r || !qa.length) && (!s.prep || s.prep.jobId !== j.id || s.prep.stage === "done") ? (
           <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            <Btn label="⚡ 一键备齐申请包" kind="dark" onClick={() => prepPackage()} />
-            <span style={{ fontSize: 12, color: "#a3a8b5" }}>依次执行：分析 JD → 生成专属简历 →（停下来等你逐条确认 AI 建议）→ 生成面试 QA</span>
+            <Btn label="⚡ 一键准备这个岗位" kind="dark" onClick={() => prepPackage()} />
+            <span style={{ fontSize: 12, color: "#a3a8b5" }}>依次执行：分析 JD → 定制简历 →（停下来等你逐条确认 AI 建议）→ 生成面试问题</span>
           </div>
         ) : null}
       </div>
@@ -351,7 +351,7 @@ export default function Package() {
         </div>
       ) : !a ? (
         <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.7, whiteSpace: "pre-line" }}>
-          申请包从分析 JD 开始。{"\n"}AI 会告诉你：哪些经历重点写、哪些要弱化、哪些能力缺证据、哪些内容不能夸大——{"\n"}然后再生成专属简历和面试 QA。
+          准备这个岗位，从分析 JD 开始。{"\n"}AI 会告诉你：哪些经历重点写、哪些要弱化、哪些能力缺证据、哪些内容不能夸大——{"\n"}然后再定制简历和面试问题。
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>

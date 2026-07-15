@@ -62,8 +62,8 @@ export default function Interview() {
     const cands = evidence.filter((e) => e.status !== "confirmed");
     return (
       <Page
-        title="AI 职业访谈"
-        sub="选一个项目开始深挖。AI 会像资深面试官一样连续追问：背景、你的职责边界、关键决策、技术难点、协作方式、可量化结果与可验证证据——而不是帮你润色文字。"
+        title="AI 访谈补全经历"
+        sub="把过去做过的事情重新想清楚。选一个项目开始深挖，AI 会像资深面试官一样连续追问：背景、你的职责边界、关键决策、技术难点、协作方式、可量化结果与可验证证据——而不是帮你润色文字。"
       >
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           {cands.map((e) => (

@@ -217,8 +217,8 @@ export default function Jobs() {
 
   return (
     <Page
-      title="岗位列表"
-      sub="每个岗位对应一个申请包：JD 分析、专属简历、面试 QA、模拟面试和真实复盘都在包里。新增岗位时直接复用你的证据库，不用重来。"
+      title="找目标岗位"
+      sub="选择你真正准备投递的职位。新增岗位时直接复用你整理好的经历，不用重新填写；每张卡片也会显示这个岗位当前的准备与投递进展。"
     >
       <PriorityPanel />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
