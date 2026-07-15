@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Noto Sans SC',system-ui,sans-serif;color:#16181d;background:#f6f7fb;-webkit-font-smoothing:antialiased}
+  a{color:#5850ec;text-decoration:none}
+  a:hover{color:#4840d8}
+  ::selection{background:#dcd9ff}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#d5d8e3;border-radius:8px;border:3px solid #f6f7fb}
+  @keyframes pcvFade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  @keyframes pcvPulse{0%,100%{opacity:.35}50%{opacity:1}}
+  @keyframes pcvSpin{to{transform:rotate(360deg)}}
+  @keyframes pcvBar{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+</style>
+</helmet>
+<div style="min-height:100vh;position:relative">
+
+  <!-- ===================== HOME ===================== -->
+  <sc-if value="{{ showHome }}" hint-placeholder-val="{{ true }}">
+    <div style="min-height:100vh;background:#faf9f7">
+      <header style="max-width:1180px;margin:0 auto;padding:22px 32px;display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px;letter-spacing:-.02em">
+          <div style="width:30px;height:30px;border-radius:8px;background:#5850ec;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'JetBrains Mono';font-weight:700">P</div>
+          ProofCV
+        </div>
+        <nav style="display:flex;align-items:center;gap:28px;font-size:14px;color:#4b5060">
+          <span style="cursor:pointer">产品能力</span>
+          <span style="cursor:pointer">工作原理</span>
+          <span style="cursor:pointer">分享案例</span>
+          <span onClick="{{ enterDemo }}" style="cursor:pointer;padding:9px 18px;border-radius:9px;background:#16181d;color:#fff;font-weight:500">进入演示</span>
+        </nav>
+      </header>
+
+      <section style="max-width:1180px;margin:0 auto;padding:64px 32px 40px;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center">
+        <div style="animation:pcvFade .5s ease both">
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;background:#fff;border:1px solid #eceae4;font-size:13px;color:#5850ec;font-weight:500;margin-bottom:24px">
+            <span style="width:7px;height:7px;border-radius:99px;background:#5850ec;display:inline-block"></span>
+            面向程序员的 AI 职业资产与求职作战平台
+          </div>
+          <h1 style="font-family:'Noto Serif SC';font-weight:900;font-size:52px;line-height:1.12;letter-spacing:-.01em;margin:0 0 22px">
+            先找到你<span style="color:#5850ec">真正值钱</span>的经历，<br>再让招聘者相信它。
+          </h1>
+          <p style="font-size:17px;line-height:1.75;color:#4b5060;margin:0 0 32px;max-width:520px">
+            ProofCV 不是又一个简历模板编辑器。我们通过 AI 职业访谈深挖你做过的每个项目，沉淀成可追溯的「职业证据」，再针对具体岗位生成可信、可核验的简历与求职材料——拒绝编造数据。
+          </p>
+          <div style="display:flex;gap:14px;align-items:center">
+            <span onClick="{{ enterDemo }}" style="cursor:pointer;padding:14px 26px;border-radius:11px;background:#5850ec;color:#fff;font-weight:700;font-size:15px;box-shadow:0 6px 20px rgba(88,80,236,.28)">用演示账号立即体验 →</span>
+            <span onClick="{{ goImport }}" style="cursor:pointer;padding:14px 22px;border-radius:11px;background:#fff;border:1px solid #e6e3db;font-weight:500;font-size:15px">导入我的简历</span>
+          </div>
+          <div style="display:flex;gap:28px;margin-top:40px;font-size:13px;color:#8a8578">
+            <div><b style="color:#16181d;font-size:22px;font-family:'JetBrains Mono'">4</b> 步走完求职闭环</div>
+            <div><b style="color:#16181d;font-size:22px;font-family:'JetBrains Mono'">0</b> 条编造数据</div>
+            <div><b style="color:#16181d;font-size:22px;font-family:'JetBrains Mono'">1</b> 份证据库复用无数岗位</div>
+          </div>
+        </div>
+        <div style="animation:pcvFade .5s ease .1s both">
+          <div style="background:#fff;border:1px solid #eceae4;border-radius:20px;padding:20px;box-shadow:0 24px 60px -30px rgba(30,30,60,.35)">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-weight:700;font-size:14px">职业证据卡 · 实时协作编辑器</div>
+              <div style="font-size:11px;font-weight:700;color:#12805c;background:#e6f5ee;padding:3px 9px;border-radius:99px">已确认</div>
+            </div>
+            <div style="font-size:12.5px;color:#6b7280;line-height:1.7;margin-bottom:14px">主导重构编辑器的协同冲突算法，将多人同编延迟从 <b style="color:#16181d">800ms 降到 120ms</b>，支撑日活 3 万团队稳定使用。</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">
+              <span style="font-family:'JetBrains Mono';font-size:11px;background:#f1f0fb;color:#5850ec;padding:4px 9px;border-radius:6px">CRDT</span>
+              <span style="font-family:'JetBrains Mono';font-size:11px;background:#f1f0fb;color:#5850ec;padding:4px 9px;border-radius:6px">WebSocket</span>
+              <span style="font-family:'JetBrains Mono';font-size:11px;background:#f1f0fb;color:#5850ec;padding:4px 9px;border-radius:6px">React</span>
+            </div>
+            <div style="border-top:1px dashed #eceae4;padding-top:12px;display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:#4b5060"><span style="width:16px;height:16px;border-radius:99px;background:#12805c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">✓</span>成果有 PR 与监控截图佐证</div>
+              <div style="display:flex;gap:9px;align-items:center;font-size:12px;color:#4b5060"><span style="width:16px;height:16px;border-radius:99px;background:#c2810c;color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px">!</span>「3 万日活」待补充数据来源</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-top:14px">
+            <div style="flex:1;background:#16181d;color:#fff;border-radius:14px;padding:16px">
+              <div style="font-size:11px;color:#9aa0b0;margin-bottom:6px">JD 匹配 · 字节 高级前端</div>
+              <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:30px;font-weight:900;font-family:'JetBrains Mono'">82</span><span style="font-size:12px;color:#9aa0b0">覆盖度</span></div>
+              <div style="height:6px;background:#2a2d38;border-radius:99px;margin-top:8px;overflow:hidden"><div style="width:82%;height:100%;background:#5850ec"></div></div>
+            </div>
+            <div style="flex:1;background:#fff;border:1px solid #eceae4;border-radius:14px;padding:16px">
+              <div style="font-size:11px;color:#8a8578;margin-bottom:6px">风险项</div>
+              <div style="font-size:13px;color:#d64545;font-weight:700">2 处夸大表述</div>
+              <div style="font-size:11px;color:#8a8578;margin-top:6px">已自动标注并建议改写</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style="max-width:1180px;margin:0 auto;padding:40px 32px 80px">
+        <div style="text-align:center;margin-bottom:36px">
+          <div style="font-size:13px;color:#5850ec;font-weight:700;letter-spacing:.08em">从零散经历到可信证据的四步</div>
+          <h2 style="font-family:'Noto Serif SC';font-weight:900;font-size:34px;margin:10px 0 0">求职作战，一条线走通</h2>
+        </div>
+        <sc-for list="{{ homeSteps }}" as="s" hint-placeholder-count="4">
+          <div style="display:none"></div>
+        </sc-for>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:18px">
+          <sc-for list="{{ homeSteps }}" as="s" hint-placeholder-count="4">
+            <div style="background:#fff;border:1px solid #eceae4;border-radius:16px;padding:22px">
+              <div style="font-family:'JetBrains Mono';font-size:12px;color:#c9c4b8;font-weight:700">0{{ s.n }}</div>
+              <div style="font-weight:700;font-size:16px;margin:12px 0 8px">{{ s.title }}</div>
+              <div style="font-size:13px;color:#6b7280;line-height:1.7">{{ s.desc }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </section>
+    </div>
+  </sc-if>
+
+  <!-- ===================== AUTH / ONBOARDING ===================== -->
+  <sc-if value="{{ showAuth }}" hint-placeholder-val="{{ false }}">
+    <div style="min-height:100vh;display:grid;grid-template-columns:1fr 1fr">
+      <div style="background:#16181d;color:#fff;padding:56px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px;font-weight:900;font-size:20px">
+          <div style="width:30px;height:30px;border-radius:8px;background:#5850ec;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono'">P</div>ProofCV
+        </div>
+        <div>
+          <h2 style="font-family:'Noto Serif SC';font-weight:900;font-size:34px;line-height:1.3;margin:0 0 20px">让每一句简历<br>都站得住脚。</h2>
+          <div style="display:flex;flex-direction:column;gap:16px">
+            <sc-for list="{{ authPoints }}" as="p" hint-placeholder-count="3">
+              <div style="display:flex;gap:12px;align-items:flex-start">
+                <span style="width:20px;height:20px;border-radius:99px;background:#5850ec;display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px">✓</span>
+                <span style="font-size:14px;color:#c7cad5;line-height:1.6">{{ p }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="font-size:12px;color:#6b7280">© 2026 ProofCV · 你的职业证据，只属于你</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:center;padding:40px">
+        <div style="width:100%;max-width:380px;animation:pcvFade .4s ease both">
+          <div style="font-size:13px;color:#8a919e;margin-bottom:6px">欢迎回来 / 新用户</div>
+          <h3 style="font-size:26px;font-weight:900;margin:0 0 24px">登录 ProofCV</h3>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <input value="lin.shen@demo.dev" style="padding:13px 14px;border:1px solid #e0e2ea;border-radius:10px;font-size:14px;font-family:inherit;background:#fbfbfd" />
+            <input value="••••••••" style="padding:13px 14px;border:1px solid #e0e2ea;border-radius:10px;font-size:14px;font-family:inherit;background:#fbfbfd" />
+            <div onClick="{{ enterDemo }}" style="cursor:pointer;text-align:center;padding:13px;border-radius:10px;background:#5850ec;color:#fff;font-weight:700;font-size:15px">登录</div>
+            <div onClick="{{ enterDemo }}" style="cursor:pointer;text-align:center;padding:13px;border-radius:10px;background:#f1f0fb;color:#5850ec;font-weight:700;font-size:14px">使用演示账号「林深」一键体验</div>
+          </div>
+          <div style="text-align:center;font-size:12px;color:#8a919e;margin-top:18px">继续即代表同意《服务条款》与《隐私政策》</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ===================== APP SHELL ===================== -->
+  <sc-if value="{{ showApp }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:236px 1fr;min-height:100vh">
+      <!-- sidebar -->
+      <aside style="background:#fff;border-right:1px solid #ececf2;padding:18px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh">
+        <div onClick="{{ goHome }}" style="cursor:pointer;display:flex;align-items:center;gap:10px;font-weight:900;font-size:18px;padding:6px 8px 18px">
+          <div style="width:28px;height:28px;border-radius:8px;background:#5850ec;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'JetBrains Mono'">P</div>ProofCV
+        </div>
+        <div style="font-size:11px;color:#a3a8b5;font-weight:700;padding:6px 10px;letter-spacing:.05em">职业资产</div>
+        <sc-for list="{{ navMain }}" as="it" hint-placeholder-count="4">
+          <div onClick="{{ it.go }}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:9px;font-size:13.5px;margin-bottom:2px;font-weight:{{it.weight}};background:{{it.bg}};color:{{it.color}}" style-hover="background:#f5f5fa">
+            <span>{{ it.label }}</span>
+            <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono';font-size:11px;background:#f1f0fb;color:#5850ec;padding:1px 7px;border-radius:99px">{{ it.badge }}</span></sc-if>
+          </div>
+        </sc-for>
+        <div style="font-size:11px;color:#a3a8b5;font-weight:700;padding:16px 10px 6px;letter-spacing:.05em">求职作战</div>
+        <sc-for list="{{ navWar }}" as="it" hint-placeholder-count="4">
+          <div onClick="{{ it.go }}" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:9px 10px;border-radius:9px;font-size:13.5px;margin-bottom:2px;font-weight:{{it.weight}};background:{{it.bg}};color:{{it.color}}" style-hover="background:#f5f5fa">
+            <span>{{ it.label }}</span>
+            <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span style="font-family:'JetBrains Mono';font-size:11px;background:#f1f0fb;color:#5850ec;padding:1px 7px;border-radius:99px">{{ it.badge }}</span></sc-if>
+          </div>
+        </sc-for>
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid #f0f0f5;display:flex;align-items:center;gap:10px">
+          <div style="width:34px;height:34px;border-radius:99px;background:#dcd9ff;color:#5850ec;display:flex;align-items:center;justify-content:center;font-weight:700">林</div>
+          <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700">林深</div><div style="font-size:11px;color:#8a919e">演示账号 · 全栈工程师</div></div>
+          <div onClick="{{ goSettings }}" style="cursor:pointer;color:#a3a8b5" title="设置">⚙</div>
+        </div>
+      </aside>
+
+      <!-- main -->
+      <main style="min-width:0;display:flex;flex-direction:column">
+        <div style="height:58px;border-bottom:1px solid #ececf2;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:5">
+          <div style="font-size:15px;font-weight:700">{{ pageTitle }}</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div onClick="{{ goPublicProfile }}" style="cursor:pointer;font-size:13px;color:#5850ec;font-weight:500">查看我的公开主页 ↗</div>
+            <div onClick="{{ goImport }}" style="cursor:pointer;font-size:13px;padding:8px 14px;border-radius:9px;background:#5850ec;color:#fff;font-weight:500">+ 新增证据</div>
+          </div>
+        </div>
+        <div style="flex:1;overflow:auto;padding:28px" key="{{ tab }}">
+          {{ MAIN_CONTENT }}
+        </div>
+      </main>
+    </div>
+  </sc-if>
+
+  <!-- ===================== PUBLIC PAGES (placeholder, filled later) ===================== -->
+  <sc-if value="{{ showPublicProfile }}" hint-placeholder-val="{{ false }}"><div>{{ PUBLIC_PROFILE }}</div></sc-if>
+  <sc-if value="{{ showPublicResume }}" hint-placeholder-val="{{ false }}"><div>{{ PUBLIC_RESUME }}</div></sc-if>
+
+  <!-- ===================== TOAST ===================== -->
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;bottom:26px;left:50%;transform:translateX(-50%);background:#16181d;color:#fff;padding:12px 20px;border-radius:11px;font-size:14px;box-shadow:0 12px 30px rgba(0,0,0,.25);z-index:100;animation:pcvFade .25s ease both">{{ toast }}</div>
+  </sc-if>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;100%&quot;,&quot;height&quot;:&quot;820px&quot;}}">
+class Component extends DCLogic {
+  state = {
+    screen: 'home', tab: 'dashboard', toast: null,
+    // import
+    importText: '', importParsed: null, importing: false, importDone: false,
+    // interview
+    ivProject: null, ivMsgs: [], ivInput: '', ivLoading: false, ivSummary: null,
+    // github
+    ghUrl: '', ghResult: null, ghLoading: false,
+    // jobs / jd
+    activeJobId: 'j1', jdInput: '', jdLoading: false,
+    // resume
+    resumeLoading: false, resumeReady: true, diffFilter: 'all', diffDecisions: {}, resumeTpl: 'classic',
+    resumeSpec: null, resumeRail: 'template',
+    // materials
+    matLoading: false, matTab: 'greeting',
+    // settings
+    publicProfileOn: true, publicResumeOn: true,
+    // review
+    reviewJobId: 'j1', reviewInput: '', reviewLoading: false, reviews: this.seedReviews(),
+    // market (boss-zhipin-scraper)
+    marketKeyword: '前端', marketCity: '上海', marketPages: 3, marketLoading: false, marketData: this.seedMarket(), marketPrompt: '', marketPromptLoading: false,
+    evidenceFilter: 'all',
+    evidence: this.seedEvidence(), jobs: this.seedJobs(),
+    analyses: this.seedAnalyses(), matches: this.seedMatches(), resumes: this.seedResumes(), mats: this.seedMats(),
+  };
+
+  toast(msg){ this.setState({toast:msg}); clearTimeout(this._t); this._t=setTimeout(()=>this.setState({toast:null}),2200); }
+  go(tab){ this.setState({screen:'app', tab}); const el=document.querySelector('main [key]'); }
+
+  async ask(prompt, opts={}){
+    try{
+      const r = await window.claude.complete({
+        model: opts.model || 'claude-sonnet-4-5',
+        max_tokens: opts.max_tokens || 1400,
+        system: opts.system || '你是资深职业教练与技术招聘专家，语气专业而有温度。只输出要求的内容。',
+        messages: Array.isArray(prompt) ? prompt : [{role:'user',content:prompt}],
+      });
+      return r;
+    }catch(e){ return null; }
+  }
+  parseJSON(t, fb){ if(!t) return fb; try{ const m=t.match(/```(?:json)?\s*([\s\S]*?)```/); const s=m?m[1]:t; const a=s.indexOf('{'),b=s.lastIndexOf('}'),c=s.indexOf('['),d=s.lastIndexOf(']'); let js=s; if(c>=0&&(c<a||a<0)) js=s.slice(c,d+1); else if(a>=0) js=s.slice(a,b+1); return JSON.parse(js); }catch(e){ return fb; } }
+
+  renderVals(){
+    const s = this.state;
+    const nav = (key,label,badge)=>({label,badge:badge||'',go:()=>this.go(key),
+      bg: s.screen==='app'&&s.tab===key?'#f1f0fb':'transparent',
+      color: s.screen==='app'&&s.tab===key?'#5850ec':'#4b5060',
+      weight: s.screen==='app'&&s.tab===key?'700':'400'});
+    const titles={dashboard:'工作台',import:'简历导入与解析',interview:'AI 职业访谈',evidence:'职业证据库',github:'GitHub 项目导入',jobs:'岗位管理',jd:'JD 分析与证据匹配',resume:'定制简历生成',materials:'求职材料中心',pipeline:'求职进度',review:'面试复盘',market:'岗位市场分析',settings:'账号与隐私'};
+
+    return {
+      showHome: s.screen==='home',
+      showAuth: s.screen==='auth',
+      showApp: s.screen==='app',
+      showPublicProfile: s.screen==='publicProfile',
+      showPublicResume: s.screen==='publicResume',
+      toast: s.toast,
+      tab: s.tab,
+      pageTitle: titles[s.tab]||'工作台',
+      enterDemo: ()=>{ this.setState({screen:'app',tab:'dashboard'}); },
+      goHome: ()=>this.setState({screen:'home'}),
+      goImport: ()=>this.go('import'),
+      goSettings: ()=>this.go('settings'),
+      goPublicProfile: ()=>this.setState({screen:'publicProfile'}),
+      navMain: [ nav('dashboard','工作台'), nav('import','简历导入'), nav('interview','AI 职业访谈'), nav('evidence','职业证据库', String(this.state.evidence.length)), nav('github','GitHub 导入') ],
+      navWar: [ nav('market','岗位市场'), nav('jobs','岗位管理', String(this.state.jobs.length)), nav('jd','JD 匹配工作台'), nav('resume','定制简历'), nav('materials','求职材料'), nav('review','面试复盘'), nav('pipeline','求职进度'), nav('settings','账号与隐私') ],
+      homeSteps: [
+        {n:1,title:'沉淀职业证据',desc:'导入简历 + AI 访谈深挖，把模糊经历变成可追溯的证据卡。'},
+        {n:2,title:'解析目标岗位',desc:'粘贴 JD，识别核心职责、必要能力、加分项与隐含要求。'},
+        {n:3,title:'证据对照匹配',desc:'强/弱/未匹配一目了然，标出禁止夸大的风险表述。'},
+        {n:4,title:'生成求职材料',desc:'定制简历、招呼语、自我介绍、面试清单，句句可溯源。'},
+      ],
+      authPoints: ['AI 深挖式访谈，追问背景、决策、难点与可验证证据','JD 多维匹配：覆盖度 / 证据强度 / 表达清晰度 / 风险项','所有简历描述都能追溯到具体证据，绝不自动编造数据'],
+      MAIN_CONTENT: s.screen==='app'?this.renderMain():null,
+      PUBLIC_PROFILE: s.screen==='publicProfile'?this.pPublicProfile():null,
+      PUBLIC_RESUME: s.screen==='publicResume'?this.pPublicResume():null,
+    };
+  }
+
+  renderMain(){
+    const s=this.state, t=s.tab;
+    if(t==='dashboard') return this.mDashboard();
+    if(t==='import') return this.mImport();
+    if(t==='interview') return this.mInterview();
+    if(t==='evidence') return this.mEvidence();
+    if(t==='github') return this.mGithub();
+    if(t==='jobs') return this.mJobs();
+    if(t==='jd') return this.mJd();
+    if(t==='resume') return this.mResume();
+    if(t==='materials') return this.mMaterials();
+    if(t==='pipeline') return this.mPipeline();
+    if(t==='review') return this.mReview();
+    if(t==='market') return this.mMarket();
+    if(t==='settings') return this.mSettings();
+    return React.createElement('div',{style:{color:'#8a919e',fontSize:14,padding:'40px 0'}}, '正在装载…');
+  }
+
+  H(){ return React.createElement; }
+  page(title, sub, body, actions){ const h=React.createElement;
+    return h('div',{style:{animation:'pcvFade .3s ease both',maxWidth:1080}},
+      h('div',{style:{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:22}},
+        h('div',null,
+          h('div',{style:{fontFamily:'Noto Serif SC',fontWeight:900,fontSize:24}},title),
+          sub?h('div',{style:{color:'#6b7280',fontSize:13.5,marginTop:5,maxWidth:640,lineHeight:1.6}},sub):null),
+        actions||null),
+      body); }
+  btn(label,onClick,kind){ const h=React.createElement; const st=kind==='ghost'?{background:'#fff',border:'1px solid #e3e5ec',color:'#16181d'}:kind==='dark'?{background:'#16181d',color:'#fff'}:kind==='soft'?{background:'#f1f0fb',color:'#5850ec'}:{background:'#5850ec',color:'#fff'};
+    return h('div',{onClick,style:Object.assign({cursor:'pointer',padding:'10px 16px',borderRadius:10,fontWeight:600,fontSize:13.5,display:'inline-flex',alignItems:'center',gap:8,whiteSpace:'nowrap'},st)},label); }
+  statusMeta(st){ return st==='confirmed'?{bg:'#e6f5ee',fg:'#12805c',label:'已确认',dot:'#12805c'}:st==='pending'?{bg:'#fdf3e0',fg:'#c2810c',label:'待确认',dot:'#c2810c'}:{bg:'#f2f3f5',fg:'#8a919e',label:'证据不足',dot:'#b6bcc7'}; }
+  pill(st){ const h=React.createElement,m=this.statusMeta(st); return h('span',{style:{display:'inline-flex',alignItems:'center',gap:5,fontSize:11.5,fontWeight:700,color:m.fg,background:m.bg,padding:'3px 10px',borderRadius:99}}, h('span',{style:{width:6,height:6,borderRadius:99,background:m.dot}}), m.label); }
+  tags(arr,color){ const h=React.createElement; return h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}}, arr.map((x,i)=>h('span',{key:i,style:{fontFamily:'JetBrains Mono',fontSize:11,background:color==='role'?'#eef3ff':'#f1f0fb',color:color==='role'?'#3b5bdb':'#5850ec',padding:'3px 9px',borderRadius:6}},x))); }
+  spinner(text){ const h=React.createElement; return h('div',{style:{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'60px 0',gap:16,color:'#6b7280'}},
+    h('div',{style:{width:34,height:34,border:'3px solid #ece9ff',borderTopColor:'#5850ec',borderRadius:99,animation:'pcvSpin .8s linear infinite'}}),
+    h('div',{style:{fontSize:13.5}}, text||'AI 正在分析…'),
+    h('div',{style:{width:180,height:4,background:'#ece9ff',borderRadius:99,overflow:'hidden'}}, h('div',{style:{width:'30%',height:'100%',background:'#5850ec',borderRadius:99,animation:'pcvBar 1.1s ease-in-out infinite'}}))); }
+
+  // ---------------- IMPORT ----------------
+  mImport(){ const h=React.createElement,s=this.state;
+    const sample='林深｜全栈工程师\n杭州 · 5 年经验 · 985 计算机本科\n\n工作经历\n某在线文档 SaaS｜高级前端｜2022.06-至今\n- 负责协作编辑器核心，重构冲突算法\n- 优化实时同步性能\n某电商公司｜前端工程师｜2020.07-2022.05\n- 负责商家中台前端，做过性能优化\n- 参与埋点 SDK 建设\n\n技能：React / TypeScript / Node.js / Go / Webpack';
+    return this.page('简历导入与解析','粘贴或上传你已有的简历，AI 会自动拆解出工作经历、项目、技能与成果——拆解结果需要你逐条确认，不会替你编造。',
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18}},
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}},
+            h('div',{style:{fontWeight:700,fontSize:14}},'原始简历'),
+            h('div',{onClick:()=>this.setState({importText:sample}),style:{cursor:'pointer',fontSize:12,color:'#5850ec'}},'填入示例简历')),
+          h('textarea',{value:s.importText,onChange:e=>this.setState({importText:e.target.value}),placeholder:'把简历内容粘贴到这里，或点击右上角填入示例…',style:{width:'100%',height:330,border:'1px solid #e6e8ee',borderRadius:12,padding:14,fontSize:13,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',background:'#fbfbfd',outline:'none'}}),
+          h('div',{style:{display:'flex',gap:10,marginTop:12,alignItems:'center'}},
+            this.btn(s.importing?'AI 解析中…':'AI 拆解简历 →', ()=>this.doImport()),
+            h('div',{style:{fontSize:12,color:'#a3a8b5'}},'支持粘贴 / .txt / .md'))),
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18,minHeight:400}},
+          h('div',{style:{fontWeight:700,fontSize:14,marginBottom:12}},'AI 拆解结果'),
+          s.importing? this.spinner('正在拆解经历、识别技能与可量化成果…')
+          : !s.importParsed? h('div',{style:{color:'#a3a8b5',fontSize:13,padding:'50px 10px',textAlign:'center',lineHeight:1.8}},'还没有拆解结果。\n左侧粘贴简历后点击「AI 拆解简历」，\n结果会显示在这里供你确认。')
+          : h('div',null,
+              h('div',{style:{fontSize:12.5,color:'#12805c',background:'#e6f5ee',borderRadius:10,padding:'10px 12px',marginBottom:14,lineHeight:1.6}}, '✓ 已识别 '+s.importParsed.length+' 段经历。点击「转为证据卡」进入证据库，AI 会在访谈中继续帮你深挖。'),
+              s.importParsed.map((p,i)=>h('div',{key:i,style:{border:'1px solid #eef0f4',borderRadius:12,padding:14,marginBottom:10}},
+                h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}},
+                  h('div',null, h('div',{style:{fontWeight:700,fontSize:13.5}},p.title), h('div',{style:{fontSize:12,color:'#8a919e',marginTop:2}},p.company+' · '+p.period)),
+                  this.btn('转为证据卡',()=>this.toast('已加入证据库，去访谈补充细节'),'soft')),
+                h('ul',{style:{margin:'10px 0 0',paddingLeft:18,color:'#4b5060',fontSize:12.5,lineHeight:1.8}}, (p.bullets||[]).map((b,j)=>h('li',{key:j},b)))))))));
+  }
+  async doImport(){
+    if(!this.state.importText.trim()){ this.toast('请先粘贴简历内容'); return; }
+    this.setState({importing:true});
+    const raw=this.state.importText;
+    const out=await this.ask('把下面这份简历拆解成结构化 JSON。只输出 JSON 数组，每个元素形如 {"title":"项目/岗位一句话","company":"公司或项目","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n'+raw,{max_tokens:1200});
+    const fb=[{title:'协作编辑器核心开发',company:'某在线文档 SaaS',period:'2022.06-至今',bullets:['重构协作编辑器冲突算法','优化实时同步性能']},{title:'电商商家中台前端',company:'某电商公司',period:'2020.07-2022.05',bullets:['负责商家中台前端与性能优化','参与埋点 SDK 建设']}];
+    const parsed=this.parseJSON(out,fb);
+    this.setState({importing:false,importParsed:Array.isArray(parsed)?parsed:fb});
+  }
+
+  // ---------------- EVIDENCE ----------------
+  mEvidence(){ const h=React.createElement,s=this.state;
+    const filt=s.evidenceFilter, list=s.evidence.filter(e=>filt==='all'||e.status===filt);
+    const counts={all:s.evidence.length,confirmed:s.evidence.filter(e=>e.status==='confirmed').length,pending:s.evidence.filter(e=>e.status==='pending').length,insufficient:s.evidence.filter(e=>e.status==='insufficient').length};
+    const fbtn=(k,label)=>h('div',{onClick:()=>this.setState({evidenceFilter:k}),style:{cursor:'pointer',padding:'7px 14px',borderRadius:99,fontSize:13,fontWeight:600,background:filt===k?'#16181d':'#fff',color:filt===k?'#fff':'#4b5060',border:'1px solid '+(filt===k?'#16181d':'#e3e5ec')}},label+' '+counts[k]);
+    return this.page('职业证据库','这是产品的核心资产。每张证据卡都标注了信息来源与置信状态——新增岗位时直接复用，不用重复填写经历。',
+      h('div',null,
+        h('div',{style:{display:'flex',gap:9,marginBottom:18}}, fbtn('all','全部'), fbtn('confirmed','已确认'), fbtn('pending','待确认'), fbtn('insufficient','证据不足')),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}, list.map(e=>this.evidenceCard(e)))),
+      h('div',{style:{display:'flex',gap:10}}, this.btn('去 AI 访谈补充证据',()=>this.go('interview'),'ghost')));
+  }
+  evidenceCard(e){ const h=React.createElement;
+    return h('div',{key:e.id,style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18,display:'flex',flexDirection:'column',gap:12}},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:10}},
+        h('div',null, h('div',{style:{fontWeight:700,fontSize:14.5,lineHeight:1.4}},e.title), h('div',{style:{fontSize:12,color:'#8a919e',marginTop:3}},e.project)),
+        this.pill(e.status)),
+      h('div',{style:{fontSize:12.5,color:'#6b7280',lineHeight:1.65}},e.background),
+      h('div',null, h('div',{style:{fontSize:11,fontWeight:700,color:'#a3a8b5',marginBottom:5}},'我的关键行动'),
+        h('ul',{style:{margin:0,paddingLeft:16,fontSize:12.5,color:'#4b5060',lineHeight:1.75}}, e.actions.map((a,i)=>h('li',{key:i},a)))),
+      h('div',{style:{display:'flex',gap:8,flexWrap:'wrap'}}, e.results.map((r,i)=>h('span',{key:i,style:{fontSize:12,fontWeight:600,color:'#12805c',background:'#eef8f2',padding:'4px 10px',borderRadius:7}},'↑ '+r))),
+      this.tags(e.skills),
+      e.note?h('div',{style:{fontSize:12,color:'#c2810c',background:'#fdf7ec',borderRadius:9,padding:'8px 11px',lineHeight:1.55}},'⚠ '+e.note):null,
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',borderTop:'1px solid #f2f2f6',paddingTop:11}},
+        h('div',{style:{fontSize:11.5,color:'#a3a8b5'}},'来源：'+e.source),
+        e.status!=='confirmed'?h('div',{onClick:()=>this.confirmEvidence(e.id),style:{cursor:'pointer',fontSize:12.5,fontWeight:700,color:'#5850ec'}},'标记为已确认 ✓'):h('div',{style:{fontSize:12,color:'#12805c',fontWeight:600}},'适用：'+e.roles.join(' / '))));
+  }
+  confirmEvidence(id){ this.setState(st=>({evidence:st.evidence.map(e=>e.id===id?Object.assign({},e,{status:'confirmed',note:null}):e)})); this.toast('已确认，可在简历中放心引用'); }
+
+  activeJob(){ return this.state.jobs.find(j=>j.id===this.state.activeJobId)||this.state.jobs[0]; }
+
+  // ---------------- GITHUB ----------------
+  mGithub(){ const h=React.createElement,s=this.state;
+    return this.page('GitHub 项目导入','输入一个 GitHub 项目地址，AI 会从介绍、代码结构与提交记录中推断技术栈、复杂度与可用于简历的经历。所有推断都需要你确认——绝不会仅凭提交数量判断你的个人贡献。',
+      h('div',null,
+        h('div',{style:{display:'flex',gap:10,marginBottom:18,maxWidth:640}},
+          h('input',{value:s.ghUrl,onChange:e=>this.setState({ghUrl:e.target.value}),placeholder:'https://github.com/username/project',style:{flex:1,border:'1px solid #e6e8ee',borderRadius:10,padding:'11px 13px',fontSize:13.5,fontFamily:'JetBrains Mono',outline:'none'}}),
+          this.btn(s.ghLoading?'分析中…':'分析项目',()=>this.analyzeGithub())),
+        s.ghLoading?this.spinner('正在读取 README、目录结构与提交记录…')
+        :!s.ghResult?h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:14,padding:'20px',fontSize:13,color:'#6b7280',maxWidth:640,lineHeight:1.7}},'试试你的开源项目地址。AI 会给出「推断」，你逐条确认后才会进入证据库——这样简历里的每一句都站得住脚。')
+        :h('div',null,
+          h('div',{style:{fontSize:12.5,color:'#c2810c',background:'#fdf7ec',borderRadius:10,padding:'10px 13px',marginBottom:16,maxWidth:760,lineHeight:1.6}},'⚠ 以下均为 AI 基于公开信息的推断，提交数量不代表个人贡献深度。请只确认你真正主导或参与的部分。'),
+          h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,maxWidth:900}},
+            h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:18}},
+              h('div',{style:{fontWeight:700,fontSize:13.5,marginBottom:10}},'技术栈'), this.tags(s.ghResult.stack),
+              h('div',{style:{fontWeight:700,fontSize:13.5,margin:'16px 0 8px'}},'项目复杂度'),
+              h('div',{style:{display:'flex',alignItems:'center',gap:10}}, h('div',{style:{flex:1,height:7,background:'#eee',borderRadius:99,overflow:'hidden'}}, h('div',{style:{width:s.ghResult.complexity+'%',height:'100%',background:'#5850ec'}})), h('span',{style:{fontFamily:'JetBrains Mono',fontSize:13,fontWeight:700}},s.ghResult.complexity)),
+              h('div',{style:{fontWeight:700,fontSize:13.5,margin:'16px 0 8px'}},'解决的问题'),
+              h('ul',{style:{margin:0,paddingLeft:16,fontSize:12.5,color:'#4b5060',lineHeight:1.8}}, s.ghResult.problems.map((p,i)=>h('li',{key:i},p)))),
+            h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:18}},
+              h('div',{style:{fontWeight:700,fontSize:13.5,marginBottom:10}},'可用于简历的经历（待确认）'),
+              s.ghResult.experiences.map((e,i)=>h('div',{key:i,style:{border:'1px solid #eef0f4',borderRadius:11,padding:'11px 13px',marginBottom:9}},
+                h('div',{style:{display:'flex',justifyContent:'space-between',gap:8,alignItems:'flex-start'}}, h('div',{style:{fontWeight:600,fontSize:13}},e.title), h('div',{onClick:()=>this.toast('已加入证据库（待确认）'),style:{cursor:'pointer',fontSize:12,color:'#5850ec',whiteSpace:'nowrap',fontWeight:700}},'确认 ✓')),
+                h('div',{style:{fontSize:12,color:'#6b7280',marginTop:4,lineHeight:1.6}},e.desc))))))));
+  }
+  async analyzeGithub(){ if(!this.state.ghUrl.trim()){this.toast('请输入 GitHub 地址');return;}
+    this.setState({ghLoading:true});
+    const out=await this.ask('假设你在分析这个 GitHub 项目：'+this.state.ghUrl+'。基于常见的同类开源项目，给出合理的推断。只输出 JSON：{"stack":["技术栈"],"complexity":0-100 的整数,"problems":["项目解决的问题"],"experiences":[{"title":"可写进简历的一句话","desc":"需要用户确认的细节，注明是推断"}]}',{max_tokens:900});
+    const fb={stack:['TypeScript','React','Vite','Vitest'],complexity:68,problems:['提供一套可复用的表单校验与状态管理方案','降低业务接入表单的重复代码'],experiences:[{title:'设计并维护一套 React 表单组件库',desc:'推断：你负责了核心 API 设计与文档，请确认具体贡献范围'},{title:'建立组件库的单测与 CI 流程',desc:'推断：仓库包含测试与 workflow，请确认是否由你搭建'}]};
+    this.setState({ghLoading:false,ghResult:this.parseJSON(out,fb)});
+  }
+
+  // ---------------- JOBS ----------------
+  mJobs(){ const h=React.createElement,s=this.state;
+    return this.page('岗位管理','每个岗位都汇集 JD、匹配分析、使用的简历、生成的沟通材料和进度。新增岗位时直接复用你的证据库，不用重来。',
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:16}},
+        s.jobs.map(j=>h('div',{key:j.id,onClick:()=>{this.setState({activeJobId:j.id});this.go('jd');},style:{cursor:'pointer',background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},
+          h('div',{style:{display:'flex',alignItems:'center',gap:12,marginBottom:14}},
+            h('div',{style:{width:42,height:42,borderRadius:11,background:'#16181d',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:16}},j.logo),
+            h('div',{style:{flex:1,minWidth:0}}, h('div',{style:{fontWeight:700,fontSize:14.5}},j.company), h('div',{style:{fontSize:12,color:'#8a919e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},j.role))),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}, h('span',{style:{fontSize:11.5,fontWeight:700,padding:'3px 10px',borderRadius:99,background:'#f1f0fb',color:'#5850ec'}},j.statusLabel), h('span',{style:{fontSize:11.5,color:'#a3a8b5'}},'更新 '+j.updated)),
+          j.match?h('div',null, h('div',{style:{display:'flex',justifyContent:'space-between',fontSize:11.5,color:'#8a919e',marginBottom:4}}, h('span',null,'匹配覆盖度'), h('span',{style:{fontFamily:'JetBrains Mono',fontWeight:700,color:'#16181d'}},j.match)), h('div',{style:{height:6,background:'#eee',borderRadius:99,overflow:'hidden'}}, h('div',{style:{width:j.match+'%',height:'100%',background:'#5850ec'}}))):h('div',{style:{fontSize:12,color:'#c2810c'}},'尚未分析 JD →'))),
+        h('div',{onClick:()=>this.addJob(),style:{cursor:'pointer',background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:16,padding:18,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#5850ec',minHeight:150}},
+          h('div',{style:{fontSize:26,fontWeight:300,marginBottom:6}},'+'), h('div',{style:{fontWeight:700,fontSize:14}},'新增岗位'), h('div',{style:{fontSize:12,color:'#8a919e',marginTop:4}},'粘贴一段 JD 开始'))));
+  }
+  addJob(){ const id='j'+(this.state.jobs.length+1); const job={id,company:'新岗位',role:'待填写',status:'preparing',statusLabel:'准备投递',match:0,updated:'刚刚',logo:'新',jd:''}; this.setState(st=>({jobs:st.jobs.concat([job]),activeJobId:id})); this.go('jd'); }
+
+  // ---------------- JD WORKBENCH ----------------
+  mJd(){ const h=React.createElement,s=this.state,j=this.activeJob(),a=s.analyses[j.id],m=s.matches[j.id];
+    const chips=h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}, s.jobs.map(x=>h('div',{key:x.id,onClick:()=>this.setState({activeJobId:x.id}),style:{cursor:'pointer',padding:'7px 13px',borderRadius:99,fontSize:12.5,fontWeight:600,background:x.id===j.id?'#16181d':'#fff',color:x.id===j.id?'#fff':'#4b5060',border:'1px solid '+(x.id===j.id?'#16181d':'#e3e5ec')}},x.company+' · '+x.role.split('·')[0].trim())));
+    return this.page('JD 分析与证据匹配',null,
+      h('div',null, chips,
+        h('div',{style:{display:'grid',gridTemplateColumns:'340px 1fr',gap:18,alignItems:'start'}},
+          h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},
+            h('div',{style:{fontWeight:700,fontSize:13.5,marginBottom:10}},j.company+' · '+j.role),
+            h('textarea',{value:j.jd,onChange:e=>this.updateJd(j.id,e.target.value),placeholder:'粘贴目标岗位 JD…',style:{width:'100%',height:200,border:'1px solid #e6e8ee',borderRadius:10,padding:12,fontSize:12.5,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',outline:'none',background:'#fbfbfd'}}),
+            h('div',{style:{marginTop:12}}, this.btn(s.jdLoading?'分析中…':(a?'重新分析 JD':'分析 JD →'),()=>this.analyzeJd()))),
+          s.jdLoading?h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},this.spinner('识别核心职责、必要/加分能力与隐含要求，并对照你的证据…'))
+          :!a?h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:16,padding:'40px 24px',textAlign:'center',color:'#6b7280',fontSize:13,lineHeight:1.7}},'左侧粘贴 JD 并点击「分析 JD」。\nAI 会拆出岗位要求，并和你的证据库逐条对照——\n不是给一个虚假分数，而是告诉你为什么匹配、还缺什么。')
+          :h('div',{style:{display:'flex',flexDirection:'column',gap:16}}, this.jdAnalysisView(a), m?this.jdMatchView(m):null,
+            h('div',{style:{display:'flex',gap:10}}, this.btn('生成定制简历 →',()=>{this.go('resume');},'dark'), this.btn('生成求职材料',()=>this.go('materials'),'ghost'))))));
+  }
+  jdAnalysisView(a){ const h=React.createElement;
+    const block=(title,items,color)=>h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16}},
+      h('div',{style:{fontSize:12,fontWeight:700,color:color,marginBottom:9}},title),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:7}}, items.map((x,i)=>h('div',{key:i,style:{fontSize:12.5,color:'#4b5060',lineHeight:1.5,display:'flex',gap:7}}, h('span',{style:{color:color}},'·'), x))));
+    return h('div',null,
+      h('div',{style:{fontWeight:700,fontSize:14,marginBottom:12}},'岗位拆解'),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12}},
+        block('核心职责',a.responsibilities,'#5850ec'), block('必要能力',a.mustHave,'#12805c'),
+        block('加分能力',a.niceToHave,'#c2810c'), block('隐含要求 / 面试重点',a.hidden.concat(a.interviewFocus||[]),'#d64545')));
+  }
+  jdMatchView(m){ const h=React.createElement;
+    const met=(label,val,unit,color)=>h('div',{style:{flex:1}}, h('div',{style:{fontSize:11.5,color:'#8a919e',marginBottom:5}},label), h('div',{style:{display:'flex',alignItems:'baseline',gap:3}}, h('span',{style:{fontFamily:'JetBrains Mono',fontWeight:900,fontSize:22,color:color}},val), h('span',{style:{fontSize:11,color:'#a3a8b5'}},unit)), h('div',{style:{height:5,background:'#eee',borderRadius:99,marginTop:6,overflow:'hidden'}}, h('div',{style:{width:(typeof val==='number'?val:val*20)+'%',height:'100%',background:color}})));
+    const col=(title,arr,tone)=>h('div',{style:{flex:1,minWidth:0}},
+      h('div',{style:{fontSize:12,fontWeight:700,marginBottom:8,color:tone}},title+' · '+arr.length),
+      arr.length?arr.map((x,i)=>h('div',{key:i,style:{background:'#fff',border:'1px solid #eef0f4',borderRadius:11,padding:'10px 12px',marginBottom:8}},
+        h('div',{style:{fontSize:12.5,fontWeight:600}},x.req),
+        x.ev?h('div',{style:{fontSize:11.5,color:'#5850ec',margin:'4px 0 2px'}},'← '+x.ev):null,
+        h('div',{style:{fontSize:11.5,color:'#8a919e',lineHeight:1.5}},x.note))):h('div',{style:{fontSize:12,color:'#c9ccd6',padding:'8px 0'}},'—'));
+    return h('div',null,
+      h('div',{style:{fontWeight:700,fontSize:14,margin:'4px 0 12px'}},'证据匹配工作台'),
+      h('div',{style:{display:'flex',gap:20,background:'#16181d',borderRadius:14,padding:'16px 20px',marginBottom:14}},
+        met('要求覆盖度',m.metrics.coverage,'/100','#ffffff'), met('证据强度',m.metrics.strength,'/100','#a5f3d0'), met('表达清晰度',m.metrics.clarity,'/100','#c9c4f5'), met('风险项',m.metrics.risk,'处','#f0a0a0')),
+      h('div',{style:{display:'flex',gap:12,marginBottom:14}}, col('强匹配',m.strong,'#12805c'), col('弱匹配',m.weak,'#c2810c'), col('未匹配',m.none,'#8a919e')),
+      h('div',{style:{background:'#fff5f5',border:'1px solid #f7d9d9',borderRadius:12,padding:'12px 14px'}},
+        h('div',{style:{fontSize:12.5,fontWeight:700,color:'#d64545',marginBottom:8}},'禁止夸大 · 风险表述'),
+        m.risks.map((r,i)=>h('div',{key:i,style:{fontSize:12.5,marginBottom:6,lineHeight:1.5}}, h('span',{style:{color:'#d64545'}},'⚠ '), r.text, h('span',{style:{color:'#12805c'}},' → '+r.fix)))));
+  }
+  updateJd(id,val){ this.setState(st=>({jobs:st.jobs.map(j=>j.id===id?Object.assign({},j,{jd:val}):j)})); }
+  async analyzeJd(){ const j=this.activeJob(); if(!j.jd.trim()){this.toast('请先粘贴 JD');return;}
+    this.setState({jdLoading:true});
+    const evSummary=this.state.evidence.map(e=>e.title+'（'+e.status+'）：'+e.results.join('、')).join('\n');
+    const out=await this.ask('目标岗位 JD：\n'+j.jd+'\n\n候选人的职业证据：\n'+evSummary+'\n\n请：1) 拆解 JD；2) 把 JD 要求和候选人证据逐条对照。只输出 JSON：{"analysis":{"responsibilities":[],"mustHave":[],"niceToHave":[],"hidden":[],"interviewFocus":[]},"match":{"metrics":{"coverage":0-100,"strength":0-100,"clarity":0-100,"risk":整数},"strong":[{"req":"","ev":"匹配的证据标题","note":""}],"weak":[{"req":"","ev":"","note":""}],"none":[{"req":"","ev":null,"note":""}],"risks":[{"text":"可能夸大或缺依据的表述","fix":"更稳妥的改法"}]}}',{max_tokens:1800});
+    const parsed=this.parseJSON(out,null);
+    if(parsed&&parsed.analysis&&parsed.match){
+      this.setState(st=>({jdLoading:false,analyses:Object.assign({},st.analyses,{[j.id]:parsed.analysis}),matches:Object.assign({},st.matches,{[j.id]:parsed.match}),jobs:st.jobs.map(x=>x.id===j.id?Object.assign({},x,{match:parsed.match.metrics.coverage,updated:'刚刚'}):x)}));
+    } else {
+      const a=this.seedAnalyses().j1,m=this.seedMatches().j1;
+      this.setState(st=>({jdLoading:false,analyses:Object.assign({},st.analyses,{[j.id]:a}),matches:Object.assign({},st.matches,{[j.id]:m}),jobs:st.jobs.map(x=>x.id===j.id?Object.assign({},x,{match:m.metrics.coverage,updated:'刚刚'}):x)}));
+    }
+  }
+
+  // ---------------- RESUME ----------------
+  resumeDiffs(){ return [
+    {original:'负责协作编辑器，做过一些性能优化',revised:'主导实时协作编辑器冲突算法重构，用 CRDT 替换 OT，将多人同编延迟从 800ms 降至 120ms',reason:'突出个人主导 + 量化结果，命中「React 深度经验」',ev:'实时协作编辑器'},
+    {original:'参与商家中台开发',revised:'负责商家中台前端性能治理，首屏 5.1s→1.6s，LCP 达标率 62%→94%',reason:'补充可量化成果，命中「前端性能优化」',ev:'电商中台前端性能优化'},
+    {original:'支撑日活 3 万团队',revised:'支撑高并发多人协同场景',reason:'原「日活 3 万」缺少数据来源，改为稳妥表述避免夸大',ev:null,risk:true},
+    {original:'熟悉各种前端技术',revised:'精通 React / TypeScript，熟悉 Node.js / Go 与前端工程化',reason:'笼统表述改为可核验的具体技术栈',ev:null}];
+  }
+  // TemplateSpec system ported from Telos (TemplateSpec + SpecRenderer + templates)
+  defaultSpec(){ return {specVersion:1,skeleton:'single',sidebarRatio:34,header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:'#5850ec',headerBg:'',sidebarBg:''}}; }
+  tplPresets(){ const B='#5850ec'; return [
+    {id:'classic',name:'经典专业',en:'Classic Pro',desc:'单栏 · 通用',accent:B,spec:{skeleton:'single',header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:''}}},
+    {id:'sidebar',name:'商务侧栏',en:'Sidebar',desc:'双栏 · 商务',accent:'#2f4bcf',spec:{skeleton:'sidebar-left',sidebarRatio:34,header:{align:'left',style:'plain',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:'#2f4bcf',headerBg:'',sidebarBg:'#f4f5fb'}}},
+    {id:'banner',name:'顶部色块',en:'Banner',desc:'顶部色块 · 市场',accent:'#c8622a',spec:{skeleton:'banner',header:{align:'left',style:'band',nameScale:'lg'},section:{titleStyle:'leftbar',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:'#c8622a',headerBg:'#c8622a',sidebarBg:''}}},
+    {id:'serif',name:'学院衬线',en:'Center Serif',desc:'居中 · 学术',accent:'#7a3f9d',spec:{skeleton:'single',header:{align:'center',style:'underline',nameScale:'xl'},section:{titleStyle:'underline',titleLang:'en',density:'normal'},typography:{font:'serif'},colors:{accent:'#7a3f9d',headerBg:'',sidebarBg:''}}},
+    {id:'minimal',name:'极简留白',en:'Minimal',desc:'单栏 · 极简',accent:B,spec:{skeleton:'single',header:{align:'left',style:'plain',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'en',density:'loose'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:''}}},
+    {id:'timeline',name:'时间轴',en:'Timeline',desc:'单栏 · 技术',accent:B,spec:{skeleton:'single',header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'leftbar',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:''}}},
+    {id:'two-col',name:'现代双栏',en:'Modern Two',desc:'双栏 · 现代',accent:B,spec:{skeleton:'sidebar-left',sidebarRatio:32,header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:'#f4f5fb'}}},
+    {id:'dark',name:'深色高管',en:'Dark Pro',desc:'单栏 · 稳重',accent:'#3b4a6b',spec:{skeleton:'banner',header:{align:'left',style:'band',nameScale:'xl'},section:{titleStyle:'caps',titleLang:'en',density:'normal'},typography:{font:'sans'},colors:{accent:'#3b4a6b',headerBg:'#1f2740',sidebarBg:''}}},
+    {id:'elegant',name:'优雅典线',en:'Elegant',desc:'居中 · 精致',accent:'#7a3f9d',spec:{skeleton:'single',header:{align:'center',style:'plain',nameScale:'xl'},section:{titleStyle:'band',titleLang:'en',density:'loose'},typography:{font:'serif'},colors:{accent:'#7a3f9d',headerBg:'',sidebarBg:''}}},
+    {id:'compact',name:'信息密集',en:'Compact',desc:'双栏 · 紧凑',accent:B,spec:{skeleton:'sidebar-left',sidebarRatio:30,header:{align:'left',style:'plain',nameScale:'md'},section:{titleStyle:'caps',titleLang:'zh',density:'compact'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:'#f4f5fb'}}},
+    {id:'right-rail',name:'右栏简约',en:'Right Rail',desc:'双栏 · 右侧栏',accent:B,spec:{skeleton:'sidebar-right',sidebarRatio:32,header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:B,headerBg:'',sidebarBg:'#f4f5fb'}}},
+    {id:'right-rail-green',name:'右栏清新',en:'Rail Green',desc:'双栏 · 清新',accent:'#3f8f5e',spec:{skeleton:'sidebar-right',sidebarRatio:32,header:{align:'left',style:'underline',nameScale:'lg'},section:{titleStyle:'leftbar',titleLang:'zh',density:'normal'},typography:{font:'sans'},colors:{accent:'#3f8f5e',headerBg:'',sidebarBg:'#eef7f1'}}},
+    {id:'statement',name:'大字标题',en:'Statement',desc:'单栏 · 设计感',accent:'#1f2740',spec:{skeleton:'single',header:{align:'left',style:'plain',nameScale:'xl'},section:{titleStyle:'underline',titleLang:'en',density:'loose'},typography:{font:'sans'},colors:{accent:'#1f2740',headerBg:'',sidebarBg:''}}},
+    {id:'slate',name:'石板侧栏',en:'Slate Side',desc:'双栏 · 沉稳',accent:'#3b4a6b',spec:{skeleton:'sidebar-left',sidebarRatio:34,header:{align:'left',style:'plain',nameScale:'lg'},section:{titleStyle:'caps',titleLang:'en',density:'normal'},typography:{font:'sans'},colors:{accent:'#3b4a6b',headerBg:'',sidebarBg:'#2b3450'}}} ]; }
+  curSpec(){ return this.state.resumeSpec || Object.assign({specVersion:1},this.tplPresets().find(p=>p.id===this.state.resumeTpl).spec); }
+  pickTpl(p){ this.setState({resumeTpl:p.id,resumeSpec:Object.assign({specVersion:1},JSON.parse(JSON.stringify(p.spec)))}); }
+  setSpecField(path,val){ const spec=JSON.parse(JSON.stringify(this.curSpec())); const ks=path.split('.'); let o=spec; for(let i=0;i<ks.length-1;i++)o=o[ks[i]]; o[ks[ks.length-1]]=val; this.setState({resumeSpec:spec}); }
+  fontFam(f){ return f==='serif'?'Noto Serif SC, serif':f==='mono'?'JetBrains Mono, monospace':'Noto Sans SC, sans-serif'; }
+  densityCfg(d){ return d==='compact'?{gap:9,pad:'22px 26px',line:1.5,body:11.5}:d==='loose'?{gap:18,pad:'38px 42px',line:1.75,body:12.5}:{gap:13,pad:'30px 34px',line:1.62,body:12}; }
+  nameSize(n){ return n==='md'?21:n==='xl'?34:26; }
+  contactList(){ return ['杭州','5 年经验','lin.shen@demo.dev','github.com/linshen']; }
+
+  sheetTitle(spec,zh,en,onColor){ const h=React.createElement,ac=spec.colors.accent; const t=spec.section.titleLang==='en'?en:zh; const c=onColor?'#fff':ac; const st=spec.section.titleStyle;
+    const base={fontSize:11,fontWeight:700,letterSpacing:'.08em',marginBottom:8};
+    if(st==='underline') return h('div',{style:Object.assign({},base,{borderBottom:'1px solid '+(onColor?'rgba(255,255,255,.3)':'#e6e8ee'),paddingBottom:4,color:c})},t);
+    if(st==='leftbar') return h('div',{style:Object.assign({},base,{borderLeft:'3px solid '+(onColor?'#fff':ac),paddingLeft:8,color:c})},t);
+    if(st==='band') return h('div',{style:Object.assign({},base,{background:onColor?'rgba(255,255,255,.15)':ac+'1f',padding:'4px 9px',borderRadius:5,color:c,display:'inline-block'})},t);
+    return h('div',{style:Object.assign({},base,{color:c})},t); }
+  sheetHeader(spec,ctx){ const h=React.createElement,ac=spec.colors.accent; const onBand=ctx==='band'; const center=spec.header.align==='center';
+    const nameC=onBand?'#fff':'#16181d', subC=onBand?'rgba(255,255,255,.85)':'#6b7280', metaC=onBand?'rgba(255,255,255,.75)':'#9098a6';
+    const name=h('div',{style:{fontWeight:800,fontSize:this.nameSize(spec.header.nameScale),lineHeight:1.15,color:nameC,whiteSpace:'nowrap'}},'林深');
+    const head=h('div',{style:{marginTop:3,fontSize:12,color:subC}},'全栈 / 高级前端工程师');
+    const meta=h('div',{style:{display:'flex',flexWrap:'wrap',gap:center?'0 14px':'0',justifyContent:center?'center':'flex-start',flexDirection:center?'row':'column',fontSize:10.5,color:metaC,lineHeight:1.7,textAlign:center?'center':'right',flexShrink:0}}, this.contactList().map((c,i)=>h('span',{key:i},c)));
+    const left=h('div',{style:{flex:'1 1 auto',minWidth:0}},name,head, center?h('div',{style:{marginTop:6}},meta):null);
+    const inner= center? h('div',{style:{textAlign:'center'}},left) : h('div',{style:{display:'flex',alignItems:'flex-end',justifyContent:'space-between',gap:16,flexWrap:'wrap'}},left,meta);
+    const underline=spec.header.style==='underline'&&!onBand;
+    return h('div',{style:underline?{borderBottom:'2px solid '+ac,paddingBottom:12}:undefined},inner); }
+  sheetExp(spec,r,dc,onColor){ const h=React.createElement,ac=onColor?'#fff':spec.colors.accent;
+    return h('div',{style:{display:'flex',flexDirection:'column',gap:dc.gap}}, r.exp.map((x,i)=>h('div',{key:i},
+      h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline',gap:8}}, h('div',{style:{fontWeight:700,fontSize:dc.body+1,color:onColor?'#fff':'#16181d'}},x.company+' · '+x.role), h('div',{style:{fontSize:dc.body-1.5,color:onColor?'rgba(255,255,255,.7)':'#9098a6',fontFamily:'JetBrains Mono',whiteSpace:'nowrap'}},x.period)),
+      h('div',{style:{marginTop:5,display:'flex',flexDirection:'column',gap:5}}, x.bullets.map((b,k)=>h('div',{key:k,style:{display:'flex',gap:7,alignItems:'flex-start'}},
+        h('span',{style:{color:ac,marginTop:6,fontSize:7,flexShrink:0}},'●'),
+        h('div',{style:{flex:1}}, h('span',{style:{fontSize:dc.body,color:onColor?'rgba(255,255,255,.92)':'#2f333d',lineHeight:dc.line}},b.text),
+          h('span',{style:{marginLeft:6,fontSize:dc.body-2,color:b.status==='pending'?'#c2810c':'#12805c',whiteSpace:'nowrap'}}, b.status==='pending'?'· 待确认':'· 已核验')))))))); }
+  sheetSkills(spec,r,onColor){ const h=React.createElement,ac=spec.colors.accent;
+    return h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}}, r.skills.map((x,i)=>h('span',{key:i,style:{fontSize:10.5,fontFamily:'JetBrains Mono',padding:'3px 8px',borderRadius:5,background:onColor?'rgba(255,255,255,.16)':ac+'14',color:onColor?'#fff':ac}},x))); }
+  renderSheet(r){ const h=React.createElement,spec=this.curSpec(),dc=this.densityCfg(spec.section.density),ac=spec.colors.accent,fam=this.fontFam(spec.typography.font);
+    const summary=h('div',{style:{fontSize:dc.body,color:'#4b5060',lineHeight:dc.line}},r.summary);
+    const expBlock=(onColor)=>h('div',null,this.sheetTitle(spec,'工作经历','EXPERIENCE',onColor),h('div',{style:{marginTop:2}},this.sheetExp(spec,r,dc,onColor)));
+    const skillBlock=(onColor)=>h('div',null,this.sheetTitle(spec,'技能','SKILLS',onColor),h('div',{style:{marginTop:2}},this.sheetSkills(spec,r,onColor)));
+    const sheet=(children)=>h('div',{style:{fontFamily:fam,background:'#fff',borderRadius:6,overflow:'hidden',boxShadow:'0 10px 40px -18px rgba(30,30,60,.35)',border:'1px solid #ececf2',color:'#16181d'}},children);
+    if(spec.skeleton==='sidebar-left'||spec.skeleton==='sidebar-right'){
+      const railDark=spec.colors.sidebarBg&&spec.colors.sidebarBg.indexOf('#2')===0; const railBg=spec.colors.sidebarBg||'#f7f8fb'; const onC=!!railDark;
+      const rail=h('div',{style:{width:spec.sidebarRatio+'%',background:railBg,padding:'22px 18px',color:onC?'#fff':'#16181d',display:'flex',flexDirection:'column',gap:16}},
+        h('div',null,h('div',{style:{fontSize:10,fontWeight:700,letterSpacing:'.08em',opacity:.7,marginBottom:6,color:onC?'#fff':'#9098a6'}},'联系方式'), h('div',{style:{fontSize:10.5,lineHeight:1.8,color:onC?'rgba(255,255,255,.9)':'#4b5060'}}, this.contactList().map((c,i)=>h('div',{key:i},c)))),
+        skillBlock(onC));
+      const main=h('div',{style:{flex:1,padding:dc.pad,display:'flex',flexDirection:'column',gap:dc.gap+2}}, this.sheetHeader(spec), summary, expBlock(false));
+      return sheet(h('div',{style:{display:'flex',minHeight:520}}, spec.skeleton==='sidebar-left'?[rail,main]:[main,rail]));
+    }
+    if(spec.skeleton==='banner'){ const bg=spec.colors.headerBg||ac;
+      return sheet(h('div',null, h('div',{style:{background:bg,padding:'24px 32px'}}, this.sheetHeader(spec,'band')), h('div',{style:{padding:dc.pad,display:'flex',flexDirection:'column',gap:dc.gap+3}}, summary, expBlock(false), skillBlock(false)))); }
+    return sheet(h('div',{style:{padding:dc.pad,display:'flex',flexDirection:'column',gap:dc.gap+3}}, this.sheetHeader(spec), summary, expBlock(false), skillBlock(false)));
+  }
+  tplThumb(p){ const h=React.createElement,sk=p.spec.skeleton,ac=p.accent;
+    const bar=(w,c)=>h('div',{style:{height:3,width:w,background:c||'#d7dae3',borderRadius:2}});
+    const lines=h('div',{style:{display:'flex',flexDirection:'column',gap:3,flex:1}},bar('70%',ac),bar('100%'),bar('90%'),bar('95%'),bar('60%'));
+    const inner= sk==='banner'? h('div',{style:{display:'flex',flexDirection:'column',gap:4,height:'100%'}},h('div',{style:{height:12,background:p.spec.colors.headerBg||ac,borderRadius:2}}),lines)
+      : sk==='sidebar-left'? h('div',{style:{display:'flex',gap:4,height:'100%'}},h('div',{style:{width:'34%',background:(p.spec.colors.sidebarBg&&p.spec.colors.sidebarBg.indexOf('#2')===0)?ac:'#eef0f6',borderRadius:2}}),lines)
+      : sk==='sidebar-right'? h('div',{style:{display:'flex',gap:4,height:'100%'}},lines,h('div',{style:{width:'34%',background:'#eef0f6',borderRadius:2}}))
+      : h('div',{style:{display:'flex',flexDirection:'column',gap:4,height:'100%'}},h('div',{style:{textAlign:p.spec.header.align==='center'?'center':'left'}},h('div',{style:{height:5,width:'45%',margin:p.spec.header.align==='center'?'0 auto 3px':'0 0 3px',background:ac,borderRadius:2}})),lines);
+    return h('div',{style:{height:66,background:'#fff',border:'1px solid #eef0f4',borderRadius:6,padding:6}},inner); }
+
+  mResume(){ const h=React.createElement,s=this.state,j=this.activeJob(),r=s.resumes[j.id];
+    if(!r){ return this.page('定制简历生成',null,
+      h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:16,padding:'40px',maxWidth:620,textAlign:'center'}},
+        h('div',{style:{fontWeight:700,fontSize:16,marginBottom:8}},j.company+' · '+j.role),
+        h('div',{style:{fontSize:13,color:'#6b7280',marginBottom:18,lineHeight:1.7}},s.resumeLoading?'AI 正在基于你的证据库定制简历，每一句都会标注来源…':'还没有为这个岗位生成简历。生成时会优先放最相关的证据，且所有描述都可追溯——不会自动编造数据。'),
+        s.resumeLoading?this.spinner('生成中…'):this.btn('基于证据生成定制简历 →',()=>this.generateResume()))); }
+    const rail=s.resumeRail, seg=(k,label)=>h('div',{onClick:()=>this.setState({resumeRail:k}),style:{cursor:'pointer',flex:1,textAlign:'center',padding:'7px',fontSize:12.5,fontWeight:rail===k?700:500,color:rail===k?'#5850ec':'#8a919e',background:rail===k?'#fff':'transparent',borderRadius:8,boxShadow:rail===k?'0 1px 3px rgba(0,0,0,.06)':'none'}},label);
+    return this.page('定制简历生成',null,
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 372px',gap:18,alignItems:'start'}},
+        h('div',{style:{background:'#eef0f4',border:'1px solid #e3e5ec',borderRadius:16,overflow:'hidden'}},
+          h('div',{style:{padding:'10px 16px',background:'#fff',borderBottom:'1px solid #f0f0f5',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+            h('div',{style:{fontSize:12.5,fontWeight:600,color:'#6b7280'}},'模板 · '+this.tplPresets().find(p=>p.id===s.resumeTpl).name+' · A4 · ATS 可解析'),
+            h('div',{style:{display:'flex',gap:8}}, h('div',{onClick:()=>this.setState({screen:'publicResume'}),style:{cursor:'pointer',fontSize:12,color:'#5850ec',fontWeight:600}},'预览分享页 ↗'), h('div',{onClick:()=>this.toast('已导出文字版 PDF（ATS 可解析，演示）'),style:{cursor:'pointer',fontSize:12,padding:'4px 10px',borderRadius:7,background:'#16181d',color:'#fff'}},'导出 PDF'))),
+          h('div',{style:{padding:'26px 30px',maxHeight:'calc(100vh - 210px)',overflow:'auto'}}, this.renderSheet(r))),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+          h('div',{style:{background:'#eef8f2',border:'1px solid #cfeadd',borderRadius:14,padding:'12px 14px',fontSize:12.5,color:'#12805c',lineHeight:1.6}},'✓ 可追溯性：6 条描述中 5 条已绑定证据，1 条待确认。无自动编造数据。'),
+          h('div',{style:{background:'#f2f3f6',borderRadius:11,padding:4,display:'flex',gap:2}}, seg('template','模板'), seg('custom','自定义'), seg('diff','AI 改写')),
+          rail==='template'?this.resumeTemplatePanel(s):rail==='custom'?this.resumeCustomPanel():this.resumeDiffPanel(s))));
+  }
+  resumeTemplatePanel(s){ const h=React.createElement;
+    return h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:14}},
+      h('div',{style:{fontSize:11.5,color:'#8a919e',marginBottom:12,lineHeight:1.6}},'源自 Telos 模板体系（TemplateSpec）· 内容不变，一键换装'),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}, this.tplPresets().map(p=>{ const on=s.resumeTpl===p.id;
+        return h('div',{key:p.id,onClick:()=>this.pickTpl(p),style:{cursor:'pointer',border:'2px solid '+(on?'#5850ec':'#eef0f4'),borderRadius:10,padding:8,background:on?'#faf9ff':'#fff'}},
+          this.tplThumb(p),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:8}}, h('div',null, h('div',{style:{fontSize:12,fontWeight:700}},p.name), h('div',{style:{fontSize:10,color:'#a3a8b5',fontFamily:'JetBrains Mono'}},p.en)), h('span',{style:{width:12,height:12,borderRadius:99,background:p.accent}}))); })));
+  }
+  resumeCustomPanel(){ const h=React.createElement,spec=this.curSpec();
+    const grp=(label,path,opts)=>h('div',{style:{marginBottom:14}}, h('div',{style:{fontSize:11.5,fontWeight:700,color:'#8a919e',marginBottom:7}},label),
+      h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}}, opts.map(o=>{ const cur=path.split('.').reduce((a,k)=>a[k],spec); const on=cur===o[0];
+        return h('div',{key:o[0],onClick:()=>this.setSpecField(path,o[0]),style:{cursor:'pointer',padding:'6px 11px',borderRadius:8,fontSize:12,fontWeight:on?700:500,background:on?'#16181d':'#f2f3f6',color:on?'#fff':'#4b5060'}},o[1]); })));
+    const colors=[['#5850ec','靛蓝'],['#2f4bcf','商务蓝'],['#3f8f5e','清新绿'],['#c8622a','暖橙'],['#7a3f9d','学院紫'],['#1f2740','墨黑']];
+    return h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16}},
+      h('div',{style:{fontSize:11.5,color:'#8a919e',marginBottom:14,lineHeight:1.6}},'自定义模板 = 一份受约束的设计参数（不流转代码，A4 与 ATS 始终安全）'),
+      grp('骨架','skeleton',[['single','单栏'],['sidebar-left','左侧栏'],['sidebar-right','右侧栏'],['banner','顶部色块']]),
+      grp('页眉对齐','header.align',[['left','左对齐'],['center','居中']]),
+      grp('页眉风格','header.style',[['plain','无装饰'],['underline','下划线'],['band','色带']]),
+      grp('姓名字号','header.nameScale',[['md','中'],['lg','大'],['xl','特大']]),
+      grp('标题样式','section.titleStyle',[['caps','彩色'],['underline','下划线'],['leftbar','左色条'],['band','浅底']]),
+      grp('标题语言','section.titleLang',[['zh','中文'],['en','英文']]),
+      grp('密度','section.density',[['compact','紧凑'],['normal','标准'],['loose','宽松']]),
+      grp('字族','typography.font',[['sans','无衬线'],['serif','衬线'],['mono','等宽']]),
+      h('div',null, h('div',{style:{fontSize:11.5,fontWeight:700,color:'#8a919e',marginBottom:7}},'强调色'),
+        h('div',{style:{display:'flex',flexWrap:'wrap',gap:8}}, colors.map(c=>h('div',{key:c[0],onClick:()=>this.setSpecField('colors.accent',c[0]),title:c[1],style:{cursor:'pointer',width:26,height:26,borderRadius:8,background:c[0],border:spec.colors.accent===c[0]?'2px solid #16181d':'2px solid transparent',boxShadow:'0 0 0 2px #fff inset'}})))));
+  }
+  resumeDiffPanel(s){ const h=React.createElement;
+    return h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16}},
+      h('div',{style:{fontWeight:700,fontSize:13.5,marginBottom:4}},'AI 改写差异'),
+      h('div',{style:{fontSize:11.5,color:'#8a919e',marginBottom:12}},'逐条接受或拒绝，也可手动微调'),
+      this.resumeDiffs().map((d,i)=>{ const dec=s.diffDecisions[i];
+        return h('div',{key:i,style:{border:'1px solid #eef0f4',borderRadius:11,padding:12,marginBottom:10,opacity:dec==='reject'?.5:1}},
+          d.risk?h('div',{style:{fontSize:10.5,color:'#d64545',fontWeight:700,marginBottom:6}},'⚠ 风险修正'):null,
+          h('div',{style:{fontSize:12,color:'#b0454a',textDecoration:'line-through',lineHeight:1.5,marginBottom:5}},d.original),
+          h('div',{style:{fontSize:12.5,color:'#12805c',lineHeight:1.55,marginBottom:6,fontWeight:500}},d.revised),
+          h('div',{style:{fontSize:11,color:'#8a919e',lineHeight:1.5,marginBottom:9}},d.reason),
+          dec?h('div',{style:{fontSize:11.5,fontWeight:700,color:dec==='accept'?'#12805c':'#8a919e'}},dec==='accept'?'✓ 已接受':'已拒绝，保留原文'):
+          h('div',{style:{display:'flex',gap:8}}, h('div',{onClick:()=>this.decideDiff(i,'accept'),style:{cursor:'pointer',flex:1,textAlign:'center',fontSize:12,fontWeight:700,color:'#fff',background:'#5850ec',padding:'7px',borderRadius:8}},'接受'), h('div',{onClick:()=>this.decideDiff(i,'reject'),style:{cursor:'pointer',flex:1,textAlign:'center',fontSize:12,fontWeight:600,color:'#4b5060',background:'#f2f2f6',padding:'7px',borderRadius:8}},'拒绝'))); }),
+      this.btn('生成配套求职材料 →',()=>this.go('materials'),'dark'));
+  }
+  decideDiff(i,d){ this.setState(st=>({diffDecisions:Object.assign({},st.diffDecisions,{[i]:d})})); }
+  async generateResume(){ const j=this.activeJob(); this.setState({resumeLoading:true});
+    const ev=this.state.evidence.filter(e=>e.status==='confirmed').map(e=>e.title+'：'+e.actions.join('；')+'（成果：'+e.results.join('、')+'）').join('\n');
+    const out=await this.ask('为岗位「'+j.company+' '+j.role+'」定制一份简历。JD：'+j.jd+'\n候选人已确认的证据：\n'+ev+'\n\n严格要求：所有描述必须来自上述证据，不要编造任何数据。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"text":"","ev":"对应证据标题","status":"confirmed"}]}],"skills":[]}',{max_tokens:1600});
+    const parsed=this.parseJSON(out,this.seedResumes().j1);
+    this.setState(st=>({resumeLoading:false,resumes:Object.assign({},st.resumes,{[j.id]:parsed})}));
+  }
+
+  // ---------------- MATERIALS ----------------
+  mMaterials(){ const h=React.createElement,s=this.state,j=this.activeJob(),mat=s.mats[j.id];
+    const tabs=[['greeting','招呼语'],['email','邮件/私信开场'],['intro30','30 秒自我介绍'],['intro120','2 分钟自我介绍'],['story','项目讲述稿'],['questions','面试追问'],['gaps','能力缺口与准备']];
+    if(!mat){ return this.page('求职材料中心',null,
+      h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:16,padding:40,maxWidth:620,textAlign:'center'}},
+        h('div',{style:{fontWeight:700,fontSize:16,marginBottom:8}},j.company+' · '+j.role),
+        h('div',{style:{fontSize:13,color:'#6b7280',marginBottom:18,lineHeight:1.7}},s.matLoading?'AI 正在基于你的证据与该岗位生成全套求职材料…':'一键生成招呼语、自我介绍、项目讲述稿、面试追问和能力缺口清单——全部基于你的真实证据。'),
+        s.matLoading?this.spinner('生成中…'):this.btn('生成全套求职材料 →',()=>this.generateMaterials()))); }
+    const cur=s.matTab, isList=cur==='questions'||cur==='gaps';
+    return this.page('求职材料中心 · '+j.company,null,
+      h('div',{style:{display:'grid',gridTemplateColumns:'200px 1fr',gap:18,alignItems:'start'}},
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:8}},
+          tabs.map(t=>h('div',{key:t[0],onClick:()=>this.setState({matTab:t[0]}),style:{cursor:'pointer',padding:'10px 12px',borderRadius:9,fontSize:13,fontWeight:cur===t[0]?700:400,background:cur===t[0]?'#f1f0fb':'transparent',color:cur===t[0]?'#5850ec':'#4b5060',marginBottom:2}},t[1]))),
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:22}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:14}},
+            h('div',{style:{fontWeight:700,fontSize:15}},tabs.find(t=>t[0]===cur)[1]),
+            !isList?h('div',{onClick:()=>this.copyText(mat[cur]),style:{cursor:'pointer',fontSize:12.5,color:'#5850ec',fontWeight:600}},'复制'):null),
+          cur==='questions'?h('div',null, mat.questions.map((q,i)=>h('div',{key:i,style:{display:'flex',gap:10,padding:'10px 0',borderTop:i?'1px solid #f2f2f6':'none'}}, h('span',{style:{fontFamily:'JetBrains Mono',color:'#c9c4f5',fontWeight:700,fontSize:12}},'Q'+(i+1)), h('div',{style:{fontSize:13,color:'#2f333d',lineHeight:1.6}},q))))
+          :cur==='gaps'?h('div',null, mat.gaps.map((g,i)=>h('div',{key:i,style:{border:'1px solid #eef0f4',borderRadius:11,padding:14,marginBottom:10}}, h('div',{style:{fontSize:13,fontWeight:700,color:'#c2810c',marginBottom:5}},'缺口：'+g.g), h('div',{style:{fontSize:12.5,color:'#4b5060',lineHeight:1.6}},'准备：'+g.s))))
+          :h('div',{style:{fontSize:13.5,color:'#2f333d',lineHeight:1.85,whiteSpace:'pre-wrap',background:'#fbfbfd',border:'1px solid #f0f0f5',borderRadius:12,padding:'16px 18px'}},mat[cur]))));
+  }
+  copyText(t){ try{navigator.clipboard.writeText(t);}catch(e){} this.toast('已复制到剪贴板'); }
+  async generateMaterials(){ const j=this.activeJob(); this.setState({matLoading:true});
+    const ev=this.state.evidence.filter(e=>e.status==='confirmed').map(e=>e.title+'：'+e.results.join('、')).join('；');
+    const out=await this.ask('为岗位「'+j.company+' '+j.role+'」（JD：'+j.jd+'）生成一套求职材料，均基于候选人林深的真实证据：'+ev+'。不要编造数据。只输出 JSON：{"greeting":"BOSS 招呼语","email":"邮件开场","intro30":"30秒自我介绍","intro120":"2分钟自我介绍","story":"一个项目讲述稿(STAR)","questions":["面试官可能追问"],"gaps":[{"g":"能力缺口","s":"准备建议"}]}',{max_tokens:2000});
+    const parsed=this.parseJSON(out,this.seedMats().j1);
+    this.setState(st=>({matLoading:false,mats:Object.assign({},st.mats,{[j.id]:parsed})}));
+  }
+
+  // ---------------- JOB MARKET (boss-zhipin-scraper) ----------------
+  seedMarket(){ return {
+    keyword:'前端', city:'上海', total_jobs:64, total_details:41,
+    salary_ranges:[['25-40K',18],['20-35K',15],['30-50K',12],['18-30K',9],['40-60K',6],['15-25K',4]],
+    experience:[['3-5年',28],['1-3年',16],['5-10年',12],['经验不限',5],['应届',3]],
+    degrees:[['本科',44],['学历不限',11],['硕士',7],['大专',2]],
+    districts:[['浦东新区',19],['徐汇区',12],['长宁区',9],['杨浦区',8],['静安区',7]],
+    companies:[['字节跳动',6],['拼多多',5],['携程',4],['哔哩哔哩',4],['小红书',3],['蚂蚁集团',3]],
+    skill_tags:[['React',52],['TypeScript',44],['Vue',31],['Webpack',22],['Node.js',20],['性能优化',18],['小程序',14],['CSS',12]],
+    jd_terms:[['React',48],['TypeScript',40],['工程化',26],['性能优化',24],['Node',19],['组件库',15],['可视化',12],['微前端',10],['SSR',9],['监控',8]],
+    jobs:[
+      {title:'高级前端工程师',company:'字节跳动',salary:'30-55K·15薪',location:'上海·浦东新区·张江',experience:'3-5年',degree:'本科',tags:['React','TypeScript','工程化','性能优化']},
+      {title:'前端工程师（C端）',company:'小红书',salary:'25-45K·14薪',location:'上海·长宁区',experience:'3-5年',degree:'本科',tags:['React','Node.js','小程序']},
+      {title:'资深前端',company:'拼多多',salary:'35-60K·16薪',location:'上海·长宁区',experience:'5-10年',degree:'本科',tags:['React','微前端','监控']},
+      {title:'前端开发工程师',company:'携程',salary:'22-38K·13薪',location:'上海·徐汇区',experience:'3-5年',degree:'本科',tags:['Vue','TypeScript','SSR']},
+      {title:'前端工程师',company:'哔哩哔哩',salary:'25-42K',location:'上海·杨浦区',experience:'1-3年',degree:'本科',tags:['React','可视化','Webpack']},
+      {title:'前端架构师',company:'蚂蚁集团',salary:'45-70K·16薪',location:'上海·浦东新区',experience:'5-10年',degree:'硕士',tags:['React','组件库','工程化','微前端']}]
+  };}
+  mMarket(){ const h=React.createElement,s=this.state,m=s.marketData;
+    const cities=['上海','北京','深圳','杭州','广州','成都','南京','赣州'];
+    const bar=(items,color)=>{ const max=Math.max.apply(null,items.map(x=>x[1]))||1;
+      return h('div',{style:{display:'flex',flexDirection:'column',gap:6}}, items.map((x,i)=>h('div',{key:i,style:{display:'flex',alignItems:'center',gap:9}},
+        h('div',{style:{width:76,fontSize:11.5,color:'#4b5060',textAlign:'right',whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}},x[0]),
+        h('div',{style:{flex:1,height:14,background:'#f2f3f6',borderRadius:4,overflow:'hidden'}}, h('div',{style:{width:(x[1]/max*100)+'%',height:'100%',background:color||'#5850ec',borderRadius:4}})),
+        h('div',{style:{width:22,fontSize:11,fontFamily:'JetBrains Mono',color:'#8a919e'}},x[1])))); };
+    const dim=(title,items,color)=>h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16}}, h('div',{style:{fontSize:12.5,fontWeight:700,marginBottom:11}},title), bar(items,color));
+    const userSkills=Array.from(new Set([].concat.apply([],s.evidence.map(e=>e.skills)).map(x=>x.toLowerCase())));
+    const marketSkills=m.skill_tags.concat(m.jd_terms.filter(t=>!m.skill_tags.some(k=>k[0].toLowerCase()===t[0].toLowerCase())));
+    const covered=marketSkills.filter(x=>userSkills.some(u=>u===x[0].toLowerCase()||u.indexOf(x[0].toLowerCase())>=0||x[0].toLowerCase().indexOf(u)>=0));
+    const missing=marketSkills.filter(x=>!covered.includes(x)).slice(0,8);
+    return this.page('岗位市场分析',null, h('div',{style:{maxWidth:1020}},
+      h('div',{style:{fontSize:12,color:'#8a919e',background:'#f7f8fb',border:'1px solid #ececf2',borderRadius:10,padding:'9px 13px',marginBottom:16,lineHeight:1.6}},'数据来自 boss-zhipin-scraper：通过本地已登录 Chrome 的 DevTools Protocol 复用登录态调搜索 API，输出明文薪资。此处为演示抓取结果。'),
+      h('div',{style:{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',marginBottom:18}},
+        h('input',{value:s.marketKeyword,onChange:e=>this.setState({marketKeyword:e.target.value}),placeholder:'关键词',style:{width:150,border:'1px solid #e6e8ee',borderRadius:10,padding:'10px 12px',fontSize:13.5,fontFamily:'inherit',outline:'none'}}),
+        h('select',{value:s.marketCity,onChange:e=>this.setState({marketCity:e.target.value}),style:{border:'1px solid #e6e8ee',borderRadius:10,padding:'10px 12px',fontSize:13.5,fontFamily:'inherit',outline:'none',background:'#fff'}}, cities.map(c=>h('option',{key:c,value:c},c))),
+        h('div',{style:{display:'flex',alignItems:'center',gap:6,fontSize:12.5,color:'#8a919e'}},'页数', h('input',{type:'number',value:s.marketPages,min:1,max:10,onChange:e=>this.setState({marketPages:+e.target.value}),style:{width:52,border:'1px solid #e6e8ee',borderRadius:8,padding:'8px',fontSize:13,fontFamily:'JetBrains Mono',textAlign:'center',outline:'none'}})),
+        this.btn(s.marketLoading?'抓取中…':'🔌 连接 Chrome 抓取',()=>this.runMarket())),
+      h('div',{style:{display:'flex',gap:16,marginBottom:18}},
+        h('div',{style:{background:'#16181d',color:'#fff',borderRadius:14,padding:'14px 20px',flex:'0 0 auto'}}, h('div',{style:{fontSize:11.5,color:'#9aa0b0'}},'样本'), h('div',{style:{fontSize:13.5,fontWeight:700,marginTop:3}},m.keyword+' @ '+m.city), h('div',{style:{fontSize:11.5,color:'#9aa0b0',marginTop:2,fontFamily:'JetBrains Mono'}},'列表 '+m.total_jobs+' · 详情 '+m.total_details)),
+        h('div',{style:{flex:1,background:'#eef8f2',border:'1px solid #cfeadd',borderRadius:14,padding:'14px 18px'}}, h('div',{style:{fontSize:12.5,fontWeight:700,color:'#12805c',marginBottom:8}},'技能供需对照 · 你的证据 vs 市场需求'),
+          h('div',{style:{display:'flex',flexWrap:'wrap',gap:6}},
+            covered.slice(0,6).map((x,i)=>h('span',{key:'c'+i,style:{fontSize:11.5,fontFamily:'JetBrains Mono',background:'#d6f0e2',color:'#12805c',padding:'3px 9px',borderRadius:6}},'✓ '+x[0])),
+            missing.map((x,i)=>h('span',{key:'m'+i,style:{fontSize:11.5,fontFamily:'JetBrains Mono',background:'#fdf0dd',color:'#c2810c',padding:'3px 9px',borderRadius:6}},'补 '+x[0]+'('+x[1]+')'))))),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14,marginBottom:14}},
+        dim('薪资区间',m.salary_ranges,'#5850ec'), dim('技能标签（列表）',m.skill_tags,'#12805c'),
+        dim('经验要求',m.experience,'#3b5bdb'), dim('JD 高频词（详情）',m.jd_terms,'#0ea5a0'),
+        dim('学历要求',m.degrees,'#c2810c'), dim('地区分布',m.districts,'#8a919e'),
+        dim('高频公司',m.companies,'#d6603b'),
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16,display:'flex',flexDirection:'column'}},
+          h('div',{style:{fontSize:12.5,fontWeight:700,marginBottom:10}},'求职材料优化提示词'),
+          h('div',{style:{fontSize:11.5,color:'#8a919e',lineHeight:1.6,marginBottom:12,flex:1}},'基于以上市场统计生成一段提示词，要求只把真实经历改写得更贴近这些岗位，不虚构。'),
+          s.marketPrompt?h('div',null, h('div',{style:{fontSize:11.5,color:'#2f333d',lineHeight:1.6,whiteSpace:'pre-wrap',background:'#fbfbfd',border:'1px solid #f0f0f5',borderRadius:9,padding:'10px 12px',maxHeight:120,overflow:'auto',marginBottom:8}},s.marketPrompt), h('div',{onClick:()=>this.copyText(s.marketPrompt),style:{cursor:'pointer',fontSize:12,color:'#5850ec',fontWeight:600}},'复制提示词'))
+          :this.btn(s.marketPromptLoading?'生成中…':'生成提示词',()=>this.genMarketPrompt(),'soft'))),
+      h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},
+        h('div',{style:{fontWeight:700,fontSize:14,marginBottom:12}},'抓取到的岗位 · 明文薪资'),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:10}}, m.jobs.map((jb,i)=>h('div',{key:i,style:{display:'flex',alignItems:'center',gap:14,padding:'12px 14px',border:'1px solid #eef0f4',borderRadius:11}},
+          h('div',{style:{flex:1,minWidth:0}}, h('div',{style:{fontWeight:700,fontSize:13.5}},jb.title+' · '+jb.company), h('div',{style:{fontSize:11.5,color:'#8a919e',marginTop:2}},jb.location+' · '+jb.experience+' · '+jb.degree), h('div',{style:{display:'flex',gap:5,flexWrap:'wrap',marginTop:6}}, jb.tags.map((t,k)=>h('span',{key:k,style:{fontSize:10.5,fontFamily:'JetBrains Mono',background:'#f1f0fb',color:'#5850ec',padding:'2px 7px',borderRadius:5}},t)))),
+          h('div',{style:{fontSize:14,fontWeight:800,color:'#12805c',fontFamily:'JetBrains Mono',whiteSpace:'nowrap'}},jb.salary),
+          h('div',{onClick:()=>{this.setState({activeJobId:'j1'});this.go('jd');},style:{cursor:'pointer',fontSize:12,color:'#5850ec',fontWeight:600,whiteSpace:'nowrap'}},'对照证据 →'))))) ));
+  }
+  runMarket(){ this.setState({marketLoading:true}); setTimeout(()=>{ this.setState(st=>({marketLoading:false,marketData:Object.assign({},st.marketData,{keyword:st.marketKeyword,city:st.marketCity}),marketPrompt:''})); this.toast('抓取完成：'+this.state.marketKeyword+' @ '+this.state.marketCity+'（演示数据）'); },1100); }
+  async genMarketPrompt(){ this.setState({marketPromptLoading:true}); const m=this.state.marketData;
+    const fmt=a=>a.map(x=>x[0]+'('+x[1]+')').join('、');
+    const fb='请基于下面的 BOSS 直聘岗位市场摘要，帮我优化求职材料和面试准备。\n\n岗位：'+m.keyword+' @ '+m.city+'（列表 '+m.total_jobs+' 条，详情 '+m.total_details+' 条）\n高频技能：'+fmt(m.skill_tags.slice(0,8))+'\n常见薪资：'+fmt(m.salary_ranges.slice(0,4))+'\n主流经验：'+fmt(m.experience.slice(0,3))+'\nJD 高频词：'+fmt(m.jd_terms.slice(0,8))+'\n\n请输出：1) 简历技能关键词补齐建议；2) 项目/工作经历改写方向；3) 面试准备清单；4) 需避开的岗位特征。要求：不要虚构经历，只把我的真实证据改写得更贴近这些岗位，结论要引用上面的统计依据。';
+    const out=await this.ask('把下面这段市场统计整理成一段给 AI 用的求职优化提示词（保留统计数字，强调不得虚构经历、只贴近真实证据）：\n'+fb,{max_tokens:700});
+    this.setState({marketPromptLoading:false,marketPrompt:(out||fb).trim()});
+  }
+
+  // ---------------- INTERVIEW REVIEW ----------------
+  mReview(){ const h=React.createElement,s=this.state,j=this.state.jobs.find(x=>x.id===s.reviewJobId)||this.state.jobs[0],rv=s.reviews[j.id];
+    const chips=h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:18}}, s.jobs.map(x=>h('div',{key:x.id,onClick:()=>this.setState({reviewJobId:x.id}),style:{cursor:'pointer',padding:'7px 13px',borderRadius:99,fontSize:12.5,fontWeight:600,background:x.id===j.id?'#16181d':'#fff',color:x.id===j.id?'#fff':'#4b5060',border:'1px solid '+(x.id===j.id?'#16181d':'#e3e5ec')}},x.company+' · '+x.role.split('·')[0].trim())));
+    const sample='面试官：先自我介绍一下吧。\n我：我是林深，5 年前端/全栈，主导过实时协作编辑器的冲突算法重构，同编延迟从 800ms 降到 120ms……\n面试官：CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？\n我：呃…主要是 CRDT 收敛性更好，内存我们做了增量 GC，不过具体数字我记不太清了。\n面试官：120ms 是在什么环境测的？\n我：本地压测环境，真实环境可能会高一些，这块我没细看。\n面试官：如果放到抖音电商这种亿级流量，你会怎么设计？\n我：我需要再想想，可能要加分片和边缘节点……\n面试官：好，那我们聊聊你在团队里的角色。\n我：我主要负责协同层，也带过两个新人。';
+    if(!rv){ return this.page('面试复盘',null,
+      h('div',null, chips,
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 300px',gap:18,alignItems:'start'}},
+          h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:18}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}},
+              h('div',{style:{fontWeight:700,fontSize:14}},'面试录音转写文本'),
+              h('div',{onClick:()=>this.setState({reviewInput:sample}),style:{cursor:'pointer',fontSize:12,color:'#5850ec'}},'填入示例转写')),
+            h('div',{onClick:()=>this.toast('已上传录音，转写完成（演示）'),style:{cursor:'pointer',border:'1.5px dashed #d8d4ff',borderRadius:10,padding:'12px',textAlign:'center',fontSize:12.5,color:'#5850ec',background:'#faf9ff',marginBottom:10}},'🎙 拖入面试录音（mp3/m4a）自动转写，或直接粘贴转写文本'),
+            h('textarea',{value:s.reviewInput,onChange:e=>this.setState({reviewInput:e.target.value}),placeholder:'粘贴面试录音的转写文本（含面试官提问与你的回答）…',style:{width:'100%',height:280,border:'1px solid #e6e8ee',borderRadius:12,padding:14,fontSize:13,fontFamily:'inherit',lineHeight:1.7,resize:'vertical',background:'#fbfbfd',outline:'none'}}),
+            h('div',{style:{marginTop:12,display:'flex',gap:10,alignItems:'center'}}, this.btn(s.reviewLoading?'AI 复盘中…':'AI 复盘这场面试 →',()=>this.analyzeReview()), h('div',{style:{fontSize:12,color:'#a3a8b5'}},'录音仅本地转写，不上云'))),
+          h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:16,padding:18,fontSize:12.5,color:'#6b7280',lineHeight:1.8}},
+            h('div',{style:{fontWeight:700,color:'#16181d',marginBottom:8}},'复盘会给你什么'),
+            '· 整体表现评分与一句话诊断\n· 高光时刻与暴露的失误\n· 被问到的问题 vs 你的准备清单\n· 每个回答的质量评估\n· 新暴露的能力缺口\n· 下一轮针对性准备清单\n\n复盘结果可一键反哺证据库与求职材料。')))); }
+    return this.page('面试复盘',null, h('div',null, chips, this.reviewResult(j,rv)));
+  }
+  reviewResult(j,rv){ const h=React.createElement;
+    const qcolor=q=>q==='good'?'#12805c':q==='weak'?'#d64545':'#c2810c'; const qlabel=q=>q==='good'?'答得好':q==='weak'?'答得弱':'一般';
+    const listCard=(title,items,color,prefix)=>h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:16}},
+      h('div',{style:{fontSize:12.5,fontWeight:700,color:color,marginBottom:9}},title),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:7}}, items.map((x,i)=>h('div',{key:i,style:{fontSize:12.5,color:'#4b5060',lineHeight:1.55,display:'flex',gap:7}}, h('span',{style:{color:color,flexShrink:0}},prefix), x))));
+    return h('div',{style:{display:'flex',flexDirection:'column',gap:16,maxWidth:920}},
+      h('div',{style:{display:'grid',gridTemplateColumns:'220px 1fr',gap:16}},
+        h('div',{style:{background:'#16181d',color:'#fff',borderRadius:16,padding:20,textAlign:'center'}},
+          h('div',{style:{fontSize:12,color:'#9aa0b0',marginBottom:6}},'整体表现'),
+          h('div',{style:{fontSize:46,fontWeight:900,fontFamily:'JetBrains Mono',lineHeight:1}},rv.score),
+          h('div',{style:{fontSize:11,color:'#9aa0b0',marginTop:4}},'/ 100'),
+          h('div',{style:{height:6,background:'#2a2d38',borderRadius:99,margin:'12px 0 0',overflow:'hidden'}}, h('div',{style:{width:rv.score+'%',height:'100%',background:'#5850ec'}}))),
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:20,display:'flex',flexDirection:'column',justifyContent:'center'}},
+          h('div',{style:{fontSize:12,color:'#8a919e',marginBottom:6}},j.company+' · '+j.role+' · 一句话诊断'),
+          h('div',{style:{fontSize:15,fontWeight:600,lineHeight:1.6,color:'#2f333d'}},rv.verdict))),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}, listCard('高光时刻',rv.highlights,'#12805c','✓'), listCard('暴露的失误',rv.issues,'#d64545','!')),
+      h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:20}},
+        h('div',{style:{fontWeight:700,fontSize:14,marginBottom:12}},'被问到的问题 · 回答评估'),
+        h('div',{style:{display:'flex',flexDirection:'column',gap:10}}, rv.qa.map((q,i)=>h('div',{key:i,style:{border:'1px solid #eef0f4',borderRadius:11,padding:'12px 14px'}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',gap:10,alignItems:'flex-start'}},
+            h('div',{style:{fontSize:13,fontWeight:600,color:'#16181d',lineHeight:1.5}},'Q'+(i+1)+'. '+q.q),
+            h('span',{style:{fontSize:11,fontWeight:700,color:qcolor(q.quality),background:qcolor(q.quality)+'18',padding:'3px 9px',borderRadius:99,whiteSpace:'nowrap'}},qlabel(q.quality))),
+          h('div',{style:{fontSize:12,color:'#6b7280',marginTop:6,lineHeight:1.55}},q.comment)))) ),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}},
+        listCard('新暴露的能力缺口',rv.gaps,'#c2810c','▲'),
+        h('div',{style:{background:'#f1f0fb',border:'1px solid #ddd9f7',borderRadius:14,padding:16}},
+          h('div',{style:{fontSize:12.5,fontWeight:700,color:'#5850ec',marginBottom:9}},'下一轮准备清单'),
+          h('div',{style:{display:'flex',flexDirection:'column',gap:7}}, rv.nextPrep.map((x,i)=>h('label',{key:i,style:{display:'flex',gap:8,alignItems:'flex-start',fontSize:12.5,color:'#3a3550',lineHeight:1.5,cursor:'pointer'}}, h('input',{type:'checkbox',style:{accentColor:'#5850ec',marginTop:2}}), x))))),
+      h('div',{style:{display:'flex',gap:10}}, this.btn('把缺口补进证据库',()=>{this.go('interview');this.toast('已带着缺口进入访谈补充');},'ghost'), this.btn('生成下一轮材料',()=>this.go('materials'),'ghost'), this.btn('重新复盘',()=>this.setState(st=>({reviews:Object.assign({},st.reviews,{[j.id]:undefined}),reviewInput:''})),'soft')));
+  }
+  async analyzeReview(){ const j=this.state.jobs.find(x=>x.id===this.state.reviewJobId); if(!this.state.reviewInput.trim()){this.toast('请先粘贴或转写面试文本');return;}
+    this.setState({reviewLoading:true});
+    const out=await this.ask('这是一场「'+j.company+' '+j.role+'」的面试录音转写。请做结构化复盘，客观指出表现，不吹捧。只输出 JSON：{"score":0-100整数,"verdict":"一句话诊断","highlights":["高光"],"issues":["失误/可改进"],"qa":[{"q":"被问到的问题","quality":"good|ok|weak","comment":"回答评估与更好的答法"}],"gaps":["新暴露的能力缺口"],"nextPrep":["下一轮准备清单"]}\n\n转写：\n'+this.state.reviewInput,{max_tokens:1800});
+    const parsed=this.parseJSON(out,this.seedReviews().j1);
+    this.setState(st=>({reviewLoading:false,reviews:Object.assign({},st.reviews,{[j.id]:parsed})}));
+  }
+
+  // ---------------- PIPELINE ----------------
+  mPipeline(){ const h=React.createElement,s=this.state;
+    const cols=[['saved','收藏','#8a919e'],['preparing','准备投递','#5850ec'],['applied','已投递','#3b82c4'],['replied','已回复','#0ea5a0'],['interviewing','面试中','#c2810c'],['offer','Offer','#12805c'],['rejected','拒绝','#b0454a']];
+    return this.page('求职进度',null,
+      h('div',{style:{display:'flex',gap:12,overflowX:'auto',paddingBottom:8}},
+        cols.map(c=>{ const items=s.jobs.filter(j=>j.status===c[0]);
+          return h('div',{key:c[0],style:{minWidth:190,flex:'0 0 190px',background:'#f2f3f6',borderRadius:14,padding:10}},
+            h('div',{style:{display:'flex',alignItems:'center',gap:7,padding:'4px 6px 10px',fontSize:12.5,fontWeight:700,color:c[2]}}, h('span',{style:{width:8,height:8,borderRadius:99,background:c[2]}}), c[1], h('span',{style:{color:'#a3a8b5',fontWeight:400}},items.length)),
+            items.map(j=>h('div',{key:j.id,style:{background:'#fff',border:'1px solid #eaeaef',borderRadius:11,padding:12,marginBottom:8}},
+              h('div',{style:{fontWeight:700,fontSize:13}},j.company),
+              h('div',{style:{fontSize:11.5,color:'#8a919e',margin:'2px 0 8px',lineHeight:1.4}},j.role),
+              j.match?h('div',{style:{fontSize:11,color:'#5850ec',fontFamily:'JetBrains Mono',marginBottom:8}},'匹配 '+j.match):null,
+              h('div',{style:{display:'flex',gap:6}}, h('div',{onClick:()=>this.moveJob(j.id,-1),style:{cursor:'pointer',fontSize:15,color:'#c9ccd6',lineHeight:1}},'‹'), h('div',{onClick:()=>{this.setState({activeJobId:j.id});this.go('jd');},style:{cursor:'pointer',flex:1,textAlign:'center',fontSize:11,color:'#5850ec',fontWeight:600}},'打开'), h('div',{onClick:()=>this.moveJob(j.id,1),style:{cursor:'pointer',fontSize:15,color:'#c9ccd6',lineHeight:1}},'›')))),
+            items.length?null:h('div',{style:{fontSize:11.5,color:'#c0c4cf',textAlign:'center',padding:'16px 0'}},'空')); })));
+  }
+  moveJob(id,dir){ const order=['saved','preparing','applied','replied','interviewing','offer','rejected']; const labels={saved:'收藏',preparing:'准备投递',applied:'已投递',replied:'已回复',interviewing:'面试中',offer:'Offer',rejected:'拒绝'};
+    this.setState(st=>({jobs:st.jobs.map(j=>{ if(j.id!==id)return j; let i=Math.max(0,Math.min(order.length-1,order.indexOf(j.status)+dir)); return Object.assign({},j,{status:order[i],statusLabel:labels[order[i]]}); })})); }
+
+  // ---------------- SETTINGS ----------------
+  mSettings(){ const h=React.createElement,s=this.state;
+    const row=(label,val)=>h('div',{style:{display:'flex',justifyContent:'space-between',padding:'12px 0',borderTop:'1px solid #f2f2f6',fontSize:13.5}}, h('span',{style:{color:'#8a919e'}},label), h('span',{style:{fontWeight:600}},val));
+    const toggle=(on,onClick)=>h('div',{onClick,style:{cursor:'pointer',width:42,height:24,borderRadius:99,background:on?'#5850ec':'#d5d8e3',position:'relative',transition:'.2s'}}, h('div',{style:{position:'absolute',top:3,left:on?21:3,width:18,height:18,borderRadius:99,background:'#fff',transition:'.2s'}}));
+    return this.page('账号与隐私','控制你的职业档案与简历里哪些内容对外公开。你的证据只属于你。',
+      h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:18,maxWidth:840}},
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:20}},
+          h('div',{style:{fontWeight:700,fontSize:14,marginBottom:6}},'账号信息'),
+          row('姓名','林深'), row('邮箱','lin.shen@demo.dev'), row('求职方向','大厂 高级前端 / 全栈'), row('账号类型','演示账号'),
+          h('div',{style:{marginTop:16}}, this.btn('编辑档案',()=>this.toast('演示账号不可编辑'),'ghost'))),
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:20}},
+          h('div',{style:{fontWeight:700,fontSize:14,marginBottom:12}},'公开与隐私'),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0'}}, h('div',null, h('div',{style:{fontSize:13.5,fontWeight:600}},'公开职业主页'), h('div',{style:{fontSize:11.5,color:'#8a919e'}},'展示档案与精选证据')), toggle(s.publicProfileOn,()=>this.setState({publicProfileOn:!s.publicProfileOn}))),
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 0',borderTop:'1px solid #f2f2f6'}}, h('div',null, h('div',{style:{fontSize:13.5,fontWeight:600}},'公开简历分享'), h('div',{style:{fontSize:11.5,color:'#8a919e'}},'生成岗位定制简历的分享链接')), toggle(s.publicResumeOn,()=>this.setState({publicResumeOn:!s.publicResumeOn}))),
+          h('div',{style:{fontSize:12,fontWeight:700,color:'#a3a8b5',margin:'14px 0 6px'}},'公开哪些内容'),
+          ['基础信息与求职方向','技能标签','已确认的职业证据','联系方式'].map((x,i)=>h('label',{key:i,style:{display:'flex',alignItems:'center',gap:9,padding:'6px 0',fontSize:13,cursor:'pointer'}}, h('input',{type:'checkbox',defaultChecked:i<3,style:{accentColor:'#5850ec',width:15,height:15}}), x)),
+          h('div',{style:{marginTop:14}}, this.btn('查看公开主页 ↗',()=>this.setState({screen:'publicProfile'}),'soft')))));
+  }
+
+  // ---------------- PUBLIC PROFILE ----------------
+  pPublicProfile(){ const h=React.createElement,s=this.state;
+    const featured=s.evidence.filter(e=>e.status==='confirmed').slice(0,4);
+    return h('div',{style:{minHeight:'100vh',background:'#f4f4f7'}},
+      h('div',{style:{background:'#16181d',color:'#fff'}},
+        h('div',{style:{maxWidth:820,margin:'0 auto',padding:'16px 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',{style:{fontSize:12,color:'#9aa0b0'}},'proofcv.me/linshen · 公开职业主页'),
+          h('div',{style:{display:'flex',gap:8}}, h('div',{onClick:()=>this.copyText('https://proofcv.me/linshen'),style:{cursor:'pointer',fontSize:12,background:'#2a2d38',padding:'6px 12px',borderRadius:8}},'复制链接'), h('div',{onClick:()=>this.toast('已生成二维码（演示）'),style:{cursor:'pointer',fontSize:12,background:'#2a2d38',padding:'6px 12px',borderRadius:8}},'二维码'), h('div',{onClick:()=>this.setState({screen:'app'}),style:{cursor:'pointer',fontSize:12,background:'#5850ec',padding:'6px 12px',borderRadius:8}},'返回编辑'))),
+        h('div',{style:{maxWidth:820,margin:'0 auto',padding:'36px 24px 44px'}},
+          h('div',{style:{display:'flex',gap:20,alignItems:'center'}},
+            h('div',{style:{width:72,height:72,borderRadius:20,background:'#5850ec',display:'flex',alignItems:'center',justifyContent:'center',fontSize:30,fontWeight:700}},'林'),
+            h('div',null, h('div',{style:{fontFamily:'Noto Serif SC',fontWeight:900,fontSize:30}},'林深'), h('div',{style:{color:'#c7cad5',fontSize:15,marginTop:4}},'全栈 / 高级前端工程师 · 杭州 · 5 年'), h('div',{style:{marginTop:10}},this.tags(['React','TypeScript','Node.js','Go','性能优化'])))),
+          h('div',{style:{fontSize:14,color:'#c7cad5',lineHeight:1.8,marginTop:22,maxWidth:640}},'专注大型协同系统与前端性能优化。相信简历里的每一句都应该站得住脚——下面是我可以为其提供证据的核心能力。'))),
+      h('div',{style:{maxWidth:820,margin:'0 auto',padding:'32px 24px 60px'}},
+        h('div',{style:{fontWeight:700,fontSize:17,marginBottom:16,fontFamily:'Noto Serif SC'}},'精选职业证据'),
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16,marginBottom:32}},
+          featured.map(e=>h('div',{key:e.id,style:{background:'#fff',borderRadius:16,padding:20,border:'1px solid #ececf2'}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8,marginBottom:8}}, h('div',{style:{fontWeight:700,fontSize:14.5,lineHeight:1.4}},e.title), h('span',{style:{fontSize:10.5,fontWeight:700,color:'#12805c',background:'#e6f5ee',padding:'3px 8px',borderRadius:99,whiteSpace:'nowrap'}},'✓ 可验证')),
+            h('div',{style:{fontSize:12.5,color:'#6b7280',lineHeight:1.6,marginBottom:10}},e.background),
+            h('div',{style:{display:'flex',gap:8,flexWrap:'wrap',marginBottom:10}}, e.results.map((r,i)=>h('span',{key:i,style:{fontSize:12,fontWeight:600,color:'#12805c',background:'#eef8f2',padding:'3px 9px',borderRadius:7}},'↑ '+r))),
+            this.tags(e.skills)))),
+        h('div',{style:{background:'#fff',borderRadius:16,padding:'24px 28px',border:'1px solid #ececf2',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16}},
+          h('div',null, h('div',{style:{fontWeight:700,fontSize:15}},'想看针对某个岗位的定制简历？'), h('div',{style:{fontSize:13,color:'#8a919e',marginTop:3}},'我可以生成一份聚焦相关经历的版本')),
+          h('div',{style:{display:'flex',gap:10}}, this.btn('查看精选简历',()=>this.setState({screen:'publicResume'}),'soft'), this.btn('联系我',()=>this.copyText('lin.shen@demo.dev'),'dark'))),
+        h('div',{style:{textAlign:'center',fontSize:12,color:'#a3a8b5',marginTop:32}},'由 ProofCV 生成 · 所有内容经本人确认')));
+  }
+
+  // ---------------- PUBLIC RESUME ----------------
+  pPublicResume(){ const h=React.createElement,r=this.seedResumes().j1;
+    return h('div',{style:{minHeight:'100vh',background:'#f4f4f7'}},
+      h('div',{style:{background:'#fff',borderBottom:'1px solid #ececf2'}}, h('div',{style:{maxWidth:720,margin:'0 auto',padding:'14px 24px',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+        h('div',{style:{fontSize:12,color:'#8a919e'}},'proofcv.me/linshen/r/bytedance-fe · 公开简历'),
+        h('div',{style:{display:'flex',gap:8}}, h('div',{onClick:()=>this.copyText('https://proofcv.me/linshen/r/bytedance-fe'),style:{cursor:'pointer',fontSize:12,background:'#f1f0fb',color:'#5850ec',padding:'6px 12px',borderRadius:8,fontWeight:600}},'复制链接'), h('div',{onClick:()=>this.toast('已导出 PDF（演示）'),style:{cursor:'pointer',fontSize:12,background:'#16181d',color:'#fff',padding:'6px 12px',borderRadius:8}},'下载 PDF'), h('div',{onClick:()=>this.setState({screen:'app'}),style:{cursor:'pointer',fontSize:12,color:'#8a919e',padding:'6px 8px'}},'返回')))),
+      h('div',{style:{maxWidth:720,margin:'24px auto 60px',background:'#fff',borderRadius:16,border:'1px solid #ececf2',padding:'40px 44px'}},
+        h('div',{style:{borderBottom:'2px solid #5850ec',paddingBottom:16,marginBottom:20}},
+          h('div',{style:{fontFamily:'Noto Serif SC',fontWeight:900,fontSize:28}},'林深'),
+          h('div',{style:{color:'#5850ec',fontSize:15,fontWeight:600,marginTop:3}},'全栈 / 高级前端工程师 · 应聘 字节跳动 高级前端'),
+          h('div',{style:{fontSize:12.5,color:'#8a919e',marginTop:7,fontFamily:'JetBrains Mono'}},'杭州 · 5 年 · lin.shen@demo.dev')),
+        h('div',{style:{fontSize:13,color:'#4b5060',lineHeight:1.8,marginBottom:22}},r.summary),
+        h('div',{style:{fontSize:12.5,fontWeight:700,color:'#5850ec',marginBottom:12,letterSpacing:'.04em'}},'工作经历'),
+        r.exp.map((x,i)=>h('div',{key:i,style:{marginBottom:18}},
+          h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'baseline'}}, h('div',{style:{fontWeight:700,fontSize:14}},x.company+' · '+x.role), h('div',{style:{fontSize:12,color:'#8a919e',fontFamily:'JetBrains Mono'}},x.period)),
+          x.bullets.map((b,k)=>h('div',{key:k,style:{display:'flex',gap:9,marginTop:8}}, h('span',{style:{color:'#5850ec',marginTop:6,fontSize:8}},'●'), h('div',{style:{fontSize:13,color:'#2f333d',lineHeight:1.65}},b.text))))),
+        h('div',{style:{fontSize:12.5,fontWeight:700,color:'#5850ec',margin:'8px 0 10px',letterSpacing:'.04em'}},'技能'),
+        this.tags(r.skills),
+        h('div',{style:{textAlign:'center',fontSize:12,color:'#a3a8b5',marginTop:28,borderTop:'1px solid #f2f2f6',paddingTop:16}},'由 ProofCV 生成 · 所有描述可追溯到职业证据')));
+  }
+
+  // ---------------- INTERVIEW ----------------
+  mInterview(){ const h=React.createElement,s=this.state;
+    if(!s.ivProject){
+      const cands=s.evidence.filter(e=>e.status!=='confirmed');
+      return this.page('AI 职业访谈','选一个项目开始深挖。AI 会像资深面试官一样连续追问：背景、你的职责边界、关键决策、技术难点、协作方式、可量化结果与可验证证据——而不是帮你润色文字。',
+        h('div',{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}},
+          cands.map(e=>h('div',{key:e.id,style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:18}},
+            h('div',{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:8}}, h('div',{style:{fontWeight:700,fontSize:14.5}},e.title), this.pill(e.status)),
+            h('div',{style:{fontSize:12.5,color:'#6b7280',margin:'8px 0 14px',lineHeight:1.6}},e.note||e.background),
+            this.btn('开始深挖这个项目 →',()=>this.startInterview(e),'soft'))),
+          h('div',{style:{background:'#faf9ff',border:'1px dashed #d8d4ff',borderRadius:14,padding:18,display:'flex',flexDirection:'column',justifyContent:'center'}},
+            h('div',{style:{fontWeight:700,fontSize:14.5,marginBottom:6}},'深挖一个全新项目'),
+            h('div',{style:{fontSize:12.5,color:'#6b7280',marginBottom:14,lineHeight:1.6}},'简历里没写、但你做过的项目，直接从访谈开始沉淀成证据。'),
+            this.btn('自由访谈 →',()=>this.startInterview({id:'new',title:'新项目深挖',project:'待确认',background:'',status:'insufficient'})))));
+    }
+    return h('div',{style:{animation:'pcvFade .3s ease both',display:'grid',gridTemplateColumns:'1fr 300px',gap:16,maxWidth:1080,height:'calc(100vh - 130px)'}},
+      h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,display:'flex',flexDirection:'column',overflow:'hidden'}},
+        h('div',{style:{padding:'14px 18px',borderBottom:'1px solid #f0f0f5',display:'flex',justifyContent:'space-between',alignItems:'center'}},
+          h('div',null, h('div',{style:{fontWeight:700,fontSize:14}},'深挖：'+s.ivProject.title), h('div',{style:{fontSize:11.5,color:'#8a919e'}},'AI 职业教练 · 连续追问中')),
+          h('div',{onClick:()=>this.setState({ivProject:null,ivMsgs:[],ivSummary:null}),style:{cursor:'pointer',fontSize:12,color:'#8a919e'}},'退出')),
+        h('div',{id:'ivscroll',style:{flex:1,overflow:'auto',padding:18,display:'flex',flexDirection:'column',gap:14}},
+          s.ivMsgs.map((m,i)=>this.bubble(m,i)),
+          s.ivLoading?h('div',{style:{display:'flex',gap:6,padding:'4px 2px'}},[0,1,2].map(k=>h('span',{key:k,style:{width:7,height:7,borderRadius:99,background:'#c9c4f5',animation:'pcvPulse 1s ease-in-out infinite',animationDelay:(k*.2)+'s'}}))):null),
+        h('div',{style:{padding:14,borderTop:'1px solid #f0f0f5',display:'flex',gap:10}},
+          h('input',{value:s.ivInput,onChange:e=>this.setState({ivInput:e.target.value}),onKeyDown:e=>{if(e.key==='Enter')this.sendInterview();},placeholder:'如实回答，越具体越能挖出可信证据…',style:{flex:1,border:'1px solid #e6e8ee',borderRadius:10,padding:'11px 13px',fontSize:13.5,fontFamily:'inherit',outline:'none'}}),
+          this.btn('发送',()=>this.sendInterview()))),
+      h('div',{style:{display:'flex',flexDirection:'column',gap:14}},
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:16}},
+          h('div',{style:{fontWeight:700,fontSize:13,marginBottom:12}},'本次要挖到的'),
+          ['项目背景与目标','你的职责与贡献边界','关键技术决策','最难的技术难点','协作与推动方式','可量化的结果','可验证的证据'].map((x,i)=>h('div',{key:i,style:{display:'flex',gap:9,alignItems:'center',padding:'6px 0',fontSize:12.5,color:'#4b5060'}}, h('span',{style:{width:16,height:16,borderRadius:99,border:'1.5px solid '+(i<Math.floor(s.ivMsgs.length/2)?'#12805c':'#d8dae2'),background:i<Math.floor(s.ivMsgs.length/2)?'#12805c':'#fff',color:'#fff',display:'flex',alignItems:'center',justifyContent:'center',fontSize:9,flexShrink:0}},i<Math.floor(s.ivMsgs.length/2)?'✓':''), x))),
+        this.btn(s.ivLoading?'请稍候…':'结束访谈并生成总结',()=>this.endInterview(),'dark'),
+        s.ivSummary?h('div',{style:{background:'#16181d',color:'#fff',borderRadius:16,padding:16,fontSize:12.5,lineHeight:1.7}},
+          h('div',{style:{fontWeight:700,marginBottom:8,color:'#c9c4f5'}},'访谈总结'),
+          h('div',{style:{marginBottom:10}},s.ivSummary.summary),
+          s.ivSummary.missing&&s.ivSummary.missing.length?h('div',{style:{background:'#2a2438',borderRadius:9,padding:'8px 10px',color:'#f0b866'}},'仍缺少：'+s.ivSummary.missing.join('；')):null,
+          h('div',{style:{marginTop:12}},this.btn('更新到证据卡',()=>{this.setState({ivProject:null,ivSummary:null,ivMsgs:[]});this.go('evidence');this.toast('访谈成果已并入证据卡');},'soft'))):null));
+  }
+  bubble(m,i){ const h=React.createElement,me=m.role==='user';
+    return h('div',{key:i,style:{display:'flex',justifyContent:me?'flex-end':'flex-start'}},
+      h('div',{style:{maxWidth:'78%',background:me?'#5850ec':'#f4f4f8',color:me?'#fff':'#16181d',padding:'11px 14px',borderRadius:me?'14px 14px 4px 14px':'14px 14px 14px 4px',fontSize:13.5,lineHeight:1.7,whiteSpace:'pre-wrap'}},m.content));
+  }
+  scrollIv(){ setTimeout(()=>{const el=document.getElementById('ivscroll');if(el)el.scrollTop=el.scrollHeight;},60); }
+  async startInterview(proj){ this.setState({ivProject:proj,ivMsgs:[],ivSummary:null,ivLoading:true});
+    const out=await this.ask('你正在开始对候选人「'+proj.title+'」这个项目做深度职业访谈。项目已知信息：'+(proj.background||'很少，需要从头问起')+'。请用 2-3 句话开场，并提出第一个最关键的追问问题（先了解项目背景与目标）。只输出你要说的话。',{system:this.ivSystem()});
+    const first=out||'我们来把「'+proj.title+'」聊透。先说说这个项目最初是要解决什么问题？当时的背景和目标是什么，谁在推动它？';
+    this.setState({ivLoading:false,ivMsgs:[{role:'assistant',content:first}]}); this.scrollIv();
+  }
+  ivSystem(){ return '你是一位资深技术面试官兼职业教练，正在对候选人的某个项目做深度访谈。规则：每次只问一个最关键的追问问题；基于候选人上一条回答顺藤摸瓜，不要机械问卷；依次覆盖项目背景与目标、候选人的具体职责与个人贡献边界、关键技术决策与权衡、最难的技术难点及解决过程、协作与推动方式、可量化的最终结果、可验证的证据来源。当候选人说得笼统或夸大时要礼貌追问细节与证据。语气专业而有温度，回复 2-3 句以内。'; }
+  async sendInterview(){ const txt=this.state.ivInput.trim(); if(!txt)return;
+    const msgs=this.state.ivMsgs.concat([{role:'user',content:txt}]);
+    this.setState({ivMsgs:msgs,ivInput:'',ivLoading:true}); this.scrollIv();
+    const out=await this.ask(msgs,{system:this.ivSystem(),max_tokens:400});
+    const reply=out||'明白。能再具体说说这里你个人做的关键决策是什么吗？为什么这样选，有没有对比过其他方案？';
+    this.setState({ivMsgs:msgs.concat([{role:'assistant',content:reply}]),ivLoading:false}); this.scrollIv();
+  }
+  async endInterview(){ this.setState({ivLoading:true});
+    const transcript=this.state.ivMsgs.map(m=>(m.role==='user'?'候选人：':'访谈者：')+m.content).join('\n');
+    const out=await this.ask('基于以下访谈记录，总结候选人在这个项目中真正承担的工作和可证明的能力，并指出还缺少数据/证据的点。只输出 JSON：{"summary":"一段话客观总结真正做的事，不夸大","abilities":["可证明的能力"],"missing":["还缺少数据或证据的点"]}。\n\n'+transcript,{max_tokens:700});
+    const fb={summary:'候选人主导了该项目的核心技术实现，独立完成关键模块设计并推动落地，具备较强的问题定位与工程化能力。',abilities:['独立系统设计','性能优化','跨团队协作'],missing:['部分成果缺少可验证的数据来源']};
+    this.setState({ivLoading:false,ivSummary:this.parseJSON(out,fb)});
+  }
+
+  mDashboard(){
+    const s=this.state;
+    const ev=s.evidence, confirmed=ev.filter(e=>e.status==='confirmed').length, pending=ev.filter(e=>e.status==='pending').length, weak=ev.filter(e=>e.status==='insufficient').length;
+    const h=React.createElement;
+    const Stat=(label,val,sub,color)=>h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:14,padding:'18px 20px'}},
+      h('div',{style:{fontSize:12,color:'#8a919e',marginBottom:8}},label),
+      h('div',{style:{display:'flex',alignItems:'baseline',gap:8}}, h('span',{style:{fontSize:30,fontWeight:900,fontFamily:'JetBrains Mono',color:color||'#16181d'}},val), h('span',{style:{fontSize:12,color:'#8a919e'}},sub)));
+    return h('div',{style:{animation:'pcvFade .3s ease both'}},
+      h('div',{style:{marginBottom:22}},
+        h('div',{style:{fontFamily:'Noto Serif SC',fontWeight:900,fontSize:26}},'早上好，林深 👋'),
+        h('div',{style:{color:'#6b7280',fontSize:14,marginTop:4}},'你的证据库已覆盖 3 个方向，距离「字节 高级前端」定制简历还差 1 项待确认证据。')),
+      h('div',{style:{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:14,marginBottom:22}},
+        Stat('职业证据','8','张卡'),
+        Stat('已确认',String(confirmed),'可直接引用','#12805c'),
+        Stat('待确认',String(pending),'需补充','#c2810c'),
+        Stat('进行中岗位','3','个','#5850ec')),
+      h('div',{style:{display:'grid',gridTemplateColumns:'1.4fr 1fr',gap:16}},
+        h('div',{style:{background:'#fff',border:'1px solid #ececf2',borderRadius:16,padding:22}},
+          h('div',{style:{fontWeight:700,fontSize:15,marginBottom:14}},'继续你的求职闭环'),
+          [['import','导入 / 完善简历','让 AI 拆解你的经历','#5850ec'],['interview','开始 AI 职业访谈','深挖 2 个待确认项目','#e8896b'],['jd','分析新岗位 JD','对照你的证据强弱','#12805c']].map((it,i)=>
+            h('div',{key:i,onClick:()=>this.go(it[0]),style:{cursor:'pointer',display:'flex',alignItems:'center',gap:14,padding:'14px 0',borderTop:i?'1px solid #f2f2f6':'none'}},
+              h('div',{style:{width:38,height:38,borderRadius:10,background:it[3]+'18',color:it[3],display:'flex',alignItems:'center',justifyContent:'center',fontWeight:900,fontFamily:'JetBrains Mono'}},String(i+1)),
+              h('div',{style:{flex:1}}, h('div',{style:{fontWeight:700,fontSize:14}},it[1]), h('div',{style:{fontSize:12.5,color:'#8a919e'}},it[2])),
+              h('div',{style:{color:'#c9ccd6'}},'→')))),
+        h('div',{style:{background:'#16181d',color:'#fff',borderRadius:16,padding:22}},
+          h('div',{style:{fontWeight:700,fontSize:15,marginBottom:6}},'今日求职进度'),
+          h('div',{style:{fontSize:12.5,color:'#9aa0b0',marginBottom:16}},'3 家进行中 · 1 家待你跟进'),
+          s.jobs.slice(0,3).map((j,i)=>h('div',{key:i,onClick:()=>{this.setState({activeJobId:j.id});this.go('jobs');},style:{cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'between',gap:10,padding:'11px 0',borderTop:i?'1px solid #2a2d38':'none'}},
+            h('div',{style:{flex:1}}, h('div',{style:{fontWeight:700,fontSize:13.5}},j.company), h('div',{style:{fontSize:11.5,color:'#9aa0b0'}},j.role)),
+            h('span',{style:{fontSize:11,fontWeight:700,padding:'3px 9px',borderRadius:99,background:'#2a2d38',color:'#c7cad5'}},j.statusLabel))))));
+  }
+
+  seedEvidence(){ return [
+  {id:'e1',title:'实时协作编辑器 · 协同冲突算法重构',project:'某在线文档 SaaS',background:'编辑器多人同编在高并发下频繁冲突丢字，日活增长后投诉激增。',actions:['独立设计基于 CRDT 的冲突合并方案，替换原有 OT 实现','搭建 WebSocket 增量同步与断线补偿机制','编写压测脚本模拟 500 并发协同'],results:['同编延迟 800ms→120ms','冲突丢字投诉下降约 90%'],skills:['CRDT','WebSocket','React','TypeScript'],roles:['高级前端','全栈'],source:'原简历 + 访谈确认',status:'confirmed'},
+  {id:'e2',title:'电商中台前端性能优化',project:'某电商中台',background:'商家后台首屏 5s+，大促期间频繁卡顿。',actions:['引入路由级代码分割与资源预取','重构长列表为虚拟滚动','建立前端性能监控看板'],results:['首屏 5.1s→1.6s','LCP 达标率 62%→94%'],skills:['性能优化','Webpack','React','监控'],roles:['高级前端'],source:'原简历',status:'confirmed'},
+  {id:'e3',title:'微服务 API 网关',project:'公司内部基础设施',background:'服务间调用缺乏统一鉴权与限流。',actions:['基于 Go 实现网关的鉴权/限流/灰度模块','对接公司 SSO'],results:['统一接入 20+ 服务'],skills:['Go','微服务','限流','JWT'],roles:['全栈','后端'],source:'原简历',status:'pending',note:'「20+ 服务」缺少来源，个人贡献边界待澄清'},
+  {id:'e4',title:'开源组件库维护',project:'个人 GitHub 项目',background:'维护一套 React 表单组件库。',actions:['设计受控/非受控双模式 API','完善单测与文档站'],results:['GitHub 480 star'],skills:['React','TypeScript','开源'],roles:['前端'],source:'GitHub 待拆解',status:'insufficient',note:'star 数不代表贡献深度，需补充你解决的具体问题'},
+  {id:'e5',title:'跨端埋点 SDK',project:'某数据团队',background:'多端埋点口径不一致。',actions:['统一 Web/小程序埋点 SDK 接口','设计上报队列与失败重试'],results:['接入 8 条业务线'],skills:['SDK','JavaScript','数据'],roles:['前端','全栈'],source:'访谈补充',status:'pending',note:'待确认你是主导还是参与'},
+  {id:'e6',title:'CI/CD 与前端工程化',project:'团队工程化',background:'发布流程手动、易出错。',actions:['搭建基于 GitHub Actions 的 CI','引入 monorepo 与统一 lint'],results:['发布耗时下降约 60%'],skills:['CI/CD','Monorepo','工程化'],roles:['全栈'],source:'原简历',status:'confirmed'},
+  {id:'e7',title:'AI 辅助代码评审内部工具',project:'内部效率工具',background:'评审耗时长。',actions:['调用大模型 API 做 diff 摘要与风险提示','设计人审确认流程'],results:['团队试用中'],skills:['LLM','Node.js','工具'],roles:['全栈'],source:'访谈补充',status:'pending',note:'成果尚无量化数据'},
+  {id:'e8',title:'技术分享与新人 mentor',project:'团队协作',background:'团队新人多。',actions:['组织每周前端分享','带 2 名新人'],results:['沉淀内部文档 30+ 篇'],skills:['协作','分享','Mentor'],roles:['高级前端'],source:'原简历',status:'confirmed'},
+];}
+  seedJobs(){ return [
+  {id:'j1',company:'字节跳动',role:'高级前端工程师 · 抖音电商',status:'interviewing',statusLabel:'面试中',match:82,updated:'今天',logo:'字',jd:'负责抖音电商 C 端核心链路的前端开发；主导复杂交互与性能优化；具备 React 深度经验，熟悉工程化与监控；有大型协同/中台经验优先；关注用户体验与稳定性。'},
+  {id:'j2',company:'腾讯',role:'全栈工程师 · 云产品',status:'applied',statusLabel:'已投递',match:74,updated:'2 天前',logo:'腾',jd:'负责云产品控制台前后端开发，Node/Go 均可；熟悉微服务与网关；能独立负责模块设计与落地。'},
+  {id:'j3',company:'某 AI 独角兽',role:'前端工程师 · AI 应用',status:'preparing',statusLabel:'准备投递',match:0,updated:'待分析',logo:'AI',jd:'负责 AI 产品前端，熟悉大模型 API 集成、流式渲染、复杂状态管理；有从 0-1 产品经验优先。'},
+];}
+  seedAnalyses(){ return { j1:{
+    responsibilities:['抖音电商 C 端核心链路前端开发','主导复杂交互与前端性能优化','保障高并发下的稳定性与体验'],
+    mustHave:['React 深度经验','前端性能优化','工程化与监控体系'],
+    niceToHave:['大型协同/中台经验','跨端能力','数据驱动的体验优化'],
+    hidden:['能独立扛核心链路、对稳定性负责','抗压与快速迭代','对业务指标（转化/留存）有 sense'],
+    interviewFocus:['一次深度性能优化的完整过程','协同/一致性问题如何定位与解决','如何在快速迭代中保证质量']
+  }};}
+  seedMatches(){ return { j1:{
+    metrics:{coverage:82,strength:74,clarity:88,risk:2},
+    strong:[{req:'React 深度经验',ev:'实时协作编辑器 · 协同冲突算法重构',note:'CRDT + React 大型协同，直接命中'},{req:'前端性能优化',ev:'电商中台前端性能优化',note:'首屏 5.1s→1.6s，有监控佐证'},{req:'工程化与监控',ev:'CI/CD 与前端工程化',note:'GitHub Actions + monorepo'}],
+    weak:[{req:'大型协同/中台经验',ev:'跨端埋点 SDK',note:'相关但主导/参与边界待在访谈中确认'}],
+    none:[{req:'数据驱动的体验优化',ev:null,note:'暂无以业务指标衡量体验改动的证据，建议访谈补充'}],
+    risks:[{text:'原简历「支撑日活 3 万」缺少数据来源',fix:'改为「支撑团队高并发协同场景」或补充监控截图'},{text:'「投诉下降约 90%」为估算值',fix:'标注为估算或改为定性描述'}]
+  }};}
+  seedResumes(){ return { j1:{
+    summary:'5 年经验全栈/前端工程师，擅长大型协同系统与前端性能优化。主导过实时协作编辑器的冲突算法重构与电商中台性能治理，熟悉工程化与监控体系，能独立负责核心链路并对稳定性负责。',
+    exp:[
+      {company:'某在线文档 SaaS',role:'高级前端',period:'2022.06-至今',bullets:[
+        {text:'主导实时协作编辑器冲突算法重构，用 CRDT 替换原 OT 实现，将多人同编延迟从 800ms 降至 120ms',ev:'实时协作编辑器 · 协同冲突算法重构',status:'confirmed'},
+        {text:'设计 WebSocket 增量同步与断线补偿机制，显著降低协同丢字问题',ev:'实时协作编辑器 · 协同冲突算法重构',status:'confirmed'}]},
+      {company:'某电商公司',role:'前端工程师',period:'2020.07-2022.05',bullets:[
+        {text:'负责商家中台前端性能治理，首屏由 5.1s 优化至 1.6s，LCP 达标率 62%→94%',ev:'电商中台前端性能优化',status:'confirmed'},
+        {text:'统一 Web/小程序埋点 SDK 接口并设计失败重试队列（个人贡献边界待确认）',ev:'跨端埋点 SDK',status:'pending'}]}],
+    skills:['React','TypeScript','Node.js','Go','性能优化','CRDT','Webpack','CI/CD']
+  }};}
+  seedMats(){ return { j1:{
+    greeting:'您好，我是林深，5 年前端/全栈，主导过实时协作编辑器的协同算法重构（同编延迟 800ms→120ms）和电商中台性能治理（首屏 5.1s→1.6s）。看到贵司抖音电商高级前端的岗位很感兴趣，尤其是核心链路的性能与稳定性方向，方便聊聊吗？',
+    email:'王老师您好，\n\n我是林深，关注到贵司「抖音电商 · 高级前端」岗位。我过去主导过大型协同编辑器的性能与一致性优化，也负责过电商中台的首屏治理，和岗位对核心链路性能/稳定性的要求比较契合。附件是针对该岗位定制的简历，期待有机会进一步交流。\n\n祝好，林深',
+    intro30:'我是林深，5 年前端/全栈。最擅长两件事：大型协同系统的一致性与性能，以及从监控出发的前端性能治理。做过同编延迟 800ms→120ms 的算法重构，也把电商中台首屏从 5 秒压到 1.6 秒。我习惯对核心链路的稳定性负责。',
+    intro120:'我是林深，5 年经验，主要做前端/全栈。\n\n最能代表我的是两个项目：一是实时协作编辑器，我主导把冲突合并从 OT 换成 CRDT，配合 WebSocket 增量同步，把多人同编延迟从 800ms 降到 120ms，同时解决了高并发下的丢字问题；二是电商商家中台的性能治理，我从建监控看板入手，用路由级分包和虚拟滚动把首屏从 5.1 秒压到 1.6 秒，LCP 达标率从 62% 提到 94%。\n\n我比较看重「对核心链路和稳定性负责」，也习惯用数据说话——这也是我对贵司抖音电商这个岗位比较有信心的原因。',
+    story:'背景：我们的在线文档在日活增长后，多人同编经常冲突丢字，投诉很多。\n我的职责：我独立负责协同层重构。\n关键决策：评估后我放弃在旧 OT 上打补丁，改用 CRDT——因为它在弱网和高并发下收敛性更好，代价是内存占用上升，我用增量 GC 做了折中。\n难点：断线重连后的状态补偿，我设计了基于版本向量的补偿协议。\n结果：同编延迟 800ms→120ms，丢字类投诉大幅下降（这个比例是我根据工单估算的）。\n证据：有对应的 PR 和监控看板截图可以展示。',
+    questions:['CRDT 相比 OT 的具体权衡？内存问题怎么控制的？','120ms 是怎么测的，测试环境和真实环境差异多大？','断线补偿协议在极端情况下会不会丢数据？','这个项目里哪些是你独立做的，哪些是团队一起做的？','如果让你在抖音电商这种量级重做，你会怎么设计？'],
+    gaps:[{g:'缺少以业务指标衡量体验优化的经历',s:'准备一个「性能优化 → 转化/留存变化」的小案例，哪怕是定性推理'},{g:'超大流量（亿级）经验偏少',s:'提前想清楚现有方案在更大量级下的瓶颈与应对'}]
+  }};}
+  seedReviews(){ return { j1:{
+    score:76,
+    verdict:'项目深度和主导性很强，但一遇到量化数据和超大流量设计就露怯——把"记不清/没细看"补成可核验的数字，你就是稳的 offer 级候选人。',
+    highlights:['开场自我介绍紧扣岗位，用 800ms→120ms 的量化成果快速建立可信度','项目主导边界表达清晰，主动区分了个人贡献与团队协作','面对不会的问题没有硬编，态度诚实'],
+    issues:['被追问 CRDT 内存权衡时答"记不太清"，暴露对自己项目细节掌握不牢','"120ms 在本地压测"却没主动说明真实环境差异，显得不够严谨','亿级流量设计题准备不足，只给了方向没有落地思路'],
+    qa:[
+      {q:'CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？',quality:'weak',comment:'关键项目题却答得含糊。应准备："OT 需中心化转换、扩展性差；CRDT 无中心、收敛性好，代价是元数据内存膨胀，我们用增量 GC + 墓碑压缩把内存控制在 X MB。"带上数字。'},
+      {q:'120ms 是在什么环境测的？',quality:'ok',comment:'诚实是对的，但应主动补：本地 500 并发压测得 120ms，线上灰度实测 P95 约 180ms——展示你有真实环境意识。'},
+      {q:'放到亿级流量你会怎么设计？',quality:'weak',comment:'只说了分片和边缘节点。应结构化：读写分离 → 房间分片 → 热点房间再拆 → 边缘就近接入 → 降级策略，并点出瓶颈在广播扇出。'},
+      {q:'团队里你的角色？',quality:'good',comment:'回答清晰可信，主导协同层 + 带新人的表述正好命中"能独立扛核心链路"的隐含要求。'}],
+    gaps:['对自研项目的关键技术数字掌握不牢（内存、真实环境延迟）','超大流量系统设计缺少结构化落地框架','缺少"真实环境 vs 压测环境"的严谨表达习惯'],
+    nextPrep:['把 CRDT 内存/GC 的具体数字和方案背熟，准备一页纸','写一个亿级协同系统设计的结构化提纲（分片/扇出/降级）','为每个量化成果补上"测量环境 + 数据来源"一句话','下一轮开场后主动抛出你最强的那个技术决策，先声夺人']
+  }};}
+}
+
+</script>
+</body>
+</html>
