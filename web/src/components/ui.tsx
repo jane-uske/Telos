@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import type { EvidenceStatus } from "@/lib/types";
+import type { EvidenceStatus, QaPrep } from "@/lib/types";
 
 type Kind = "primary" | "ghost" | "dark" | "soft";
 
@@ -70,6 +70,71 @@ export function Pill({ status }: { status: EvidenceStatus }) {
       <span style={{ width: 6, height: 6, borderRadius: 99, background: m.dot }} />
       {m.label}
     </span>
+  );
+}
+
+export function prepMeta(p: QaPrep) {
+  return p === "done"
+    ? { bg: "#e6f5ee", fg: "#12805c", label: "已掌握" }
+    : p === "doing"
+    ? { bg: "#eef3ff", fg: "#3b5bdb", label: "准备中" }
+    : p === "risk"
+    ? { bg: "#fff0f0", fg: "#d64545", label: "高风险" }
+    : { bg: "#f2f3f5", fg: "#8a919e", label: "未准备" };
+}
+
+export function PrepPill({ prep }: { prep: QaPrep }) {
+  const m = prepMeta(prep);
+  return (
+    <span style={{ fontSize: 11, fontWeight: 700, color: m.fg, background: m.bg, padding: "3px 9px", borderRadius: 99, whiteSpace: "nowrap" }}>
+      {m.label}
+    </span>
+  );
+}
+
+/** 统一空状态卡：说明 + 主行动 */
+export function Empty({
+  title,
+  desc,
+  action,
+  maxWidth,
+}: {
+  title: string;
+  desc: string;
+  action?: React.ReactNode;
+  maxWidth?: number;
+}) {
+  return (
+    <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", maxWidth: maxWidth || 620 }}>
+      <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>{title}</div>
+      <div style={{ fontSize: 13, color: "#6b7280", marginBottom: action ? 18 : 0, lineHeight: 1.7, whiteSpace: "pre-line" }}>{desc}</div>
+      {action ? <div style={{ display: "inline-flex", gap: 10 }}>{action}</div> : null}
+    </div>
+  );
+}
+
+/** 岗位切换 chips（申请包 / QA / 模拟 / 记录页共用） */
+export function JobChips({
+  jobs,
+  activeId,
+  onPick,
+}: {
+  jobs: { id: string; company: string; role: string }[];
+  activeId: string;
+  onPick: (id: string) => void;
+}) {
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 18 }}>
+      {jobs.map((x) => (
+        <div
+          key={x.id}
+          onClick={() => onPick(x.id)}
+          style={{ cursor: "pointer", padding: "7px 13px", borderRadius: 99, fontSize: 12.5, fontWeight: 600, background: x.id === activeId ? "#16181d" : "#fff", color: x.id === activeId ? "#fff" : "#4b5060", border: "1px solid " + (x.id === activeId ? "#16181d" : "#e3e5ec") }}
+        >
+          {x.company} · {x.role.split("·")[0].trim()}
+        </div>
+      ))}
+    </div>
   );
 }
 

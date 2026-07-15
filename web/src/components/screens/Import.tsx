@@ -11,8 +11,10 @@ export default function Import() {
   const importText = useStore((s) => s.importText);
   const importing = useStore((s) => s.importing);
   const importParsed = useStore((s) => s.importParsed);
+  const importedIdx = useStore((s) => s.importedIdx);
   const doImport = useStore((s) => s.doImport);
-  const showToast = useStore((s) => s.showToast);
+  const addEvidenceFromImport = useStore((s) => s.addEvidenceFromImport);
+  const go = useStore((s) => s.go);
 
   return (
     <Page
@@ -47,24 +49,37 @@ export default function Import() {
           ) : (
             <div>
               <div style={{ fontSize: 12.5, color: "#12805c", background: "#e6f5ee", borderRadius: 10, padding: "10px 12px", marginBottom: 14, lineHeight: 1.6 }}>
-                ✓ 已识别 {importParsed.length} 段经历。点击「转为证据卡」进入证据库，AI 会在访谈中继续帮你深挖。
+                ✓ 已识别 {importParsed.length} 段经历。点击「转为证据卡」进入证据库（状态为待确认），AI 会在访谈中继续帮你深挖。
               </div>
-              {importParsed.map((p, i) => (
-                <div key={i} style={{ border: "1px solid #eef0f4", borderRadius: 12, padding: 14, marginBottom: 10 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.title}</div>
-                      <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>{p.company} · {p.period}</div>
+              {importParsed.map((p, i) => {
+                const added = importedIdx.includes(i);
+                return (
+                  <div key={i} style={{ border: "1px solid #eef0f4", borderRadius: 12, padding: 14, marginBottom: 10, opacity: added ? 0.72 : 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.title}</div>
+                        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>{p.company} · {p.period}</div>
+                      </div>
+                      {added ? (
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: "#12805c", whiteSpace: "nowrap" }}>✓ 已加入证据库</div>
+                      ) : (
+                        <Btn label="转为证据卡" kind="soft" onClick={() => addEvidenceFromImport(p, i)} />
+                      )}
                     </div>
-                    <Btn label="转为证据卡" kind="soft" onClick={() => showToast("已加入证据库，去访谈补充细节")} />
+                    <ul style={{ margin: "10px 0 0", paddingLeft: 18, color: "#4b5060", fontSize: 12.5, lineHeight: 1.8 }}>
+                      {(p.bullets || []).map((b, j) => (
+                        <li key={j}>{b}</li>
+                      ))}
+                    </ul>
                   </div>
-                  <ul style={{ margin: "10px 0 0", paddingLeft: 18, color: "#4b5060", fontSize: 12.5, lineHeight: 1.8 }}>
-                    {(p.bullets || []).map((b, j) => (
-                      <li key={j}>{b}</li>
-                    ))}
-                  </ul>
+                );
+              })}
+              {importedIdx.length ? (
+                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                  <Btn label="查看证据库 →" kind="dark" onClick={() => go("evidence")} />
+                  <Btn label="去访谈补全细节" kind="ghost" onClick={() => go("interview")} />
                 </div>
-              ))}
+              ) : null}
             </div>
           )}
         </div>

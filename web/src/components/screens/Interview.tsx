@@ -36,8 +36,7 @@ export default function Interview() {
   const startInterview = useStore((s) => s.startInterview);
   const sendInterview = useStore((s) => s.sendInterview);
   const endInterview = useStore((s) => s.endInterview);
-  const go = useStore((s) => s.go);
-  const showToast = useStore((s) => s.showToast);
+  const applyInterviewSummary = useStore((s) => s.applyInterviewSummary);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -129,7 +128,7 @@ export default function Interview() {
               <div style={{ background: "#2a2438", borderRadius: 9, padding: "8px 10px", color: "#f0b866" }}>仍缺少：{ivSummary.missing.join("；")}</div>
             ) : null}
             <div style={{ marginTop: 12 }}>
-              <Btn label="更新到证据卡" kind="soft" onClick={() => { useStore.setState({ ivProject: null, ivSummary: null, ivMsgs: [] }); go("evidence"); showToast("访谈成果已并入证据卡"); }} />
+              <Btn label="更新到证据卡" kind="soft" onClick={() => applyInterviewSummary()} />
             </div>
           </div>
         ) : null}

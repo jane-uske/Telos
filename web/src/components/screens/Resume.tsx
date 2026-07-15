@@ -1,25 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useStore } from "@/lib/store";
-import { Page, Btn, Spinner } from "../ui";
+import { Page, Btn, Spinner, Empty } from "../ui";
 import { RenderSheet, TplThumb } from "../SpecRenderer";
 import { tplPresets, computeSpec } from "@/lib/templates";
-
-interface Diff {
-  original: string;
-  revised: string;
-  reason: string;
-  ev: string | null;
-  risk?: boolean;
-}
-
-const resumeDiffs: Diff[] = [
-  { original: "负责协作编辑器，做过一些性能优化", revised: "主导实时协作编辑器冲突算法重构，用 CRDT 替换 OT，将多人同编延迟从 800ms 降至 120ms", reason: "突出个人主导 + 量化结果，命中「React 深度经验」", ev: "实时协作编辑器" },
-  { original: "参与商家中台开发", revised: "负责商家中台前端性能治理，首屏 5.1s→1.6s，LCP 达标率 62%→94%", reason: "补充可量化成果，命中「前端性能优化」", ev: "电商中台前端性能优化" },
-  { original: "支撑日活 3 万团队", revised: "支撑高并发多人协同场景", reason: "原「日活 3 万」缺少数据来源，改为稳妥表述避免夸大", ev: null, risk: true },
-  { original: "熟悉各种前端技术", revised: "精通 React / TypeScript，熟悉 Node.js / Go 与前端工程化", reason: "笼统表述改为可核验的具体技术栈", ev: null },
-];
+import type { ResumeBullet } from "@/lib/types";
 
 function TemplatePanel() {
   const resumeTpl = useStore((s) => s.resumeTpl);
@@ -91,80 +77,169 @@ function CustomPanel() {
   );
 }
 
-function DiffPanel() {
-  const diffDecisions = useStore((s) => s.diffDecisions);
-  const decideDiff = useStore((s) => s.decideDiff);
-  const go = useStore((s) => s.go);
+function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
+  const decideBullet = useStore((s) => s.decideBullet);
+  const editBulletText = useStore((s) => s.editBulletText);
+  const toggleHook = useStore((s) => s.toggleHook);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(b.text);
+  const hasOpenSug = !!b.suggestion && !b.decision;
+
   return (
-    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 16 }}>
-      <div style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 4 }}>AI 改写差异</div>
-      <div style={{ fontSize: 11.5, color: "#8a919e", marginBottom: 12 }}>逐条接受或拒绝，也可手动微调</div>
-      {resumeDiffs.map((d, i) => {
-        const dec = diffDecisions[i];
-        return (
-          <div key={i} style={{ border: "1px solid #eef0f4", borderRadius: 11, padding: 12, marginBottom: 10, opacity: dec === "reject" ? 0.5 : 1 }}>
-            {d.risk ? <div style={{ fontSize: 10.5, color: "#d64545", fontWeight: 700, marginBottom: 6 }}>⚠ 风险修正</div> : null}
-            <div style={{ fontSize: 12, color: "#b0454a", textDecoration: "line-through", lineHeight: 1.5, marginBottom: 5 }}>{d.original}</div>
-            <div style={{ fontSize: 12.5, color: "#12805c", lineHeight: 1.55, marginBottom: 6, fontWeight: 500 }}>{d.revised}</div>
-            <div style={{ fontSize: 11, color: "#8a919e", lineHeight: 1.5, marginBottom: 9 }}>{d.reason}</div>
-            {dec ? (
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: dec === "accept" ? "#12805c" : "#8a919e" }}>{dec === "accept" ? "✓ 已接受" : "已拒绝，保留原文"}</div>
-            ) : (
-              <div style={{ display: "flex", gap: 8 }}>
-                <div onClick={() => decideDiff(i, "accept")} style={{ cursor: "pointer", flex: 1, textAlign: "center", fontSize: 12, fontWeight: 700, color: "#fff", background: "#5850ec", padding: 7, borderRadius: 8 }}>接受</div>
-                <div onClick={() => decideDiff(i, "reject")} style={{ cursor: "pointer", flex: 1, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#4b5060", background: "#f2f2f6", padding: 7, borderRadius: 8 }}>拒绝</div>
-              </div>
-            )}
+    <div style={{ border: "1px solid " + (hasOpenSug ? "#e4ddff" : "#eef0f4"), background: hasOpenSug ? "#fdfcff" : "#fff", borderRadius: 11, padding: 12, marginBottom: 10 }}>
+      {/* 主文本 / 编辑 */}
+      {editing ? (
+        <div>
+          <textarea value={draft} onChange={(e) => setDraft(e.target.value)} rows={3} style={{ width: "100%", border: "1px solid #e6e8ee", borderRadius: 8, padding: 9, fontSize: 12.5, lineHeight: 1.6, outline: "none", resize: "vertical" }} />
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <div onClick={() => { editBulletText(jobId, b.id, draft.trim() || b.text); setEditing(false); }} style={{ cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#fff", background: "#5850ec", padding: "5px 12px", borderRadius: 7 }}>保存</div>
+            <div onClick={() => { setDraft(b.text); setEditing(false); }} style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#4b5060", background: "#f2f2f6", padding: "5px 12px", borderRadius: 7 }}>取消</div>
           </div>
-        );
-      })}
-      <Btn label="生成配套求职材料 →" kind="dark" onClick={() => go("materials")} />
+        </div>
+      ) : (
+        <div style={{ fontSize: 13, color: "#2f333d", lineHeight: 1.6 }}>{b.text}</div>
+      )}
+
+      {/* AI 建议（待决策） */}
+      {hasOpenSug ? (
+        <div style={{ marginTop: 9, borderTop: "1px dashed #e4ddff", paddingTop: 9 }}>
+          {b.risk ? <div style={{ fontSize: 10.5, color: "#d64545", fontWeight: 700, marginBottom: 5 }}>⚠ 风险修正（去夸大）</div> : <div style={{ fontSize: 10.5, color: "#5850ec", fontWeight: 700, marginBottom: 5 }}>AI 改写建议</div>}
+          <div style={{ fontSize: 12, color: "#b0454a", textDecoration: "line-through", lineHeight: 1.5, marginBottom: 4 }}>{b.original || b.text}</div>
+          <div style={{ fontSize: 12.5, color: "#12805c", lineHeight: 1.55, marginBottom: 5, fontWeight: 500 }}>{b.suggestion}</div>
+          {b.reason ? <div style={{ fontSize: 11, color: "#8a919e", lineHeight: 1.5, marginBottom: 8 }}>{b.reason}</div> : null}
+          <div style={{ display: "flex", gap: 8 }}>
+            <div onClick={() => decideBullet(jobId, b.id, "accepted")} style={{ cursor: "pointer", flex: 1, textAlign: "center", fontSize: 12, fontWeight: 700, color: "#fff", background: "#5850ec", padding: 6, borderRadius: 8 }}>接受</div>
+            <div onClick={() => decideBullet(jobId, b.id, "rejected")} style={{ cursor: "pointer", flex: 1, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#4b5060", background: "#f2f2f6", padding: 6, borderRadius: 8 }}>拒绝</div>
+            <div onClick={() => { setDraft(b.suggestion || b.text); setEditing(true); }} style={{ cursor: "pointer", flex: 1, textAlign: "center", fontSize: 12, fontWeight: 600, color: "#5850ec", background: "#f1f0fb", padding: 6, borderRadius: 8 }}>修改</div>
+          </div>
+        </div>
+      ) : b.decision ? (
+        <div style={{ marginTop: 6, fontSize: 11, fontWeight: 700, color: b.decision === "accepted" ? "#12805c" : b.decision === "edited" ? "#5850ec" : "#8a919e" }}>
+          {b.decision === "accepted" ? "✓ 已接受 AI 建议" : b.decision === "edited" ? "✎ 已手动修改" : "已拒绝建议，保留原文"}
+        </div>
+      ) : null}
+
+      {/* 元信息：证据 / 钩子 / 追问提示 */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginTop: 9 }}>
+        {b.ev ? (
+          <span style={{ fontSize: 11, fontWeight: 600, color: b.evStatus === "confirmed" ? "#12805c" : "#c2810c", background: b.evStatus === "confirmed" ? "#e6f5ee" : "#fdf3e0", padding: "3px 9px", borderRadius: 99 }}>
+            ⛁ {b.ev}{b.evStatus === "pending" ? " · 证据待确认" : ""}
+          </span>
+        ) : (
+          <span style={{ fontSize: 11, fontWeight: 600, color: "#8a919e", background: "#f2f3f5", padding: "3px 9px", borderRadius: 99 }}>○ 未关联证据</span>
+        )}
+        <span
+          onClick={() => toggleHook(jobId, b.id)}
+          title="面试钩子：主动引导面试官追问的内容"
+          style={{ cursor: "pointer", fontSize: 11, fontWeight: 700, color: b.hook ? "#c8622a" : "#a3a8b5", background: b.hook ? "#fdf1e8" : "#f5f5fa", padding: "3px 9px", borderRadius: 99 }}
+        >
+          {b.hook ? "★ 面试钩子" : "☆ 设为钩子"}
+        </span>
+        {!editing ? (
+          <span onClick={() => { setDraft(b.text); setEditing(true); }} style={{ cursor: "pointer", fontSize: 11, color: "#8a919e", marginLeft: "auto" }}>✎ 编辑</span>
+        ) : null}
+      </div>
+      {b.probe ? (
+        <div style={{ fontSize: 11.5, color: "#c2810c", background: "#fdf7ec", borderRadius: 8, padding: "6px 9px", marginTop: 8, lineHeight: 1.5 }}>
+          ⚡ 易被追问：{b.probe}
+        </div>
+      ) : null}
+      {b.evStatus === "none" && !hasOpenSug ? (
+        <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 6 }}>提示：这条内容没有证据支撑，被追问时有风险。</div>
+      ) : null}
+    </div>
+  );
+}
+
+function ContentPanel({ jobId }: { jobId: string }) {
+  const r = useStore((s) => s.resumes[jobId])!;
+  const versions = useStore((s) => s.resumeVersions[jobId]) || [];
+  const saveResumeVersion = useStore((s) => s.saveResumeVersion);
+  const restoreResumeVersion = useStore((s) => s.restoreResumeVersion);
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 16, maxHeight: "calc(100vh - 320px)", overflow: "auto" }}>
+      <div style={{ fontSize: 11.5, color: "#8a919e", marginBottom: 12, lineHeight: 1.6 }}>
+        每条内容都关联职业证据。接受、拒绝或修改 AI 建议；把最想被问到的内容标为 ★ 面试钩子。
+      </div>
+      {/* 版本 */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 14 }}>
+        {versions.map((v) => (
+          <span key={v.id} onClick={() => restoreResumeVersion(jobId, v.id)} title={"保存于 " + v.savedAt + " · 点击恢复"} style={{ cursor: "pointer", fontSize: 11, fontWeight: 600, color: "#4b5060", background: "#f2f3f6", padding: "4px 10px", borderRadius: 99 }}>
+            {v.label}
+          </span>
+        ))}
+        <span onClick={() => saveResumeVersion(jobId)} style={{ cursor: "pointer", fontSize: 11, fontWeight: 700, color: "#5850ec", background: "#f1f0fb", padding: "4px 10px", borderRadius: 99 }}>
+          + 存为新版本
+        </span>
+      </div>
+      {r.exp.map((x, i) => (
+        <div key={i} style={{ marginBottom: 14 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5060", marginBottom: 8 }}>{x.company} · {x.role} <span style={{ fontWeight: 400, color: "#a3a8b5" }}>{x.period}</span></div>
+          {x.bullets.map((b) => (
+            <BulletCard key={b.id} b={b} jobId={jobId} />
+          ))}
+        </div>
+      ))}
     </div>
   );
 }
 
 export default function Resume() {
-  const jobs = useStore((s) => s.jobs);
-  const activeJobId = useStore((s) => s.activeJobId);
-  const resumes = useStore((s) => s.resumes);
-  const resumeLoading = useStore((s) => s.resumeLoading);
-  const resumeTpl = useStore((s) => s.resumeTpl);
-  const rail = useStore((s) => s.resumeRail);
-  const resumeSpec = useStore((s) => s.resumeSpec);
-  const spec = computeSpec(resumeSpec, resumeTpl);
-  const generateResume = useStore((s) => s.generateResume);
-  const showToast = useStore((s) => s.showToast);
-  const setScreen = useStore((s) => s.setScreen);
+  const s = useStore();
+  const go = useStore((x) => x.go);
+  const generateResume = useStore((x) => x.generateResume);
+  const showToast = useStore((x) => x.showToast);
 
-  const j = jobs.find((x) => x.id === activeJobId) || jobs[0];
-  const r = resumes[j.id];
+  const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
+  const r = s.resumes[j.id];
+  const spec = computeSpec(s.resumeSpec, s.resumeTpl);
+  const rail = s.resumeRail;
 
   if (!r) {
     return (
-      <Page title="定制简历生成">
-        <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: 40, maxWidth: 620, textAlign: "center" }}>
-          <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>{j.company} · {j.role}</div>
-          <div style={{ fontSize: 13, color: "#6b7280", marginBottom: 18, lineHeight: 1.7 }}>
-            {resumeLoading ? "AI 正在基于你的证据库定制简历，每一句都会标注来源…" : "还没有为这个岗位生成简历。生成时会优先放最相关的证据，且所有描述都可追溯——不会自动编造数据。"}
+      <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
+        {s.resumeLoading ? (
+          <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, maxWidth: 620 }}>
+            <Spinner text="AI 正在基于你的证据库为该岗位定制简历，每一句都会标注来源…" />
           </div>
-          {resumeLoading ? <Spinner text="生成中…" /> : <div style={{ display: "inline-flex" }}><Btn label="基于证据生成定制简历 →" onClick={() => generateResume()} /></div>}
-        </div>
+        ) : (
+          <Empty
+            title={j.company + " · " + j.role}
+            desc={
+              s.analyses[j.id]
+                ? "还没有为这个岗位生成简历。生成时会优先放匹配分析中「重点写」的证据，所有描述可追溯——不会自动编造数据。"
+                : "建议先在申请包里分析 JD（知道重点写什么再生成），也可以直接基于已确认证据生成。"
+            }
+            action={
+              <>
+                {!s.analyses[j.id] ? <Btn label="先去分析 JD" kind="ghost" onClick={() => go("pkg")} /> : null}
+                <Btn label="基于证据生成定制简历 →" onClick={() => generateResume()} />
+              </>
+            }
+          />
+        )}
       </Page>
     );
   }
+
+  const bullets = r.exp.flatMap((x) => x.bullets);
+  const confirmedN = bullets.filter((b) => b.evStatus === "confirmed").length;
+  const openSugs = bullets.filter((b) => b.suggestion && !b.decision).length;
+  const stale = s.qaStale[j.id] || s.mockStale[j.id];
 
   const seg = (k: typeof rail, label: string) => (
     <div onClick={() => useStore.setState({ resumeRail: k })} style={{ cursor: "pointer", flex: 1, textAlign: "center", padding: 7, fontSize: 12.5, fontWeight: rail === k ? 700 : 500, color: rail === k ? "#5850ec" : "#8a919e", background: rail === k ? "#fff" : "transparent", borderRadius: 8, boxShadow: rail === k ? "0 1px 3px rgba(0,0,0,.06)" : "none" }}>{label}</div>
   );
 
   return (
-    <Page title="定制简历生成">
+    <Page title="简历编辑器">
       <div style={{ display: "grid", gridTemplateColumns: "1fr 372px", gap: 18, alignItems: "start" }}>
         <div style={{ background: "#eef0f4", border: "1px solid #e3e5ec", borderRadius: 16, overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280" }}>模板 · {tplPresets().find((p) => p.id === resumeTpl)!.name} · A4 · ATS 可解析</div>
+            <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280" }}>{j.company} 专属 · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4 · ATS 可解析</div>
             <div style={{ display: "flex", gap: 8 }}>
-              <div onClick={() => setScreen("publicResume")} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}>预览分享页 ↗</div>
+              <div onClick={() => generateResume()} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}>重新生成</div>
               <div onClick={() => showToast("已导出文字版 PDF（ATS 可解析，演示）")} style={{ cursor: "pointer", fontSize: 12, padding: "4px 10px", borderRadius: 7, background: "#16181d", color: "#fff" }}>导出 PDF</div>
             </div>
           </div>
@@ -173,13 +248,20 @@ export default function Resume() {
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ background: "#eef8f2", border: "1px solid #cfeadd", borderRadius: 14, padding: "12px 14px", fontSize: 12.5, color: "#12805c", lineHeight: 1.6 }}>✓ 可追溯性：6 条描述中 5 条已绑定证据，1 条待确认。无自动编造数据。</div>
+          <div style={{ background: "#eef8f2", border: "1px solid #cfeadd", borderRadius: 14, padding: "12px 14px", fontSize: 12.5, color: "#12805c", lineHeight: 1.6 }}>
+            ✓ 可追溯：{bullets.length} 条内容中 {confirmedN} 条已绑定确认证据{openSugs ? "；" + openSugs + " 条 AI 建议待决策" : ""}。无自动编造数据。
+          </div>
+          {stale ? (
+            <div onClick={() => go("qa")} style={{ cursor: "pointer", background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 14, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", lineHeight: 1.6 }}>
+              ⚠ 简历已更新——相关面试 QA{s.mockStale[j.id] ? "和模拟面试" : ""}可能需要刷新。点击去处理 →
+            </div>
+          ) : null}
           <div style={{ background: "#f2f3f6", borderRadius: 11, padding: 4, display: "flex", gap: 2 }}>
+            {seg("content", "内容")}
             {seg("template", "模板")}
             {seg("custom", "自定义")}
-            {seg("diff", "AI 改写")}
           </div>
-          {rail === "template" ? <TemplatePanel /> : rail === "custom" ? <CustomPanel /> : <DiffPanel />}
+          {rail === "content" ? <ContentPanel jobId={j.id} /> : rail === "template" ? <TemplatePanel /> : <CustomPanel />}
         </div>
       </div>
     </Page>
