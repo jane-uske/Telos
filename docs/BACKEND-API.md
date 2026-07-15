@@ -79,5 +79,5 @@ status ("ok" | "error:<code>"), createdAt
 ## 本地联调
 
 `web/` 目录：`NEXT_PUBLIC_RR_API_BASE=http://localhost:8787 npm run dev`，
-假后端参考实现见开发会话 scratchpad 的 `fake-remi-api.mjs`（邮箱验证码固定 `123456`，
+假后端参考实现：`web/scripts/fake-remi-api.mjs`（`node web/scripts/fake-remi-api.mjs`）（邮箱验证码固定 `123456`，
 GitHub start 直接 302 带 token 回跳，AI 按 feature 返回确定性 JSON）。前端 E2E 已在该假后端上全量走通。
