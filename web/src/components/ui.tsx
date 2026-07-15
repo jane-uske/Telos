@@ -220,7 +220,7 @@ export function Page({
   children: React.ReactNode;
 }) {
   return (
-    <div style={{ animation: "pcvFade .3s ease both", maxWidth: 1080 }}>
+    <div style={{ animation: "pcvFade .3s ease both" }}>
       <div
         style={{
           display: "flex",

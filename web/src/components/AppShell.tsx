@@ -140,8 +140,11 @@ export default function AppShell() {
             <div onClick={() => go("import")} className="pcv-press" style={{ fontSize: 13, padding: "8px 14px", borderRadius: 9, background: "#5850ec", color: "#fff", fontWeight: 500, boxShadow: "0 4px 14px rgba(88,80,236,.24)" }}>+ 新增证据</div>
           </div>
         </div>
-        <div style={{ flex: 1, overflow: "auto", padding: 28 }} key={tab}>
-          <Screen />
+        <div style={{ flex: 1, overflow: "auto", padding: "28px 36px" }} key={tab}>
+          {/* 内容列与首页容器对齐：加宽并居中，避免宽屏右侧留白 */}
+          <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+            <Screen />
+          </div>
         </div>
       </main>
     </div>

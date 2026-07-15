@@ -111,7 +111,7 @@ export default function Mock() {
   // 进行中的模拟面试
   if (s.mockActive && !s.mockReport) {
     return (
-      <div style={{ animation: "pcvFade .3s ease both", display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, maxWidth: 1080, height: "calc(100vh - 130px)" }}>
+      <div style={{ animation: "pcvFade .3s ease both", display: "grid", gridTemplateColumns: "1fr 300px", gap: 16, height: "calc(100vh - 130px)" }}>
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, display: "flex", flexDirection: "column", overflow: "hidden" }}>
           <div style={{ padding: "14px 18px", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>

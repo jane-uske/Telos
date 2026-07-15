@@ -40,7 +40,7 @@ function useNextAction() {
 function Stat({ label, val, sub, color }: { label: string; val: string; sub: string; color?: string }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 14, padding: "18px 20px" }}>
-      <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 8 }}>{label}</div>
+      <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 10.5, letterSpacing: ".08em", color: "#a3a8b5", marginBottom: 8 }}>{label}</div>
       <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
         <span style={{ fontSize: 30, fontWeight: 900, fontFamily: "'JetBrains Mono'", color: color || "#16181d" }}>{val}</span>
         <span style={{ fontSize: 12, color: "#8a919e" }}>{sub}</span>
@@ -75,8 +75,13 @@ export default function Dashboard() {
   const recJob = lastRec ? s.jobs.find((x) => x.id === lastRec.jobId) : null;
 
   return (
-    <div style={{ maxWidth: 1080 }}>
-      <div className="pcv-fade" style={{ marginBottom: 18 }}>
+    <div style={{ position: "relative" }}>
+      {/* 极浅环境色斑：与首页一致，给毛玻璃卡提供可模糊的层次 */}
+      <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+        <div style={{ position: "absolute", top: -60, right: "-6%", width: 420, height: 420, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(88,80,236,.08), transparent)" }} />
+        <div style={{ position: "absolute", top: 380, left: "-8%", width: 360, height: 360, borderRadius: "50%", background: "radial-gradient(closest-side, rgba(232,137,107,.06), transparent)" }} />
+      </div>
+      <div className="pcv-fade" style={{ marginBottom: 18, position: "relative" }}>
         <div style={{ fontFamily: "'Noto Serif SC'", fontWeight: 900, fontSize: 26 }}>早上好，林深 👋</div>
         <div style={{ color: "#6b7280", fontSize: 14, marginTop: 4 }}>
           每准备一个岗位、参加一次面试，系统都会更了解你——下一次就准备得更充分。
@@ -85,7 +90,7 @@ export default function Dashboard() {
 
       {/* 首次使用引导（可关闭）——浮层提示卡，与首页毛玻璃语言一致 */}
       {!s.guideDismissed ? (
-        <div className="hv-glass pcv-fade" style={{ borderRadius: 14, padding: "14px 18px", marginBottom: 18, animationDelay: ".06s" }}>
+        <div className="hv-glass pcv-fade" style={{ position: "relative", borderRadius: 14, padding: "14px 18px", marginBottom: 18, animationDelay: ".06s" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "#5850ec" }}>第一次使用？这是一条完整闭环（当前为演示数据，可直接点通）</div>
             <div onClick={() => useStore.setState({ guideDismissed: true })} className="pcv-link" style={{ fontSize: 12, color: "#a3a8b5", fontWeight: 400 }}>知道了 ✕</div>
@@ -104,7 +109,7 @@ export default function Dashboard() {
       ) : null}
 
       {/* 下一步行动 —— 你现在最应该继续做什么 */}
-      <div className="pcv-fade" style={{ background: "#16181d", color: "#fff", borderRadius: 16, padding: "20px 24px", marginBottom: 18, display: "flex", alignItems: "center", gap: 18, animationDelay: ".12s" }}>
+      <div className="pcv-fade" style={{ position: "relative", background: "#16181d", color: "#fff", borderRadius: 16, padding: "20px 24px", marginBottom: 18, display: "flex", alignItems: "center", gap: 18, animationDelay: ".12s" }}>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: "'JetBrains Mono'", fontSize: 10.5, color: "#9aa0b0", letterSpacing: ".1em", marginBottom: 7 }}>你现在最应该继续做的</div>
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 5 }}>{next.title}</div>
@@ -115,14 +120,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="pcv-fade" style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 18, animationDelay: ".18s" }}>
+      <div className="pcv-fade" style={{ position: "relative", display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14, marginBottom: 18, animationDelay: ".18s" }}>
         <Stat label="职业证据" val={String(s.evidence.length)} sub={confirmed + " 张已确认"} />
         <Stat label="进行中岗位" val={String(s.jobs.length)} sub="个申请包" color="#5850ec" />
         <Stat label="待准备问题" val={String(todoQa.length)} sub={"当前岗位 · 共 " + qa.length + " 题"} color="#c2810c" />
         <Stat label="面试记录" val={String(s.records.length)} sub="次复盘" color="#12805c" />
       </div>
 
-      <div className="pcv-fade" style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16, animationDelay: ".24s" }}>
+      <div className="pcv-fade" style={{ position: "relative", display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 16, animationDelay: ".24s" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {/* 当前正在准备的岗位 */}
           <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 16, padding: 20 }}>
