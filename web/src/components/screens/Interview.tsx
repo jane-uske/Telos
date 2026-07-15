@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef } from "react";
 import { useStore } from "@/lib/store";
+import { useSpeechInput } from "@/lib/speech";
 import { Page, Btn, Pill } from "../ui";
+import { VoiceButton, VoiceStatus } from "../VoiceInput";
 import type { InterviewMsg } from "@/lib/types";
 
 const checklist = [
@@ -43,6 +45,11 @@ export default function Interview() {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [ivMsgs, ivLoading]);
+
+  // 语音回答：识别定稿一段就追加进输入框，用户改完再发送
+  const sp = useSpeechInput((t) =>
+    useStore.setState((st) => ({ ivInput: st.ivInput + t }))
+  );
 
   if (!ivProject) {
     const cands = evidence.filter((e) => e.status !== "confirmed");
@@ -95,15 +102,19 @@ export default function Interview() {
             </div>
           ) : null}
         </div>
-        <div style={{ padding: 14, borderTop: "1px solid #f0f0f5", display: "flex", gap: 10 }}>
-          <input
-            value={ivInput}
-            onChange={(e) => useStore.setState({ ivInput: e.target.value })}
-            onKeyDown={(e) => { if (e.key === "Enter") sendInterview(); }}
-            placeholder="如实回答，越具体越能挖出可信证据…"
-            style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 10, padding: "11px 13px", fontSize: 13.5, outline: "none" }}
-          />
-          <Btn label="发送" onClick={() => sendInterview()} />
+        <div style={{ padding: 14, borderTop: "1px solid #f0f0f5" }}>
+          <VoiceStatus sp={sp} />
+          <div style={{ display: "flex", gap: 10 }}>
+            <input
+              value={ivInput}
+              onChange={(e) => useStore.setState({ ivInput: e.target.value })}
+              onKeyDown={(e) => { if (e.key === "Enter") { sp.stop(); sendInterview(); } }}
+              placeholder={sp.listening ? "正在听……说完点「停止」，检查识别结果后再发送" : "如实回答，越具体越能挖出可信证据——点「语音」开口说，或直接打字"}
+              style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 10, padding: "11px 13px", fontSize: 13.5, outline: "none" }}
+            />
+            <VoiceButton sp={sp} />
+            <Btn label="发送" onClick={() => { sp.stop(); sendInterview(); }} />
+          </div>
         </div>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

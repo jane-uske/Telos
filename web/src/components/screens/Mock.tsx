@@ -2,7 +2,9 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
+import { useSpeechInput } from "@/lib/speech";
 import { Page, Btn, Empty, JobChips } from "../ui";
+import { VoiceButton, VoiceStatus } from "../VoiceInput";
 import type { InterviewMsg, MockReport, MockSession } from "@/lib/types";
 
 function Bubble({ m }: { m: InterviewMsg }) {
@@ -108,6 +110,11 @@ export default function Mock() {
     if (el) el.scrollTop = el.scrollHeight;
   }, [s.mockMsgs, s.mockLoading]);
 
+  // 语音回答：识别定稿一段就追加进输入框，用户改完再发送
+  const sp = useSpeechInput((t) =>
+    useStore.setState((st) => ({ mockInput: st.mockInput + t }))
+  );
+
   // 进行中的模拟面试
   if (s.mockActive && !s.mockReport) {
     return (
@@ -132,15 +139,19 @@ export default function Mock() {
               </div>
             ) : null}
           </div>
-          <div style={{ padding: 14, borderTop: "1px solid #f0f0f5", display: "flex", gap: 10 }}>
-            <input
-              value={s.mockInput}
-              onChange={(e) => useStore.setState({ mockInput: e.target.value })}
-              onKeyDown={(e) => { if (e.key === "Enter") sendMock(); }}
-              placeholder="像真实面试一样回答，越具体越好…"
-              style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 10, padding: "11px 13px", fontSize: 13.5, outline: "none" }}
-            />
-            <Btn label="回答" onClick={() => sendMock()} />
+          <div style={{ padding: 14, borderTop: "1px solid #f0f0f5" }}>
+            <VoiceStatus sp={sp} />
+            <div style={{ display: "flex", gap: 10 }}>
+              <input
+                value={s.mockInput}
+                onChange={(e) => useStore.setState({ mockInput: e.target.value })}
+                onKeyDown={(e) => { if (e.key === "Enter") { sp.stop(); sendMock(); } }}
+                placeholder={sp.listening ? "正在听……说完点「停止」，检查识别结果后再发送" : "像真实面试一样回答——点「语音」开口说，或直接打字"}
+                style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 10, padding: "11px 13px", fontSize: 13.5, outline: "none" }}
+              />
+              <VoiceButton sp={sp} />
+              <Btn label="回答" onClick={() => { sp.stop(); sendMock(); }} />
+            </div>
           </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

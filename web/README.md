@@ -71,6 +71,18 @@ The Settings page also has a connection test, a "remember key on this device"
 toggle (uncheck = key kept in memory for this session only), and one-click key
 removal. The old `NEXT_PUBLIC_AI_LIVE` flag is retired.
 
+## Voice input (mock interview & AI interview)
+
+Both chat screens have a 🎙 button that transcribes speech into the input box
+live (`src/lib/speech.ts`, Web Speech API: zh-CN, continuous + interim
+results, auto-restart on pause). Zero setup and zero cost — but note honestly:
+recognition runs on the browser vendor's speech service (Chrome sends audio to
+Google's speech backend, it is not local inference). Firefox doesn't support
+the API; the button degrades gracefully and typing always works. Transcripts
+only fill the input — you review/edit and send yourself, nothing is
+auto-submitted. This covers *live* speech only; transcribing uploaded
+recordings (Records page) still needs a transcription service.
+
 ## Integrations (ported from real source, per the handoff)
 
 - **Telos** (`xiashitao/Telos`) → the 定制简历 module. `src/lib/templates.ts`
