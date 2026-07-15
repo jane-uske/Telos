@@ -180,12 +180,53 @@ function MatchView({ m }: { m: Match }) {
   );
 }
 
+/** Agent ③：一键备齐编排的进行中/等确认/完成引导条 */
+function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
+  const prep = useStore((x) => x.prep);
+  const go = useStore((x) => x.go);
+  const prepContinueQa = useStore((x) => x.prepContinueQa);
+  if (!prep || prep.jobId !== jobId) return null;
+  const running = prep.stage === "analyzing" || prep.stage === "resume" || prep.stage === "qa";
+  const stageText =
+    prep.stage === "analyzing" ? "① 正在分析 JD 并对照证据库…" :
+    prep.stage === "resume" ? "② 正在基于已确认证据生成专属简历…" :
+    prep.stage === "qa" ? "③ 正在生成面试 QA…" : "";
+  if (running) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 10, background: "#f1f0fb", border: "1px solid #dcd9ff", borderRadius: 12, padding: "11px 14px", marginBottom: 14, fontSize: 13, fontWeight: 600, color: "#5850ec" }}>
+        <span style={{ width: 14, height: 14, border: "2px solid #dcd9ff", borderTopColor: "#5850ec", borderRadius: 99, animation: "pcvSpin .8s linear infinite", flexShrink: 0 }} />
+        一键备齐进行中：{stageText}
+      </div>
+    );
+  }
+  if (prep.stage === "confirm") {
+    return (
+      <div style={{ background: "#fdf7ec", border: "1px solid #f3e2bd", borderRadius: 12, padding: "12px 14px", marginBottom: 14 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#c2810c" }}>
+          ⏸ 编排已暂停：简历生成好了，{openSugs ? "还有 " + openSugs + " 条 AI 建议等你逐条确认" : "AI 建议已处理完"}——确认后再继续生成 QA，不会替你做决定。
+        </div>
+        <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
+          <Btn label="去简历编辑器逐条确认 →" kind="ghost" onClick={() => go("resume" as Tab)} />
+          <Btn label={openSugs ? "剩余建议稍后处理，先生成 QA" : "继续生成 QA →"} onClick={() => prepContinueQa()} />
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, background: "#e6f5ee", border: "1px solid #bfe6d4", borderRadius: 12, padding: "11px 14px", marginBottom: 14, flexWrap: "wrap" }}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: "#12805c" }}>✓ 申请包已备齐：岗位分析、专属简历、面试 QA 全部就绪。建议下一步：来一场模拟面试。</span>
+      <Btn label="去模拟面试 →" kind="dark" onClick={() => go("mock" as Tab)} />
+    </div>
+  );
+}
+
 export default function Package() {
   const s = useStore();
   const go = useStore((x) => x.go);
   const openPackage = useStore((x) => x.openPackage);
   const updateJd = useStore((x) => x.updateJd);
   const analyzeJd = useStore((x) => x.analyzeJd);
+  const prepPackage = useStore((x) => x.prepPackage);
   const [jdOpen, setJdOpen] = useState(false);
 
   const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0];
@@ -285,6 +326,7 @@ export default function Package() {
 
       {/* 准备进度流水线：先回答「到哪了、下一步做什么」，每一步可直接点进去 */}
       <div style={{ marginBottom: 22 }}>
+        <PrepBanner jobId={j.id} openSugs={openSugs.length} />
         <div style={{ display: "flex", gap: 6, alignItems: "stretch" }}>
           {steps.map((st, i) => (
             <React.Fragment key={st.n}>
@@ -295,6 +337,12 @@ export default function Package() {
             </React.Fragment>
           ))}
         </div>
+        {j.jd.trim() && (!a || !r || !qa.length) && (!s.prep || s.prep.jobId !== j.id || s.prep.stage === "done") ? (
+          <div style={{ marginTop: 10, display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+            <Btn label="⚡ 一键备齐申请包" kind="dark" onClick={() => prepPackage()} />
+            <span style={{ fontSize: 12, color: "#a3a8b5" }}>依次执行：分析 JD → 生成专属简历 →（停下来等你逐条确认 AI 建议）→ 生成面试 QA</span>
+          </div>
+        ) : null}
       </div>
 
       {s.jdLoading ? (

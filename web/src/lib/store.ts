@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { ask, parseJSON, setAiErrorHandler } from "./ai";
+import { ask, askAgent, agentAvailable, parseJSON, setAiErrorHandler } from "./ai";
+import { searchEvidenceTool, draftEvidenceTool } from "./agentTools";
 import { idbStorage } from "./storage";
 import {
   seedEvidence,
@@ -70,6 +71,8 @@ interface State {
   ivInput: string;
   ivLoading: boolean;
   ivSummary: InterviewSummary | null;
+  /** Agent 访谈中实时起草的证据卡草稿——仅草稿，结束访谈后经用户确认才入库 */
+  ivDraft: Partial<Evidence> | null;
 
   // 证据库
   evidenceFilter: string;
@@ -83,6 +86,10 @@ interface State {
   jdLoading: boolean;
   analyses: Record<string, Analysis>;
   matches: Record<string, Match>;
+  /** 批量岗位分析进度（Agent ①）；null = 未在跑 */
+  batch: { running: boolean; total: number; done: number; current: string | null } | null;
+  /** 一键备齐申请包编排（Agent ③）；stage=confirm 时等用户逐条确认简历建议 */
+  prep: { jobId: string; stage: "analyzing" | "resume" | "confirm" | "qa" | "done" } | null;
 
   // 简历（一份简历绑定一个岗位）
   resumes: Record<string, Resume>;
@@ -137,6 +144,10 @@ interface State {
   updateJd: (id: string, val: string) => void;
   moveJobStatus: (id: string, dir: number) => void;
   analyzeJd: () => Promise<void>;
+  analyzeJobById: (jobId: string) => Promise<void>;
+  batchAnalyze: () => Promise<void>;
+  prepPackage: () => Promise<void>;
+  prepContinueQa: () => Promise<void>;
 
   // 简历
   generateResume: () => Promise<void>;
@@ -263,6 +274,7 @@ export const useStore = create<State>()(persist((set, get) => ({
   ivInput: "",
   ivLoading: false,
   ivSummary: null,
+  ivDraft: null,
 
   evidenceFilter: "all",
   evidence: seedEvidence(),
@@ -274,6 +286,8 @@ export const useStore = create<State>()(persist((set, get) => ({
   jdLoading: false,
   analyses: seedAnalyses(),
   matches: seedMatches(),
+  batch: null,
+  prep: null,
 
   resumes: seedResumes(),
   resumeVersions: seedResumeVersions(),
@@ -482,13 +496,9 @@ export const useStore = create<State>()(persist((set, get) => ({
     }));
   },
 
-  analyzeJd: async () => {
-    const j = get().activeJob();
-    if (!j.jd.trim()) {
-      get().showToast("请先粘贴 JD");
-      return;
-    }
-    set({ jdLoading: true });
+  analyzeJobById: async (jobId) => {
+    const j = get().jobs.find((x) => x.id === jobId);
+    if (!j || !j.jd.trim()) return;
     const evSummary = get()
       .evidence.map((e) => e.title + "（" + e.status + "）：" + e.results.join("、"))
       .join("\n");
@@ -502,11 +512,68 @@ export const useStore = create<State>()(persist((set, get) => ({
       ? { ...parsed.match, downplay: parsed.match.downplay || [] }
       : seedMatches()[j.id] || buildFallbackMatch(j, get().evidence);
     set((st) => ({
-      jdLoading: false,
       analyses: { ...st.analyses, [j.id]: a },
       matches: { ...st.matches, [j.id]: m },
       jobs: st.jobs.map((x) => (x.id === j.id ? { ...x, match: m.metrics.coverage, updated: "刚刚" } : x)),
     }));
+  },
+
+  analyzeJd: async () => {
+    const j = get().activeJob();
+    if (!j.jd.trim()) {
+      get().showToast("请先粘贴 JD");
+      return;
+    }
+    set({ jdLoading: true });
+    await get().analyzeJobById(j.id);
+    set({ jdLoading: false });
+  },
+
+  // Agent ①：批量岗位分析——排队跑完所有未分析岗位，结果按证据覆盖度排序（见岗位列表的优先级面板）
+  batchAnalyze: async () => {
+    if (get().batch?.running) return;
+    const targets = get().jobs.filter((j) => j.jd.trim() && !get().analyses[j.id]);
+    if (!targets.length) {
+      get().showToast("所有岗位都已分析过 · 优先级排序见下方面板");
+      return;
+    }
+    set({ batch: { running: true, total: targets.length, done: 0, current: null } });
+    for (let i = 0; i < targets.length; i++) {
+      set((st) => ({ batch: { ...st.batch!, done: i, current: targets[i].company + " · " + targets[i].role } }));
+      await get().analyzeJobById(targets[i].id);
+    }
+    set((st) => ({ batch: { ...st.batch!, running: false, done: targets.length, current: null } }));
+    get().showToast("批量分析完成 · " + targets.length + " 个岗位已按证据覆盖度排序，建议先准备排名靠前的");
+  },
+
+  // Agent ③：一键备齐申请包——分析→简历→（停：用户确认简历建议）→QA
+  prepPackage: async () => {
+    const j = get().activeJob();
+    if (!j.jd.trim()) {
+      get().showToast("请先粘贴 JD");
+      return;
+    }
+    if (get().prep && get().prep!.jobId === j.id && get().prep!.stage !== "done") return;
+    set({ prep: { jobId: j.id, stage: "analyzing" } });
+    if (!get().analyses[j.id]) await get().analyzeJobById(j.id);
+    set({ prep: { jobId: j.id, stage: "resume" } });
+    if (!get().resumes[j.id]) await get().generateResume();
+    // 有待决策的 AI 建议就停下来等用户逐条确认——不自动替用户做决定
+    const pending = (get().resumes[j.id]?.exp || []).flatMap((x) => x.bullets).filter((b) => b.suggestion && !b.decision);
+    if (pending.length) {
+      set({ prep: { jobId: j.id, stage: "confirm" } });
+      get().showToast("简历已生成 · " + pending.length + " 条 AI 建议待你逐条确认后再生成 QA");
+      return;
+    }
+    await get().prepContinueQa();
+  },
+
+  prepContinueQa: async () => {
+    const p = get().prep;
+    if (!p) return;
+    set({ prep: { ...p, stage: "qa" } });
+    if (!(get().qa[p.jobId] || []).length || get().qaStale[p.jobId]) await get().generateQa();
+    set({ prep: { ...p, stage: "done" } });
   },
 
   generateResume: async () => {
@@ -709,6 +776,23 @@ export const useStore = create<State>()(persist((set, get) => ({
     const j = s.activeJob();
     const msgs = s.mockMsgs.concat([{ role: "user" as const, content: txt }]);
     set({ mockMsgs: msgs, mockInput: "", mockLoading: true });
+    // Agent 模式（Anthropic 协议）：面试官先查证据库核实说法，再决定怎么追问
+    if (agentAvailable()) {
+      const agentOut = await askAgent(msgs, {
+        system:
+          get().mockSystem(j.id) +
+          "\n你可以调用 search_evidence 工具核实候选人的说法在证据库里有没有支撑——没有证据的说法要往死里追问细节。",
+        max_tokens: 500,
+        tools: [searchEvidenceTool(() => get().evidence)],
+      });
+      if (agentOut) {
+        set({
+          mockMsgs: msgs.concat([{ role: "assistant", content: agentOut.text, tools: agentOut.toolNotes.length ? agentOut.toolNotes : undefined }]),
+          mockLoading: false,
+        });
+        return;
+      }
+    }
     const out = await ask(msgs, { system: get().mockSystem(j.id), max_tokens: 400 });
     const turn = Math.floor(msgs.length / 2);
     const fallbacks = [
@@ -857,7 +941,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     "你是一位资深技术面试官兼职业教练，正在对候选人的某个项目做深度访谈。规则：每次只问一个最关键的追问问题；基于候选人上一条回答顺藤摸瓜，不要机械问卷；依次覆盖项目背景与目标、候选人的具体职责与个人贡献边界、关键行动、技术难点与业务难点、协作与推动方式、可量化的最终结果、可验证的证据来源。当候选人说得笼统或夸大时要礼貌追问细节与证据。语气专业而有温度，回复 2-3 句以内。",
 
   startInterview: async (proj) => {
-    set({ ivProject: proj, ivMsgs: [], ivSummary: null, ivLoading: true, screen: "app", tab: "interview" });
+    set({ ivProject: proj, ivMsgs: [], ivSummary: null, ivDraft: null, ivLoading: true, screen: "app", tab: "interview" });
     const out = await ask(
       "你正在开始对候选人「" + proj!.title + "」这个项目做深度职业访谈。项目已知信息：" + (proj!.background || "很少，需要从头问起") + (proj!.note ? "。已知缺口：" + proj!.note : "") + "。请用 2-3 句话开场，并提出第一个最关键的追问问题（先了解项目背景与目标）。只输出你要说的话。",
       { system: get().ivSystem() }
@@ -871,6 +955,26 @@ export const useStore = create<State>()(persist((set, get) => ({
     if (!txt) return;
     const msgs = get().ivMsgs.concat([{ role: "user" as const, content: txt }]);
     set({ ivMsgs: msgs, ivInput: "", ivLoading: true });
+    // Agent 模式：访谈官可查证据库避免重复问，并把问清楚的事实实时沉淀为草稿（用户最终确认才入库）
+    if (agentAvailable()) {
+      const agentOut = await askAgent(msgs, {
+        system:
+          get().ivSystem() +
+          "\n你可以调用 search_evidence 检查证据库里已有什么（避免重复追问），并在候选人把某块事实说清楚后调用 draft_evidence_card 实时沉淀草稿——只记录原话事实，严禁推断补全。",
+        max_tokens: 600,
+        tools: [
+          searchEvidenceTool(() => get().evidence),
+          draftEvidenceTool((d) => set((st) => ({ ivDraft: { ...st.ivDraft, ...d } }))),
+        ],
+      });
+      if (agentOut) {
+        set({
+          ivMsgs: msgs.concat([{ role: "assistant", content: agentOut.text, tools: agentOut.toolNotes.length ? agentOut.toolNotes : undefined }]),
+          ivLoading: false,
+        });
+        return;
+      }
+    }
     const out = await ask(msgs, { system: get().ivSystem(), max_tokens: 400 });
     const reply = out || "明白。能再具体说说这里你个人做的关键决策是什么吗？为什么这样选，有没有对比过其他方案？";
     set({ ivMsgs: msgs.concat([{ role: "assistant", content: reply }]), ivLoading: false });
@@ -898,17 +1002,18 @@ export const useStore = create<State>()(persist((set, get) => ({
     const proj = s.ivProject;
     const sum = s.ivSummary;
     if (!proj || !sum) return;
+    const draft = s.ivDraft || {};
     if (proj.id === "new") {
       const ev: Evidence = {
         id: uid("ev"),
         title: "访谈沉淀 · " + new Date().toLocaleDateString("zh-CN"),
         project: "访谈补充",
-        background: sum.summary,
-        responsibilities: [],
-        actions: [],
-        challenges: [],
-        results: [],
-        skills: sum.abilities.filter((a) => !a.startsWith("（")),
+        background: draft.background || sum.summary,
+        responsibilities: draft.responsibilities || [],
+        actions: draft.actions || [],
+        challenges: draft.challenges || [],
+        results: draft.results || [],
+        skills: (draft.skills || []).concat(sum.abilities.filter((a) => !a.startsWith("（") && !(draft.skills || []).includes(a))),
         roles: [],
         source: "AI 访谈",
         status: "pending",
@@ -916,12 +1021,18 @@ export const useStore = create<State>()(persist((set, get) => ({
       };
       set((st) => ({ evidence: st.evidence.concat([ev]) }));
     } else {
+      // 草稿只填补空字段，不覆盖用户已有内容
       set((st) => ({
         evidence: st.evidence.map((e) =>
           e.id === proj.id
             ? {
                 ...e,
-                background: e.background || sum.summary,
+                background: e.background || draft.background || sum.summary,
+                responsibilities: e.responsibilities.length ? e.responsibilities : draft.responsibilities || e.responsibilities,
+                actions: e.actions.length ? e.actions : draft.actions || e.actions,
+                challenges: e.challenges.length ? e.challenges : draft.challenges || e.challenges,
+                results: e.results.length ? e.results : draft.results || e.results,
+                skills: e.skills.length ? e.skills : draft.skills || e.skills,
                 note: sum.missing.length ? "访谈后仍缺少：" + sum.missing.join("；") : null,
                 source: e.source.includes("访谈") ? e.source : e.source + " + 访谈确认",
               }
@@ -929,7 +1040,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         ),
       }));
     }
-    set({ ivProject: null, ivSummary: null, ivMsgs: [] });
+    set({ ivProject: null, ivSummary: null, ivMsgs: [], ivDraft: null });
     get().go("evidence");
     get().showToast("访谈成果已并入证据卡 · 请核对后确认");
   },

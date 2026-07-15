@@ -266,6 +266,8 @@ export interface TplPreset {
 export interface InterviewMsg {
   role: "user" | "assistant";
   content: string;
+  /** Agent 工具调用透明记录（如「查证据库→命中 2 条」），随气泡展示 */
+  tools?: string[];
 }
 
 export interface InterviewSummary {

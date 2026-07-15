@@ -138,6 +138,77 @@ function BossImportPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
+/** Agent ①：批量分析进度 + 按证据覆盖度排序的准备优先级面板 */
+function PriorityPanel() {
+  const s = useStore();
+  const openPackage = useStore((x) => x.openPackage);
+  const batchAnalyze = useStore((x) => x.batchAnalyze);
+  const pending = s.jobs.filter((j) => j.jd.trim() && !s.analyses[j.id]);
+  const ranked = s.jobs
+    .filter((j) => s.matches[j.id])
+    .map((j) => ({ j, m: s.matches[j.id] }))
+    .sort((a, b) => b.m.metrics.coverage - a.m.metrics.coverage);
+  const b = s.batch;
+  if (!pending.length && ranked.length < 2 && !b) return null;
+  return (
+    <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ fontWeight: 800, fontSize: 14.5 }}>准备优先级</div>
+          <div style={{ fontSize: 12, color: "#8a919e", marginTop: 3 }}>
+            按证据覆盖度排序，回答「这批岗位先准备哪个」。只做分析排序，不替你生成任何内容。
+          </div>
+        </div>
+        {b?.running ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 12.5, color: "#5850ec", fontWeight: 600 }}>
+            <span style={{ width: 14, height: 14, border: "2px solid #ece9ff", borderTopColor: "#5850ec", borderRadius: 99, animation: "pcvSpin .8s linear infinite" }} />
+            正在分析 {b.done + 1}/{b.total}{b.current ? "：" + b.current : ""}
+          </div>
+        ) : pending.length ? (
+          <Btn label={"批量分析 " + pending.length + " 个未分析岗位"} onClick={() => batchAnalyze()} />
+        ) : null}
+      </div>
+      {ranked.length >= 2 ? (
+        <div style={{ marginTop: 14, display: "flex", flexDirection: "column" }}>
+          {ranked.map(({ j, m }, i) => {
+            const gap = m.none.length
+              ? "缺证据 " + m.none.length + " 项：" + m.none.map((x) => x.req).filter(Boolean).slice(0, 2).join("、")
+              : m.weak.length
+              ? m.weak.length + " 项弱匹配待澄清"
+              : "证据覆盖良好";
+            return (
+              <div
+                key={j.id}
+                onClick={() => openPackage(j.id)}
+                className="pcv-row"
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 8px", borderTop: i ? "1px solid #f2f2f6" : "none", cursor: "pointer", borderRadius: 8 }}
+              >
+                <span style={{ fontFamily: "'JetBrains Mono'", fontSize: 12, fontWeight: 700, color: i === 0 ? "#5850ec" : "#a3a8b5", width: 26, flexShrink: 0 }}>#{i + 1}</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {j.company} · {j.role}
+                    {i === 0 ? <span style={{ marginLeft: 8, fontSize: 11, fontWeight: 700, color: "#12805c", background: "#e6f5ee", padding: "1px 8px", borderRadius: 99 }}>先准备这个</span> : null}
+                  </div>
+                  <div style={{ fontSize: 11.5, color: m.none.length ? "#c2810c" : "#8a919e", marginTop: 2 }}>{gap}{m.metrics.risk ? " · 风险 " + m.metrics.risk + " 处" : ""}</div>
+                </div>
+                <div style={{ width: 120, flexShrink: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "#8a919e", marginBottom: 3 }}>
+                    <span>覆盖度</span>
+                    <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>{m.metrics.coverage}</span>
+                  </div>
+                  <div style={{ height: 5, background: "#eee", borderRadius: 99, overflow: "hidden" }}>
+                    <div style={{ width: m.metrics.coverage + "%", height: "100%", background: i === 0 ? "#12805c" : "#5850ec" }} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function Jobs() {
   const s = useStore();
   const openPackage = useStore((x) => x.openPackage);
@@ -149,6 +220,7 @@ export default function Jobs() {
       title="岗位列表"
       sub="每个岗位对应一个申请包：JD 分析、专属简历、面试 QA、模拟面试和真实复盘都在包里。新增岗位时直接复用你的证据库，不用重来。"
     >
+      <PriorityPanel />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
         {bossOpen ? <BossImportPanel onClose={() => setBossOpen(false)} /> : null}
         {s.jobs.map((j) => {

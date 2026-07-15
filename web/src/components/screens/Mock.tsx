@@ -10,7 +10,13 @@ import type { InterviewMsg, MockReport, MockSession } from "@/lib/types";
 function Bubble({ m }: { m: InterviewMsg }) {
   const me = m.role === "user";
   return (
-    <div style={{ display: "flex", justifyContent: me ? "flex-end" : "flex-start" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 5, alignItems: me ? "flex-end" : "flex-start" }}>
+      {/* Agent 工具调用透明记录：面试官查了什么，用户全程可见 */}
+      {m.tools?.map((t, i) => (
+        <div key={i} style={{ fontSize: 11, color: "#8a919e", fontFamily: "'JetBrains Mono'", background: "#f7f7fa", border: "1px solid #ececf2", borderRadius: 8, padding: "3px 9px" }}>
+          ⚙ {t}
+        </div>
+      ))}
       <div style={{ maxWidth: "78%", background: me ? "#5850ec" : "#f4f4f8", color: me ? "#fff" : "#16181d", padding: "11px 14px", borderRadius: me ? "14px 14px 4px 14px" : "14px 14px 14px 4px", fontSize: 13.5, lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
         {m.content}
       </div>

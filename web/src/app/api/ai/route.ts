@@ -12,7 +12,8 @@ const UPSTREAM_TIMEOUT = 90_000;
 
 interface Msg {
   role: "user" | "assistant";
-  content: string;
+  /** 文本，或 Agent 工具循环的内容块数组（tool_use / tool_result） */
+  content: string | unknown[];
 }
 
 // 用户可能粘贴裸域名、带 /v1 的基地址或完整端点，统一补全
@@ -94,14 +95,23 @@ export async function POST(req: NextRequest) {
     typeof body.max_tokens === "number" && body.max_tokens > 0 ? Math.min(body.max_tokens, 8192) : 1400;
   const messages: Msg[] = Array.isArray(body.messages)
     ? (body.messages as Msg[])
-        .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+        .filter(
+          (m) =>
+            m &&
+            (m.role === "user" || m.role === "assistant") &&
+            (typeof m.content === "string" || Array.isArray(m.content))
+        )
         .map((m) => ({ role: m.role, content: m.content }))
     : [];
+  const tools = Array.isArray(body.tools) && body.tools.length ? body.tools : null;
 
   if (!/^https?:\/\//.test(url)) return Response.json({ error: "API URL 需以 http(s):// 开头" }, { status: 400 });
   if (!key) return Response.json({ error: "缺少 API Key" }, { status: 400 });
   if (!model) return Response.json({ error: "缺少模型名，请在设置中填写" }, { status: 400 });
   if (!messages.length) return Response.json({ error: "缺少对话内容" }, { status: 400 });
+  if (tools && protocol !== "anthropic") {
+    return Response.json({ error: "Agent 功能目前仅支持 Anthropic 原生协议" }, { status: 400 });
+  }
 
   const endpoint = endpointFor(protocol, url);
   const headers: Record<string, string> =
@@ -110,7 +120,7 @@ export async function POST(req: NextRequest) {
       : { "Content-Type": "application/json", Authorization: "Bearer " + key };
   const payload =
     protocol === "anthropic"
-      ? { model, max_tokens: maxTokens, system: system || undefined, messages }
+      ? { model, max_tokens: maxTokens, system: system || undefined, messages, ...(tools ? { tools } : {}) }
       : {
           model,
           max_tokens: maxTokens,
@@ -132,6 +142,15 @@ export async function POST(req: NextRequest) {
 
   const data: unknown = await res.json().catch(() => null);
   if (!res.ok) return Response.json({ error: upstreamError(data, res.status) }, { status: 502 });
+
+  // Agent 工具循环：原样带回内容块和停止原因，循环在客户端本地执行工具
+  if (tools) {
+    const d = data as { content?: unknown; stop_reason?: unknown };
+    if (!Array.isArray(d?.content)) {
+      return Response.json({ error: "AI 返回格式不识别（Agent 模式需要 Anthropic 原生协议）" }, { status: 502 });
+    }
+    return Response.json({ blocks: d.content, stop: typeof d.stop_reason === "string" ? d.stop_reason : "" });
+  }
 
   const text = extractText(protocol, data);
   if (!text) {

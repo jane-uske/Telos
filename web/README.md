@@ -71,6 +71,30 @@ The Settings page also has a connection test, a "remember key on this device"
 toggle (uncheck = key kept in memory for this session only), and one-click key
 removal. The old `NEXT_PUBLIC_AI_LIVE` flag is retired.
 
+## Agent features (confirmation-gated, Anthropic protocol only)
+
+Three agentic capabilities shipped in v2.4 — none of them acts without the
+user's confirmation, and every tool call is shown in the UI:
+
+- **Batch job analysis** (Jobs page "准备优先级" panel): queue-analyzes all
+  un-analyzed jobs, then ranks them by evidence coverage with per-job gap
+  lists — answers "which job should I prepare first". Analysis only; it never
+  generates content on your behalf. Works in mock and live mode.
+- **Tool-using interviewer / interview coach** (`src/lib/agentTools.ts` +
+  `askAgent()` tool loop in `src/lib/ai.ts`): the mock interviewer calls
+  `search_evidence` to check whether your claims are backed by confirmed
+  evidence before drilling in; the evidence-interview coach additionally
+  drafts an evidence card live (`draft_evidence_card`) — facts from your own
+  words only, shown as a draft in the right rail, written to the evidence
+  store **only after you confirm** at the end. Tool calls appear as small
+  "⚙ …" transparency chips above the chat bubble.
+- **One-click package prep** (Package page): analyze → resume → **pause for
+  you to review AI suggestions** → QA, with a live progress banner.
+
+Tool use requires the Anthropic-native protocol (the pass-through returns 400
+for OpenAI-compatible + tools; chat falls back to plain generation). Tools
+execute locally in your browser against your own data.
+
 ## Voice input (mock interview & AI interview)
 
 Both chat screens have a 🎙 button that transcribes speech into the input box

@@ -72,6 +72,104 @@ export async function ask(
   }
 }
 
+// ---- Agent 工具循环（仅 Anthropic 原生协议；OpenAI 兼容档回落普通生成）----
+
+export interface AgentTool {
+  name: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+  /** 本地执行器：result 回给模型，note 是给用户看的透明记录 */
+  run: (input: Record<string, unknown>) => { result: string; note: string };
+}
+
+interface Block {
+  type: string;
+  id?: string;
+  name?: string;
+  text?: string;
+  input?: Record<string, unknown>;
+  [k: string]: unknown;
+}
+
+const MAX_TOOL_ROUNDS = 4;
+
+/** 真实模式 + Anthropic 原生协议才有 Agent 能力 */
+export function agentAvailable(): boolean {
+  const cfg = useAiConfig.getState();
+  return aiConfigured(cfg) && cfg.protocol === "anthropic";
+}
+
+/**
+ * 带工具的对话：模型可调用本地工具（查证据库/起草证据卡），循环直到给出文字回复。
+ * 返回 null 表示不可用或失败——调用方回落到普通 ask() / 本地兜底。
+ */
+export async function askAgent(
+  prompt: string | InterviewMsg[],
+  opts: AskOpts & { tools: AgentTool[] }
+): Promise<{ text: string; toolNotes: string[] } | null> {
+  if (!agentAvailable()) return null;
+  const cfg = useAiConfig.getState();
+  const toolDefs = opts.tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }));
+  let messages: { role: "user" | "assistant"; content: string | Block[] }[] = (
+    Array.isArray(prompt) ? prompt : [{ role: "user" as const, content: prompt }]
+  ).map((m) => ({ role: m.role, content: m.content }));
+  const notes: string[] = [];
+
+  try {
+    for (let round = 0; round < MAX_TOOL_ROUNDS; round++) {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          protocol: cfg.protocol,
+          url: cfg.url,
+          key: cfg.key,
+          model: opts.model || cfg.model,
+          max_tokens: opts.max_tokens || 600,
+          system: opts.system,
+          messages,
+          tools: toolDefs,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !Array.isArray(data?.blocks)) return fail(data?.error || "HTTP " + res.status);
+      const blocks: Block[] = data.blocks;
+      const toolUses = blocks.filter((b) => b.type === "tool_use");
+      if (data.stop !== "tool_use" || !toolUses.length) {
+        const text = blocks.filter((b) => b.type === "text").map((b) => b.text || "").join("").trim();
+        if (!text) return fail("AI 返回内容为空");
+        useAiConfig.setState({ lastError: null });
+        return { text, toolNotes: notes };
+      }
+      // 执行工具，把结果回给模型继续
+      messages = messages.concat([{ role: "assistant", content: blocks }]);
+      const results: Block[] = toolUses.map((tu) => {
+        const tool = opts.tools.find((t) => t.name === tu.name);
+        let out = { result: "未知工具：" + tu.name, note: "调用了未知工具 " + tu.name };
+        if (tool) {
+          try {
+            out = tool.run(tu.input || {});
+          } catch {
+            out = { result: "工具执行失败", note: tu.name + " 执行失败" };
+          }
+        }
+        notes.push(out.note);
+        return { type: "tool_result", tool_use_id: tu.id, content: out.result };
+      });
+      messages = messages.concat([{ role: "user", content: results }]);
+    }
+    return fail("工具调用超过 " + MAX_TOOL_ROUNDS + " 轮上限");
+  } catch {
+    return fail("无法连接本机服务 /api/ai");
+  }
+
+  function fail(msg: string): null {
+    useAiConfig.setState({ lastError: msg });
+    onAiError?.("AI 调用失败：" + msg + " · 本次结果由本地兜底生成");
+    return null;
+  }
+}
+
 // Lenient JSON extraction (ported from the prototype's parseJSON).
 export function parseJSON<T>(t: string | null, fb: T): T {
   if (!t) return fb;
