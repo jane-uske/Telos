@@ -1,7 +1,9 @@
 "use client";
 
 import { create } from "zustand";
-import { ask, parseJSON } from "./ai";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { ask, parseJSON, setAiErrorHandler } from "./ai";
+import { idbStorage } from "./storage";
 import {
   seedEvidence,
   seedJobs,
@@ -53,6 +55,8 @@ interface State {
   tab: Tab;
   toast: string | null;
   guideDismissed: boolean;
+  /** 本机持久化数据是否已恢复完成 */
+  hydrated: boolean;
 
   // 简历导入（证据流程的入口步骤）
   importText: string;
@@ -117,6 +121,10 @@ interface State {
   setScreen: (screen: Screen) => void;
   activeJob: () => Job;
   openPackage: (jobId: string) => void;
+
+  // 本机数据管理（设置页）
+  resetToSeed: () => void;
+  applyBackup: (data: PersistedState) => void;
 
   // 证据
   confirmEvidence: (id: string) => void;
@@ -208,11 +216,42 @@ const buildFallbackMatch = (job: Job, evidence: Evidence[]): Match => {
   };
 };
 
-export const useStore = create<State>((set, get) => ({
+// ---- 本机持久化（IndexedDB，见 lib/storage.ts）----
+// 只持久化领域数据和轻量导航状态；加载中/弹层/草稿等瞬态不落盘。
+export const PERSIST_KEYS = [
+  "screen",
+  "tab",
+  "guideDismissed",
+  "evidence",
+  "jobs",
+  "activeJobId",
+  "analyses",
+  "matches",
+  "resumes",
+  "resumeVersions",
+  "resumeTpl",
+  "resumeSpec",
+  "qa",
+  "qaStale",
+  "mocks",
+  "mockStale",
+  "records",
+  "recJobId",
+  "activeRecordId",
+] as const;
+
+export type PersistedState = Pick<State, (typeof PERSIST_KEYS)[number]>;
+
+/** 取当前需要持久化的数据切片（persist partialize 与设置页导出共用同一份定义） */
+export const snapshot = (s: State): PersistedState =>
+  Object.fromEntries(PERSIST_KEYS.map((k) => [k, s[k]])) as unknown as PersistedState;
+
+export const useStore = create<State>()(persist((set, get) => ({
   screen: "home",
   tab: "dashboard",
   toast: null,
   guideDismissed: false,
+  hydrated: false,
 
   importText: "",
   importParsed: null,
@@ -279,6 +318,59 @@ export const useStore = create<State>((set, get) => ({
   },
 
   openPackage: (jobId) => set({ activeJobId: jobId, recJobId: jobId, screen: "app", tab: "pkg" }),
+
+  resetToSeed: () => {
+    set({
+      evidence: seedEvidence(),
+      editingEvidenceId: null,
+      evidenceFilter: "all",
+      jobs: seedJobs(),
+      activeJobId: "j1",
+      jobDraft: null,
+      analyses: seedAnalyses(),
+      matches: seedMatches(),
+      resumes: seedResumes(),
+      resumeVersions: seedResumeVersions(),
+      resumeTpl: "classic",
+      resumeSpec: null,
+      qa: seedQa(),
+      qaStale: {},
+      qaFilter: "all",
+      mocks: seedMocks(),
+      mockStale: {},
+      mockActive: false,
+      mockMsgs: [],
+      mockReport: null,
+      records: seedRecords(),
+      recJobId: "j1",
+      recInput: "",
+      recPhase: "idle",
+      activeRecordId: null,
+      importText: "",
+      importParsed: null,
+      importedIdx: [],
+      ivProject: null,
+      ivMsgs: [],
+      ivSummary: null,
+      guideDismissed: false,
+    });
+    get().showToast("已清空本机数据并恢复演示内容");
+  },
+
+  applyBackup: (data) => {
+    const jobs = data.jobs;
+    const active = jobs.some((j) => j.id === data.activeJobId) ? data.activeJobId : jobs[0].id;
+    // 导入后停留在设置页，不跳到备份里记录的页面
+    set({
+      ...data,
+      activeJobId: active,
+      recJobId: jobs.some((j) => j.id === data.recJobId) ? data.recJobId : active,
+      screen: "app",
+      tab: "settings",
+      activeRecordId: null,
+    });
+    get().showToast("备份已导入 · 数据已恢复到导出时的状态");
+  },
 
   confirmEvidence: (id) => {
     set((st) => ({
@@ -860,4 +952,20 @@ export const useStore = create<State>((set, get) => ({
     const parsed = parseJSON<ImportSegment[]>(out, fb);
     set({ importing: false, importParsed: Array.isArray(parsed) ? parsed : fb });
   },
-}));
+}),
+{
+  name: "proofcv-data",
+  version: 1,
+  storage: createJSONStorage(() => idbStorage),
+  partialize: snapshot,
+  // SSR 安全：由页面挂载后手动 rehydrate（见 app/page.tsx），避免和 React 注水竞争
+  skipHydration: true,
+  migrate: (persisted) => persisted as PersistedState,
+  onRehydrateStorage: () => () => {
+    useStore.setState({ hydrated: true });
+  },
+}
+));
+
+// AI 调用失败时的全局提示（结果照常回落到本地兜底，但明确告知用户，不假装成功）
+setAiErrorHandler((msg) => useStore.getState().showToast(msg));

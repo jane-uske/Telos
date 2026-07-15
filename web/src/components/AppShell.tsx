@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useStore } from "@/lib/store";
+import { useAiConfig, aiConfigured } from "@/lib/aiConfig";
 import type { Tab } from "@/lib/types";
 
 import Dashboard from "./screens/Dashboard";
@@ -14,6 +15,7 @@ import Resume from "./screens/Resume";
 import Qa from "./screens/Qa";
 import Mock from "./screens/Mock";
 import Records from "./screens/Records";
+import Settings from "./screens/Settings";
 
 const titles: Record<Tab, string> = {
   dashboard: "工作台",
@@ -26,6 +28,7 @@ const titles: Record<Tab, string> = {
   qa: "面试 QA",
   mock: "模拟面试",
   records: "面试记录与复盘",
+  settings: "设置",
 };
 
 const SCREENS: Record<Tab, React.ComponentType> = {
@@ -39,6 +42,7 @@ const SCREENS: Record<Tab, React.ComponentType> = {
   qa: Qa,
   mock: Mock,
   records: Records,
+  settings: Settings,
 };
 
 function NavItem({ tabKey, label, badge }: { tabKey: Tab; label: string; badge?: string }) {
@@ -93,6 +97,7 @@ export default function AppShell() {
   const setScreen = useStore((s) => s.setScreen);
   const go = useStore((s) => s.go);
   const activeJob = useStore((s) => s.jobs.find((j) => j.id === s.activeJobId) || s.jobs[0]);
+  const aiLive = useAiConfig((s) => aiConfigured(s));
 
   const Screen = SCREENS[tab] || Dashboard;
   const pkgScoped = tab === "pkg" || tab === "resume" || tab === "qa" || tab === "mock" || tab === "records";
@@ -115,6 +120,8 @@ export default function AppShell() {
         <NavItem tabKey="qa" label="面试 QA" />
         <NavItem tabKey="mock" label="模拟面试" />
         <NavItem tabKey="records" label="面试记录与复盘" badge={pendingSugs ? String(pendingSugs) : undefined} />
+        <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>系统</div>
+        <NavItem tabKey="settings" label="设置" badge={aiLive ? "AI 已接入" : "Mock"} />
         <div style={{ marginTop: "auto", paddingTop: 14, borderTop: "1px solid #f0f0f5", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 34, height: 34, borderRadius: 99, background: "#dcd9ff", color: "#5850ec", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700 }}>林</div>
           <div style={{ flex: 1, minWidth: 0 }}>
