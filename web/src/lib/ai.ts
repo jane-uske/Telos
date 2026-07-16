@@ -198,6 +198,36 @@ export async function askAgent(
   }
 }
 
+/**
+ * 输出是否像被 max_tokens 截断的半截 JSON：有起始括号，却没有与之对应的闭合括号。
+ * 托管链路只回传 text，不透传 stop_reason，只能从文本形状反推，用于把
+ * 「AI 返回无法解析」这种误导性提示（用户会一直重试）换成「简历太长被截断」。
+ */
+export function looksTruncated(t: string | null): boolean {
+  if (!t) return false;
+  const m = t.match(/```(?:json)?\s*([\s\S]*?)```/);
+  const s = (m ? m[1] : t).trim();
+  const open = s.search(/[[{]/);
+  if (open < 0) return false;
+  // 括号平衡计数：不能只看「最后一个闭合括号」——截断常发生在 bullets 内层数组里，
+  // 而外层前几项的 ] 早已闭合，只看末尾会把半截 JSON 误判成完整。字符串内的
+  // 括号与转义必须跳过，否则 bullets 正文里的 "]" 会把深度算歪。
+  let depth = 0;
+  let inStr = false;
+  let esc = false;
+  for (let i = open; i < s.length; i++) {
+    const c = s[i];
+    if (esc) esc = false;
+    else if (inStr) {
+      if (c === "\\") esc = true;
+      else if (c === '"') inStr = false;
+    } else if (c === '"') inStr = true;
+    else if (c === "[" || c === "{") depth++;
+    else if (c === "]" || c === "}") depth--;
+  }
+  return depth > 0 || inStr; // 有没闭合的括号，或结尾还停在字符串中间
+}
+
 // Lenient JSON extraction (ported from the prototype's parseJSON).
 export function parseJSON<T>(t: string | null, fb: T): T {
   if (!t) return fb;

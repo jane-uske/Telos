@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { ask, askAgent, agentAvailable, aiMode, parseJSON, setAiErrorHandler } from "./ai";
+import { ask, askAgent, agentAvailable, aiMode, parseJSON, looksTruncated, setAiErrorHandler } from "./ai";
 import { searchEvidenceTool, draftEvidenceTool } from "./agentTools";
 import { idbStorage } from "./storage";
 import { fetchMe, setSessionExpiredHandler, useAuth } from "./apiClient";
@@ -785,7 +785,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         .join("\n");
       const out = await ask(
         "目标岗位 JD：\n" + j.jd + "\n\n候选人的职业经历（含稳定 id）：\n" + evSummary + '\n\n请：1) 拆解 JD；2) 把 JD 要求和候选人经历逐条对照，明确指出：哪些经历应重点写、哪些应弱化、哪些能力缺证据、哪些表述不应夸大。只输出 JSON：{"analysis":{"responsibilities":[],"mustHave":[],"niceToHave":[],"hidden":[],"interviewFocus":[]},"match":{"metrics":{"coverage":0-100,"strength":0-100,"clarity":0-100,"risk":整数},"strong":[{"req":"","evId":"匹配经历的id","ev":"经历标题","note":"为什么重点写"}],"weak":[{"req":"","evId":"","ev":"","note":""}],"none":[{"req":"","evId":null,"ev":null,"note":""}],"downplay":[{"text":"建议弱化的内容","why":"原因"}],"risks":[{"text":"可能夸大或缺依据的表述","fix":"更稳妥的改法"}]}}',
-        { max_tokens: 1800, feature: "job_analysis" }
+        { max_tokens: 4000, feature: "job_analysis" }
       );
       if (out === null) return false; // 失败已提示，不写入任何结果
       const parsed = parseJSON<{ analysis: Analysis; match: Match } | null>(out, null);
@@ -917,7 +917,8 @@ export const useStore = create<State>()(persist((set, get) => ({
         .join("\n");
       const out = await ask(
         "为岗位「" + j.company + " " + j.role + "」定制一份简历。JD：" + j.jd + "\n候选人已确认的经历（含稳定 id）：\n" + ev + matchBrief(get().matches[j.id]) + '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、对应的岗位要求、容易被追问的点；若与原经历表述不同，说明修改原因。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","jdReq":"对应岗位要求","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}',
-        { max_tokens: 2000, feature: "resume_generate" }
+        // 与 import_parse 同一量级：吐一整份简历的 JSON，输出量随证据条数线性涨。
+        { max_tokens: 8000, feature: "resume_generate" }
       );
       if (out === null) {
         set({ resumeLoading: false });
@@ -1064,7 +1065,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         .join("；");
       const out = await ask(
         "岗位：" + j.company + " " + j.role + "\nJD：" + j.jd + "\n\n当前简历内容（含 bullet id）：\n" + bullets + "\n\n经历库：" + evSummary + matchBrief(get().matches[j.id]) + '\n\n为这份简历生成面试 QA：30秒/2分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术/业务/协作/风险/反问类问题。上面「风险表述」中每一条都要生成对应的追问题并标记高风险；证据未确认的内容对应问题标记高风险。答案只能基于经历，缺数据处写明「待补充」，不得编造。只输出 JSON 数组：[{"cat":"intro|project|resume|tech|biz|collab|risk|reverse","q":"","answer":"","fromBullet":"关联的bullet id或省略","jdReq":"对应岗位要求","prep":"todo","highRisk":false,"followUps":["可能的继续深挖"]}]',
-        { max_tokens: 2600, feature: "qa_generate" }
+        { max_tokens: 6000, feature: "qa_generate" }
       );
       if (out === null) {
         set({ qaLoading: false });
@@ -1248,7 +1249,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     const transcript = s.mockMsgs.map((m) => (m.role === "user" ? "候选人：" : "面试官：") + m.content).join("\n");
     const out = await ask(
       '基于以下模拟面试记录生成复盘报告。客观、不吹捧，指出被问穿和不完整的回答。只输出 JSON：{"overall":"整体表现一段话","good":["回答较好的部分"],"exposed":["被问穿的内容"],"incomplete":["回答不完整的问题"],"redo":["建议重新准备的答案"],"resumeSuggestions":["建议修改或删除的简历内容"],"nextFocus":["下一次模拟重点"]}\n\n' + transcript,
-      { max_tokens: 1200, feature: "mock_interview" }
+      { max_tokens: 3000, feature: "mock_interview" }
     );
     if (out === null) {
       set({ mockLoading: false });
@@ -1302,7 +1303,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     const hooks = bullets.filter((b) => b.hook).map((b) => "[" + b.id + "] " + b.text);
     const out = await ask(
       "这是「" + j.company + " " + j.role + "」的真实面试转写。候选人简历要点：\n" + bullets.map((b) => "[" + b.id + "] " + b.text).join("\n") + (hooks.length ? "\n面试钩子：" + hooks.join("；") : "") + '\n\n请：区分说话人、按时间轴整理、抽取问答对与追问链、判断问题是否由简历触发、钩子是否命中、标记含糊/中断/缺证据/矛盾的回答并给出更好的回答、生成结构化笔记，并提出对 QA/简历/经历的修改建议（建议须用户确认，不得直接改写）。只输出 JSON：{"transcript":[{"t":"mm:ss","speaker":"interviewer|me","text":"","flags":["vague|broken|noEvidence|conflict"]}],"qas":[{"q":"","a":"","chain":0,"fromResume":"bullet id或null","hookHit":false,"issue":"","better":""}],"hooks":[{"hook":"","hit":false,"note":""}],"notes":[{"section":"","content":""}],"score":0,"verdict":"","highlights":[],"issues":[],"gaps":[],"nextPrep":[],"suggestions":[{"target":"qa|resume|evidence","title":"","detail":""}]}\n\n转写：\n' + s.recInput,
-      { max_tokens: 3000, feature: "record_review" }
+      { max_tokens: 6000, feature: "record_review" }
     );
     if (out === null) {
       set({ recPhase: "idle" }); // 转写文本保留，稍后可重试
@@ -1479,7 +1480,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     const transcript = s.ivMsgs.map((m) => (m.role === "user" ? "候选人：" : "访谈者：") + m.content).join("\n");
     const out = await ask(
       '基于以下访谈记录，总结候选人在这段经历中真正承担的工作和可证明的能力，并指出还缺少数据/证据的点。只输出 JSON：{"summary":"一段话客观总结真正做的事，不夸大","abilities":["可证明的能力"],"missing":["还缺少数据或证据的点"]}。\n\n' + transcript,
-      { max_tokens: 700, feature: "interview" }
+      { max_tokens: 2500, feature: "interview" }
     );
     if (out === null) {
       set({ ivLoading: false });
@@ -1568,7 +1569,11 @@ export const useStore = create<State>()(persist((set, get) => ({
 
     const out = await ask(
       '把下面这份简历拆解成结构化 JSON。只输出 JSON 数组，每个元素形如 {"title":"项目/岗位一句话","company":"公司或项目","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n' + raw,
-      { max_tokens: 1600, feature: "import_parse" }
+      // 整份简历拆成 JSON 是全场输出最长的任务，且输出量随简历长度线性涨：
+      // Opus 4.8 实测输入 5.1k token 的简历要吐 4442 输出，12 段的长简历要 6742。
+      // 低了会被 max_tokens 截断成半截 JSON，parseJSON 直接失败。须与后端
+      // ROLEREADY_MAX_TOKENS_CAP（8192）配套，改小会重新触发截断。
+      { max_tokens: 8000, feature: "import_parse" }
     );
     if (out === null) {
       set({ importing: false });
@@ -1577,7 +1582,11 @@ export const useStore = create<State>()(persist((set, get) => ({
     const parsed = parseJSON<ImportSegment[] | null>(out, null);
     if (!Array.isArray(parsed) || !parsed.length) {
       set({ importing: false });
-      get().showToast("AI 返回无法解析，本次未拆解，请重试或改用基础模式");
+      get().showToast(
+        looksTruncated(out)
+          ? "简历太长，AI 没输出完就被截断了——请删掉与目标岗位无关的段落后重试，或改用基础模式"
+          : "AI 返回无法解析，本次未拆解，请重试或改用基础模式"
+      );
       return;
     }
     set({ importing: false, importParsed: parsed });
