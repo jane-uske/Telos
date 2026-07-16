@@ -60,7 +60,8 @@ export default function Interview() {
   );
 
   if (!ivProject) {
-    const cands = evidence.filter((e) => e.status !== "confirmed");
+    // 待确认的草稿卡 + 带「建议补充」备注的已确认卡（如刚导入的经历）都值得访谈深挖
+    const cands = evidence.filter((e) => e.status !== "confirmed" || e.note);
     const kinds: { k: NonNullable<import("@/lib/types").EvidenceKind>; label: string }[] = [
       { k: "work", label: "工作经历" },
       { k: "intern", label: "实习" },

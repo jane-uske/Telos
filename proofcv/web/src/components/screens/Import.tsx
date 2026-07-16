@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 import { extractPdfText } from "@/lib/pdfText";
 import { Page, Btn, Spinner } from "../ui";
 
-/** 拆解等待反馈：网关暂不支持流式，只能一次性等完整结果，用计时告诉用户没卡死 */
+/** 拆出首段之前的等待反馈：流式输出下首段通常十几秒内浮现，用计时告诉用户没卡死 */
 function ImportingHint() {
   const [sec, setSec] = useState(0);
   useEffect(() => {
@@ -16,8 +16,8 @@ function ImportingHint() {
     <div>
       <Spinner text={"正在拆解经历、识别技能与可量化成果… 已等待 " + sec + " 秒"} />
       <div style={{ fontSize: 12, color: "#8a919e", textAlign: "center", lineHeight: 1.7, marginTop: 6 }}>
-        AI 需要读完整份简历后一次性输出，通常 30~60 秒，简历越长越慢。
-        {sec >= 90 ? <><br />等得有点久了——超过 2 分钟仍无结果，可刷新页面重试或改用基础模式。</> : null}
+        拆出的经历段会逐段浮现在这里，第一段通常十几秒内出现。
+        {sec >= 60 ? <><br />等得有点久了——超过 2 分钟仍无结果，可刷新页面重试或改用基础模式。</> : null}
       </div>
     </div>
   );
@@ -147,7 +147,7 @@ export default function Import() {
                 </div>
               ) : (
                 <div style={{ fontSize: 12.5, color: "#12805c", background: "#e6f5ee", borderRadius: 10, padding: "10px 12px", marginBottom: 14, lineHeight: 1.6 }}>
-                  ✓ 已识别 {importParsed.length} 段经历。逐段核对内容，点「确认加入我的经历」（状态为待确认），之后可用 AI 访谈继续深挖。
+                  ✓ 已识别 {importParsed.length} 段经历。逐段核对内容，点「确认加入我的经历」，确认后即可生成简历，之后还能用 AI 访谈继续深挖。
                 </div>
               )}
               {importParsed.map((p, i) => {
@@ -182,9 +182,23 @@ export default function Import() {
                 </div>
               ) : null}
               {importedIdx.length ? (
-                <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
-                  <Btn label="下一步：查看我的经历 →" kind="dark" onClick={() => go("evidence")} />
-                  <Btn label="用 AI 访谈补全细节" kind="ghost" onClick={() => go("interview")} />
+                <div style={{ marginTop: 4 }}>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <Btn
+                      label="生成通用简历 →"
+                      kind="dark"
+                      onClick={() => {
+                        useStore.setState({ resumeScope: "base" });
+                        go("resume");
+                        useStore.getState().generateResume(undefined, "base");
+                      }}
+                    />
+                    <Btn label="查看我的经历" kind="ghost" onClick={() => go("evidence")} />
+                    <Btn label="用 AI 访谈补全细节" kind="ghost" onClick={() => go("interview")} />
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 8, lineHeight: 1.6 }}>
+                    已确认的经历马上就能变成一份通用简历——之后再按岗位方向定制、生成面试问题。
+                  </div>
                 </div>
               ) : null}
             </div>

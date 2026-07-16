@@ -4,7 +4,7 @@ import React from "react";
 import { useStore } from "@/lib/store";
 import { Page, Btn, JobChips, Empty, Spinner } from "../ui";
 import { GenBadge } from "../AuthGate";
-import type { InterviewRecord, SegFlag } from "@/lib/types";
+import { jobLabel, type InterviewRecord, type SegFlag } from "@/lib/types";
 
 const flagMeta: Record<SegFlag, { label: string; fg: string; bg: string }> = {
   vague: { label: "含糊", fg: "#c2810c", bg: "#fdf3e0" },
@@ -221,7 +221,7 @@ export default function Records() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 18, alignItems: "start", marginBottom: recs.length ? 20 : 0 }}>
             <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                <div style={{ fontWeight: 700, fontSize: 14 }}>新建一次复盘 · {j.company}</div>
+                <div style={{ fontWeight: 700, fontSize: 14 }}>新建一次复盘 · {jobLabel(j)}</div>
                 <div onClick={() => useStore.setState({ recInput: sample })} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec" }}>填入示例转写</div>
               </div>
               <div style={{ border: "1px solid #eef0f4", borderRadius: 10, padding: "10px 14px", fontSize: 12, color: "#8a919e", background: "#fbfbfd", marginBottom: 10, lineHeight: 1.6 }}>
@@ -269,7 +269,7 @@ export default function Records() {
             </>
           ) : (
             <div style={{ marginTop: 20, background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: "30px 24px", textAlign: "center", fontSize: 12.5, color: "#8a919e", lineHeight: 1.8 }}>
-              「{j.company}」还没有面试记录。真实面试结束后尽快上传录音——细节还热乎的时候复盘效果最好。
+              「{jobLabel(j)}」还没有面试记录。真实面试结束后尽快上传录音——细节还热乎的时候复盘效果最好。
             </div>
           )}
         </>

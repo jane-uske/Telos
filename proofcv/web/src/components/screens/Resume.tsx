@@ -9,7 +9,7 @@ import { Page, Btn, Spinner, Empty } from "../ui";
 import { RenderSheet, TplThumb } from "../SpecRenderer";
 import { GenBadge } from "../AuthGate";
 import { tplPresets, computeSpec } from "@/lib/templates";
-import { BASE_RESUME_ID, type ResumeBullet } from "@/lib/types";
+import { BASE_RESUME_ID, jobLabel, type ResumeBullet } from "@/lib/types";
 
 /** 编辑对象切换：通用简历 ↔ 各岗位的定制版。样式与 JobChips 对齐 */
 function ScopeChips({ activeKey }: { activeKey: string }) {
@@ -142,9 +142,12 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
   const decideBullet = useStore((s) => s.decideBullet);
   const editBulletText = useStore((s) => s.editBulletText);
   const toggleHook = useStore((s) => s.toggleHook);
+  const polishBullet = useStore((s) => s.polishBullet);
+  const removeBullet = useStore((s) => s.removeBullet);
+  const polishing = useStore((s) => s.polishingBulletId === b.id);
   // 经历关联以稳定 ID 为准：改经历标题不断联；ID 找不到时退回标题快照并提示
   const liveTitle = useStore((s) => (b.evId ? s.evidence.find((e) => e.id === b.evId)?.title || null : null));
-  const [editing, setEditing] = useState(false);
+  const [editing, setEditing] = useState(!b.text); // 新增的空条目直接进编辑态
   const [draft, setDraft] = useState(b.text);
   const hasOpenSug = !!b.suggestion && !b.decision;
 
@@ -206,7 +209,17 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
           {b.hook ? "★ 面试钩子" : "☆ 设为钩子"}
         </span>
         {!editing ? (
-          <span onClick={() => { setDraft(b.text); setEditing(true); }} style={{ cursor: "pointer", fontSize: 11, color: "#8a919e", marginLeft: "auto" }}>✎ 编辑</span>
+          <span style={{ display: "flex", gap: 10, marginLeft: "auto", alignItems: "center" }}>
+            <span
+              onClick={() => !polishing && polishBullet(jobId, b.id)}
+              title="AI 改写这一条（只用关联经历里的事实，不编造）"
+              style={{ cursor: polishing ? "wait" : "pointer", fontSize: 11, fontWeight: 700, color: polishing ? "#a3a8b5" : "#5850ec" }}
+            >
+              {polishing ? "✦ 润色中…" : "✦ AI 润色"}
+            </span>
+            <span onClick={() => { setDraft(b.text); setEditing(true); }} style={{ cursor: "pointer", fontSize: 11, color: "#8a919e" }}>✎ 编辑</span>
+            <span onClick={() => removeBullet(jobId, b.id)} title="删除这一条（可从版本恢复）" style={{ cursor: "pointer", fontSize: 11, color: "#c9ccd6" }}>✕</span>
+          </span>
         ) : null}
       </div>
       {b.probe ? (
@@ -221,16 +234,41 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
   );
 }
 
+/** 单行/多行内联编辑：显示态点 ✎ 展开输入，失焦或保存写回 */
+function InlineEdit({ value, multi, placeholder, onSave }: { value: string; multi?: boolean; placeholder: string; onSave: (v: string) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  if (!editing) {
+    return (
+      <span onClick={() => { setDraft(value); setEditing(true); }} style={{ cursor: "pointer" }} title="点击编辑">
+        {value || <span style={{ color: "#a3a8b5" }}>{placeholder}</span>} <span style={{ fontSize: 11, color: "#c9ccd6" }}>✎</span>
+      </span>
+    );
+  }
+  const commit = () => { onSave(draft.trim()); setEditing(false); };
+  return multi ? (
+    <span style={{ display: "block" }}>
+      <textarea autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} rows={3} style={{ width: "100%", border: "1px solid #d8d4ff", borderRadius: 8, padding: 9, fontSize: 12.5, lineHeight: 1.6, outline: "none", resize: "vertical" }} />
+    </span>
+  ) : (
+    <input autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit} onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && commit()} style={{ border: "1px solid #d8d4ff", borderRadius: 7, padding: "4px 8px", fontSize: 12, outline: "none", minWidth: 200 }} />
+  );
+}
+
 function ContentPanel({ jobId }: { jobId: string }) {
   const r = useStore((s) => s.resumes[jobId])!;
   const versions = useStore((s) => s.resumeVersions[jobId]) || [];
   const saveResumeVersion = useStore((s) => s.saveResumeVersion);
   const restoreResumeVersion = useStore((s) => s.restoreResumeVersion);
+  const editSummary = useStore((s) => s.editSummary);
+  const editSkills = useStore((s) => s.editSkills);
+  const editExpHead = useStore((s) => s.editExpHead);
+  const addBullet = useStore((s) => s.addBullet);
 
   return (
     <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 14, padding: 16, maxHeight: "calc(100vh - 320px)", overflow: "auto" }}>
       <div style={{ fontSize: 11.5, color: "#8a919e", marginBottom: 12, lineHeight: 1.6 }}>
-        每条内容都关联你整理好的经历。接受、拒绝或修改 AI 建议；把最想被问到的内容标为 ★ 面试钩子。
+        每条内容都关联你整理好的经历。所有文字都能直接改；单条可让 AI 润色；把最想被问到的内容标为 ★ 面试钩子。
       </div>
       {/* 版本 */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, alignItems: "center", marginBottom: 14 }}>
@@ -243,14 +281,42 @@ function ContentPanel({ jobId }: { jobId: string }) {
           + 存为新版本
         </span>
       </div>
+      {/* 个人简介 */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5060", marginBottom: 6 }}>个人简介</div>
+        <div style={{ fontSize: 12.5, color: "#2f333d", lineHeight: 1.6, border: "1px solid #eef0f4", borderRadius: 11, padding: "10px 12px" }}>
+          <InlineEdit multi value={r.summary} placeholder="一句话概括你是谁、强在哪（点击填写）" onSave={(v) => editSummary(jobId, v)} />
+        </div>
+      </div>
       {r.exp.map((x, i) => (
         <div key={i} style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5060", marginBottom: 8 }}>{x.company} · {x.role} <span style={{ fontWeight: 400, color: "#a3a8b5" }}>{x.period}</span></div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5060", marginBottom: 8, display: "flex", flexWrap: "wrap", gap: 6, alignItems: "baseline" }}>
+            <InlineEdit value={x.company} placeholder="公司" onSave={(v) => editExpHead(jobId, i, { company: v || x.company, role: x.role, period: x.period })} />
+            ·
+            <InlineEdit value={x.role} placeholder="职位" onSave={(v) => editExpHead(jobId, i, { company: x.company, role: v || x.role, period: x.period })} />
+            <span style={{ fontWeight: 400, color: "#a3a8b5" }}>
+              <InlineEdit value={x.period} placeholder="时间段" onSave={(v) => editExpHead(jobId, i, { company: x.company, role: x.role, period: v || x.period })} />
+            </span>
+          </div>
           {x.bullets.map((b) => (
             <BulletCard key={b.id} b={b} jobId={jobId} />
           ))}
+          <div onClick={() => addBullet(jobId, i)} style={{ cursor: "pointer", fontSize: 12, fontWeight: 600, color: "#5850ec", padding: "4px 2px" }}>
+            + 添加一条
+          </div>
         </div>
       ))}
+      {/* 技能 */}
+      <div style={{ marginBottom: 4 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#4b5060", marginBottom: 6 }}>技能</div>
+        <div style={{ fontSize: 12.5, color: "#2f333d", lineHeight: 1.6, border: "1px solid #eef0f4", borderRadius: 11, padding: "10px 12px" }}>
+          <InlineEdit
+            value={r.skills.join("、")}
+            placeholder="用顿号或逗号分隔（点击填写）"
+            onSave={(v) => editSkills(jobId, v.split(/[、,，/]+/).map((t) => t.trim()).filter(Boolean))}
+          />
+        </div>
+      </div>
     </div>
   );
 }
@@ -277,12 +343,12 @@ export default function Resume() {
 
   const sub = base
     ? "一份不绑定岗位的通用简历，只基于你已确认的经历。添加目标岗位后，可以再为具体岗位派生定制版。"
-    : "这份简历绑定「" + j!.company + "」——同一段经历在不同岗位可以有不同叙事重点。";
+    : "这份简历绑定「" + jobLabel(j!) + "」——同一段经历在不同岗位可以有不同叙事重点。";
 
   // 用通用简历打底。覆盖已有内容前先问一句——原内容会被 store 自动存成一个版本
   const hasBase = !!s.resumes[BASE_RESUME_ID];
   const importBase = () => {
-    if (r && !window.confirm("用通用简历覆盖当前「" + j!.company + "」的这份简历？\n\n当前内容会先存为一个版本，之后可以在「内容」面板里恢复。")) return;
+    if (r && !window.confirm("用通用简历覆盖当前「" + jobLabel(j!) + "」的这份简历？\n\n当前内容会先存为一个版本，之后可以在「内容」面板里恢复。")) return;
     importBaseToJob();
   };
 
@@ -296,7 +362,7 @@ export default function Resume() {
 
   const exportPdf = async () => {
     if (exporting || !sheetRef.current) return;
-    const fileName = base ? (s.profile.name.trim() || "我") + "-通用简历.pdf" : j!.company + "-" + j!.role + "-简历.pdf";
+    const fileName = base ? (s.profile.name.trim() || "我") + "-通用简历.pdf" : (j!.kind === "track" ? j!.role : j!.company + "-" + j!.role) + "-简历.pdf";
     setExporting(true);
     try {
       const res = await fetch("/api/export/pdf", {
@@ -388,7 +454,7 @@ export default function Resume() {
         <div style={{ background: "#eef0f4", border: "1px solid #e3e5ec", borderRadius: 16, overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280", display: "flex", alignItems: "center", gap: 8 }}>
-              <span>{base ? "通用 · 不绑定岗位" : j!.company + " 专属"} · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4</span>
+              <span>{base ? "通用 · 不绑定岗位" : jobLabel(j!) + " 专属"} · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4</span>
               <GenBadge source={genSrc} />
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>

@@ -60,7 +60,16 @@ export interface Job {
   updated: string;
   logo: string;
   jd: string;
+  /** 岗位类型：track=方向（如「AI Agent 工程师」，无公司、不走投递漏斗，
+   *  用 2~3 段代表性 JD 定义准备目标）；application/缺省=具体投递（旧数据无此字段）。
+   *  分析/简历/QA/模拟对两者完全一致——它们只吃 JD 文本。 */
+  kind?: "track" | "application";
 }
+
+/** 单独展示岗位归属时用的名称：track 岗位的 company 是字面量「方向」，
+ *  孤零零显示读不通，改用「角色（方向）」；company+role 连拼的位置不需要它。 */
+export const jobLabel = (j: Pick<Job, "company" | "role" | "kind">): string =>
+  j.kind === "track" ? j.role + "（方向）" : j.company;
 
 export interface Analysis {
   responsibilities: string[];

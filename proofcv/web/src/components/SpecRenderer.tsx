@@ -68,7 +68,8 @@ function SheetExp({ spec, r, dc, onColor, internal }: { spec: TemplateSpec; r: R
             <div style={{ fontSize: dc.body - 1.5, color: onColor ? "rgba(255,255,255,.7)" : "#9098a6", fontFamily: "'JetBrains Mono'", whiteSpace: "nowrap" }}>{x.period}</div>
           </div>
           <div style={{ marginTop: 5, display: "flex", flexDirection: "column", gap: 5 }}>
-            {x.bullets.map((b, k) => (
+            {/* 编辑器里「+ 添加一条」产生的空条目不上纸——否则打印/导出会出现只有圆点的空行 */}
+            {x.bullets.filter((b) => b.text.trim()).map((b, k) => (
               <div key={k} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
                 <span style={{ color: ac, marginTop: 6, fontSize: 7, flexShrink: 0 }}>●</span>
                 <div style={{ flex: 1 }}>

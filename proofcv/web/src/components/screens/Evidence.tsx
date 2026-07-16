@@ -133,11 +133,10 @@ function EvidenceCard({ e }: { e: Ev }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #f2f2f6", paddingTop: 11 }}>
             <div style={{ fontSize: 11.5, color: "#a3a8b5" }}>来源：{e.source}</div>
             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+              {/* 访谈补全对所有卡开放——已确认的卡（如导入的经历）也常需要补细节 */}
+              <div onClick={() => startInterview(e)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#e8896b" }}>访谈补全 →</div>
               {e.status !== "confirmed" ? (
-                <>
-                  <div onClick={() => startInterview(e)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 600, color: "#e8896b" }}>访谈补全 →</div>
-                  <div onClick={() => confirmEvidence(e.id)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#5850ec" }}>标记为已确认 ✓</div>
-                </>
+                <div onClick={() => confirmEvidence(e.id)} style={{ cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#5850ec" }}>标记为已确认 ✓</div>
               ) : (
                 <div style={{ fontSize: 12, color: "#12805c", fontWeight: 600 }}>适用：{e.roles.join(" / ") || "通用"}</div>
               )}

@@ -26,19 +26,49 @@ function AddJobCard() {
         style={{ cursor: "pointer", background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#5850ec", minHeight: 170 }}
       >
         <div style={{ fontSize: 26, fontWeight: 300, marginBottom: 6 }}>+</div>
-        <div style={{ fontWeight: 700, fontSize: 14 }}>导入新岗位</div>
-        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4 }}>粘贴 JD，创建岗位申请包</div>
+        <div style={{ fontWeight: 700, fontSize: 14 }}>添加目标</div>
+        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 4 }}>还没开始投？先按方向准备；有具体坑位就贴 JD</div>
       </div>
     );
   }
+  const isTrack = draft.kind === "track";
+  const typeBtn = (kind: "application" | "track", label: string, desc: string) => {
+    const on = (draft.kind === "track") === (kind === "track");
+    return (
+      <div
+        onClick={() => useStore.setState({ jobDraft: { ...draft, kind } })}
+        style={{ cursor: "pointer", flex: 1, border: "1.5px solid " + (on ? "#5850ec" : "#e6e8ee"), background: on ? "#faf9ff" : "#fff", borderRadius: 10, padding: "8px 11px" }}
+      >
+        <div style={{ fontSize: 12.5, fontWeight: 700, color: on ? "#5850ec" : "#4b5060" }}>{label}</div>
+        <div style={{ fontSize: 11, color: "#8a919e", marginTop: 2, lineHeight: 1.5 }}>{desc}</div>
+      </div>
+    );
+  };
   return (
     <div style={{ background: "#fff", border: "1.5px solid #5850ec", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
-      <div style={{ fontWeight: 700, fontSize: 14 }}>导入新岗位</div>
-      <input placeholder="公司名称 *" value={draft.company} onChange={(e) => useStore.setState({ jobDraft: { ...draft, company: e.target.value } })} style={inputStyle} />
-      <input placeholder="岗位名称（如：高级前端工程师）" value={draft.role} onChange={(e) => useStore.setState({ jobDraft: { ...draft, role: e.target.value } })} style={inputStyle} />
-      <textarea placeholder="粘贴完整 JD *" rows={4} value={draft.jd} onChange={(e) => useStore.setState({ jobDraft: { ...draft, jd: e.target.value } })} style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }} />
+      <div style={{ fontWeight: 700, fontSize: 14 }}>添加目标</div>
       <div style={{ display: "flex", gap: 8 }}>
-        <Btn label="创建申请包 →" onClick={() => createJob()} />
+        {typeBtn("application", "具体投递", "有明确的公司和 JD")}
+        {typeBtn("track", "岗位方向", "还没投，先按方向准备（如 AI Agent / 前端）")}
+      </div>
+      {isTrack ? null : (
+        <input placeholder="公司名称 *" value={draft.company} onChange={(e) => useStore.setState({ jobDraft: { ...draft, company: e.target.value } })} style={inputStyle} />
+      )}
+      <input
+        placeholder={isTrack ? "方向名称（如：AI Agent 工程师）*" : "岗位名称（如：高级前端工程师）"}
+        value={draft.role}
+        onChange={(e) => useStore.setState({ jobDraft: { ...draft, role: e.target.value } })}
+        style={inputStyle}
+      />
+      <textarea
+        placeholder={isTrack ? "粘贴 2~3 段该方向有代表性的 JD（可多段拼在一起）*" : "粘贴完整 JD *"}
+        rows={4}
+        value={draft.jd}
+        onChange={(e) => useStore.setState({ jobDraft: { ...draft, jd: e.target.value } })}
+        style={{ ...inputStyle, resize: "vertical", lineHeight: 1.6 }}
+      />
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn label={isTrack ? "创建方向 →" : "创建申请包 →"} onClick={() => createJob()} />
         <Btn label="取消" kind="ghost" onClick={() => useStore.setState({ jobDraft: null })} />
       </div>
     </div>
@@ -235,19 +265,25 @@ function JobCard({ j }: { j: Job }) {
   return (
     <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, display: "flex", flexDirection: "column", gap: 10 }}>
       <div onClick={() => openPackage(j.id)} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 42, height: 42, borderRadius: 11, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
+        <div style={{ width: 42, height: 42, borderRadius: 11, background: j.kind === "track" ? "#5850ec" : "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.company}</div>
-          <div style={{ fontSize: 12, color: "#8a919e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{j.role}</div>
+          <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.kind === "track" ? j.role : j.company}</div>
+          <div style={{ fontSize: 12, color: "#8a919e", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {j.kind === "track" ? "岗位方向 · 按代表性 JD 准备" : j.role}
+          </div>
         </div>
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-          <span style={{ fontSize: 10.5, color: "#a3a8b5" }}>投递进度</span>
-          <div onClick={() => moveJobStatus(j.id, -1)} title="上一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>‹</div>
-          <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#f1f0fb", color: "#5850ec" }}>{j.statusLabel}</span>
-          <div onClick={() => moveJobStatus(j.id, 1)} title="下一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>›</div>
-        </div>
+        {j.kind === "track" ? (
+          <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#f1f0fb", color: "#5850ec" }}>方向 · 不走投递流程</span>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontSize: 10.5, color: "#a3a8b5" }}>投递进度</span>
+            <div onClick={() => moveJobStatus(j.id, -1)} title="上一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>‹</div>
+            <span style={{ fontSize: 11.5, fontWeight: 700, padding: "3px 10px", borderRadius: 99, background: "#f1f0fb", color: "#5850ec" }}>{j.statusLabel}</span>
+            <div onClick={() => moveJobStatus(j.id, 1)} title="下一状态" style={{ cursor: "pointer", fontSize: 14, color: "#c9ccd6", lineHeight: 1, padding: "0 2px" }}>›</div>
+          </div>
+        )}
         <span style={{ fontSize: 11.5, color: "#a3a8b5" }}>更新 {j.updated}</span>
       </div>
       <PrepBar done={done} />
@@ -274,11 +310,14 @@ function TrackView() {
   const s = useStore();
   const openPackage = useStore((x) => x.openPackage);
   const moveJobStatus = useStore((x) => x.moveJobStatus);
-  const groups = STATUS_ORDER.map((st) => ({ st, jobs: s.jobs.filter((j) => j.status === st) })).filter((g) => g.jobs.length);
+  // 方向（track）不投递，不进投递漏斗视图
+  const groups = STATUS_ORDER.map((st) => ({ st, jobs: s.jobs.filter((j) => j.status === st && j.kind !== "track") })).filter((g) => g.jobs.length);
   if (!groups.length) {
     return (
       <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: "40px 24px", textAlign: "center", color: "#6b7280", fontSize: 13, lineHeight: 1.8 }}>
-        还没有任何岗位。切到「找目标岗位」新增一个，或导入 Boss 直聘数据。
+        {s.jobs.length
+          ? "你现在的目标都是「岗位方向」，不走投递流程；添加具体投递后会出现在这里。"
+          : "还没有任何岗位。切到「找目标岗位」新增一个，或导入 Boss 直聘数据。"}
       </div>
     );
   }

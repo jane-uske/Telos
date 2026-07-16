@@ -155,8 +155,8 @@ export default function AppShell() {
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 6px 10px" }}>
               <div style={{ width: 26, height: 26, borderRadius: 8, background: "#16181d", color: "#fff", fontSize: 11.5, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, flexShrink: 0 }}>{activeJob.logo}</div>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.company}</div>
-                <div style={{ fontSize: 10.5, color: "#8a919e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.role}</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.kind === "track" ? activeJob.role : activeJob.company}</div>
+                <div style={{ fontSize: 10.5, color: "#8a919e", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activeJob.kind === "track" ? "岗位方向" : activeJob.role}</div>
               </div>
             </div>
           ) : (

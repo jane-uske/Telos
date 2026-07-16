@@ -64,6 +64,8 @@ interface JobDraft {
   company: string;
   role: string;
   jd: string;
+  /** track=岗位方向（不绑定公司，用代表性 JD 准备）；缺省=具体投递 */
+  kind?: "track" | "application";
 }
 
 /** AI 动作的执行方式：在线 AI or 基础模式（本地规则，不调用在线 AI） */
@@ -133,6 +135,8 @@ interface State {
   resumes: Record<string, Resume>;
   resumeVersions: Record<string, ResumeVersion[]>;
   resumeLoading: boolean;
+  /** 正在 AI 润色的 bullet id（UI 瞬态，不持久化） */
+  polishingBulletId: string | null;
   resumeTpl: string;
   resumeSpec: TemplateSpec | null;
   resumeRail: "content" | "template" | "custom" | "profile";
@@ -211,6 +215,13 @@ interface State {
   decideBullet: (jobId: string, bulletId: string, d: "accepted" | "rejected") => void;
   editBulletText: (jobId: string, bulletId: string, text: string) => void;
   toggleHook: (jobId: string, bulletId: string) => void;
+  /** 单条 AI 润色：生成 suggestion/reason 走既有的 接受/拒绝/修改 决策流 */
+  polishBullet: (jobId: string, bulletId: string) => Promise<void>;
+  editSummary: (jobId: string, text: string) => void;
+  editSkills: (jobId: string, skills: string[]) => void;
+  addBullet: (jobId: string, expIdx: number) => void;
+  removeBullet: (jobId: string, bulletId: string) => void;
+  editExpHead: (jobId: string, expIdx: number, head: { company: string; role: string; period: string }) => void;
   saveResumeVersion: (jobId: string) => void;
   restoreResumeVersion: (jobId: string, versionId: string) => void;
   pickTpl: (p: TplPreset) => void;
@@ -483,6 +494,7 @@ export const useStore = create<State>()(persist((set, get) => ({
   ivLoading: false,
   jdLoading: false,
   resumeLoading: false,
+  polishingBulletId: null,
   resumeRail: "content",
   resumeScope: "job",
   qaLoading: false,
@@ -704,35 +716,41 @@ export const useStore = create<State>()(persist((set, get) => ({
       skills: [],
       roles: [],
       source: "旧简历导入",
-      status: "pending",
-      note: "从旧简历导入，待访谈补充：背景、个人职责边界、难点与可量化结果",
+      // 内容来自用户自己的简历且用户刚点了确认——直接算已确认，导入完就能生成简历。
+      // pending 留给 AI 访谈起草的卡（AI 转述需要用户核对后才算数）。
+      status: "confirmed",
+      note: "从旧简历导入。建议访谈补充：背景、个人职责边界、难点与可量化结果",
     };
     set((st) => ({ evidence: st.evidence.concat([ev]), importedIdx: st.importedIdx.concat([idx]) }));
-    get().showToast("已加入我的经历 · 建议用 AI 访谈补全细节");
+    get().showToast("已加入我的经历 · 可直接生成简历，访谈补全细节会更硬");
   },
 
   // ---- 岗位 ----
 
   createJob: () => {
     const d = get().jobDraft;
-    if (!d || !d.company.trim() || !d.jd.trim()) {
-      get().showToast("请填写公司名称并粘贴 JD");
+    const isTrack = d?.kind === "track";
+    if (!d || (isTrack ? !d.role.trim() : !d.company.trim()) || !d.jd.trim()) {
+      get().showToast(isTrack ? "请填写方向名称并粘贴代表性 JD" : "请填写公司名称并粘贴 JD");
       return;
     }
+    const role = d.role.trim() || "目标岗位";
     const job: Job = {
       id: uid("j"),
-      company: d.company.trim(),
-      role: d.role.trim() || "目标岗位",
+      kind: isTrack ? "track" : "application",
+      // track 没有公司——company 固定存「方向」，各处 company+role 拼接自然读作「方向 xx工程师」
+      company: isTrack ? "方向" : d.company.trim(),
+      role,
       status: "preparing",
-      statusLabel: "准备投递",
+      statusLabel: isTrack ? "准备中" : "准备投递",
       match: 0,
       updated: "刚刚",
-      logo: d.company.trim().slice(0, 1),
+      logo: (isTrack ? role : d.company.trim()).slice(0, 1),
       jd: d.jd.trim(),
     };
     set((st) => ({ jobs: st.jobs.concat([job]), activeJobId: job.id, recJobId: job.id, jobDraft: null }));
     get().go("pkg");
-    get().showToast("岗位已创建 · 下一步：分析岗位");
+    get().showToast(isTrack ? "方向已创建 · 下一步：分析该方向的要求" : "岗位已创建 · 下一步：分析岗位");
   },
 
   createJobsFromImport: (list) => {
@@ -1030,6 +1048,86 @@ export const useStore = create<State>()(persist((set, get) => ({
     get().updateBullet(jobId, bulletId, (b) => ({ ...b, text, decision: b.suggestion ? "edited" : b.decision }));
   },
 
+  polishBullet: async (jobId, bulletId) => {
+    if (aiMode() === "none") {
+      get().showToast("AI 润色需要登录，或在设置里自带 API Key");
+      return;
+    }
+    const r = get().resumes[jobId];
+    const b = r?.exp.flatMap((x) => x.bullets).find((x) => x.id === bulletId);
+    if (!b || !b.text.trim()) {
+      get().showToast("先写点内容再润色");
+      return;
+    }
+    const ev = b.evId ? get().evidence.find((e) => e.id === b.evId) : null;
+    const j = jobId !== BASE_RESUME_ID ? get().jobs.find((x) => x.id === jobId) : null;
+    set({ polishingBulletId: bulletId });
+    const out = await ask(
+      "改写这条简历内容，让它更具体、更有说服力。绝不编造原文和经历里没有的事实或数字。\n原文：" +
+        b.text +
+        (ev
+          ? "\n这条内容来源的经历（改写只能用这里面的事实）：" +
+            [ev.background, ...ev.responsibilities, ...ev.actions, ...ev.results].filter(Boolean).join("；")
+          : "\n没有关联经历——只做措辞与结构优化，不得新增任何事实或数字。") +
+        (j ? "\n目标岗位要求（尽量贴合）：" + (b.jdReq || j.role + "。JD 摘要：" + j.jd.slice(0, 400)) : "") +
+        '\n只输出 JSON：{"suggestion":"改写后的一句话","reason":"为什么这样改（一句话）"}',
+      { max_tokens: 400, feature: "resume_generate" }
+    );
+    set({ polishingBulletId: null });
+    if (out === null) return;
+    const p = parseJSON<{ suggestion?: string; reason?: string } | null>(out, null);
+    if (!p?.suggestion) {
+      get().showToast("AI 返回无法解析，请重试");
+      return;
+    }
+    get().updateBullet(jobId, bulletId, (bb) => ({
+      ...bb,
+      original: bb.text,
+      suggestion: p.suggestion,
+      reason: p.reason || "",
+      decision: undefined,
+      risk: false,
+    }));
+    get().showToast("润色建议已生成——接受、拒绝或修改");
+  },
+
+  editSummary: (jobId, text) => {
+    set((st) => (st.resumes[jobId] ? { resumes: { ...st.resumes, [jobId]: { ...st.resumes[jobId], summary: text } } } : {}));
+  },
+
+  editSkills: (jobId, skills) => {
+    set((st) => (st.resumes[jobId] ? { resumes: { ...st.resumes, [jobId]: { ...st.resumes[jobId], skills } } } : {}));
+  },
+
+  addBullet: (jobId, expIdx) => {
+    set((st) => {
+      const r = st.resumes[jobId];
+      if (!r || !r.exp[expIdx]) return {};
+      const nb: ResumeBullet = { id: uid("b"), text: "", ev: null, evId: null, evStatus: "none", hook: false };
+      const exp = r.exp.map((x, i) => (i === expIdx ? { ...x, bullets: x.bullets.concat([nb]) } : x));
+      return { resumes: { ...st.resumes, [jobId]: { ...r, exp } } };
+    });
+  },
+
+  removeBullet: (jobId, bulletId) => {
+    set((st) => {
+      const r = st.resumes[jobId];
+      if (!r) return {};
+      const exp = r.exp.map((x) => ({ ...x, bullets: x.bullets.filter((b) => b.id !== bulletId) }));
+      return { resumes: { ...st.resumes, [jobId]: { ...r, exp } } };
+    });
+    get().showToast("已删除。需要找回时可从版本恢复");
+  },
+
+  editExpHead: (jobId, expIdx, head) => {
+    set((st) => {
+      const r = st.resumes[jobId];
+      if (!r || !r.exp[expIdx]) return {};
+      const exp = r.exp.map((x, i) => (i === expIdx ? { ...x, ...head } : x));
+      return { resumes: { ...st.resumes, [jobId]: { ...r, exp } } };
+    });
+  },
+
   toggleHook: (jobId, bulletId) => {
     let on = false;
     get().updateBullet(jobId, bulletId, (b) => {
@@ -1108,6 +1206,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     if (mode === "ai") {
       const bullets = r.exp
         .flatMap((x) => x.bullets)
+        .filter((b) => b.text.trim()) // 手动新增未填写的空条目不进 prompt
         .map((b) => "[" + b.id + (b.hook ? "·钩子" : "") + "] " + b.text + (b.probe ? "（易被追问：" + b.probe + "）" : ""))
         .join("\n");
       const evSummary = get()
@@ -1166,7 +1265,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     const s = get();
     const j = s.jobs.find((x) => x.id === jobId)!;
     const r = s.resumes[jobId];
-    const bullets = r ? r.exp.flatMap((x) => x.bullets) : [];
+    const bullets = r ? r.exp.flatMap((x) => x.bullets).filter((b) => b.text.trim()) : [];
     const hooks = bullets.filter((b) => b.hook).map((b) => b.text);
     const weak = (s.qa[jobId] || []).filter((q) => q.highRisk || q.prep === "risk").map((q) => q.q);
     const lastMock = (s.mocks[jobId] || []).slice(-1)[0];
@@ -1349,7 +1448,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       return;
     }
 
-    const bullets = (s.resumes[j.id]?.exp || []).flatMap((x) => x.bullets);
+    const bullets = (s.resumes[j.id]?.exp || []).flatMap((x) => x.bullets).filter((b) => b.text.trim());
     const hooks = bullets.filter((b) => b.hook).map((b) => "[" + b.id + "] " + b.text);
     const out = await ask(
       "这是「" + j.company + " " + j.role + "」的真实面试转写。候选人简历要点：\n" + bullets.map((b) => "[" + b.id + "] " + b.text).join("\n") + (hooks.length ? "\n面试钩子：" + hooks.join("；") : "") + '\n\n请：区分说话人、按时间轴整理、抽取问答对与追问链、判断问题是否由简历触发、钩子是否命中、标记含糊/中断/缺依据/矛盾的回答并给出更好的回答、生成结构化笔记，并提出对 QA/简历/经历的修改建议（建议须用户确认，不得直接改写）。只输出 JSON：{"transcript":[{"t":"mm:ss","speaker":"interviewer|me","text":"","flags":["vague|broken|noEvidence|conflict"]}],"qas":[{"q":"","a":"","chain":0,"fromResume":"bullet id或null","hookHit":false,"issue":"","better":""}],"hooks":[{"hook":"","hit":false,"note":""}],"notes":[{"section":"","content":""}],"score":0,"verdict":"","highlights":[],"issues":[],"gaps":[],"nextPrep":[],"suggestions":[{"target":"qa|resume|evidence","title":"","detail":""}]}\n\n转写：\n' + s.recInput,

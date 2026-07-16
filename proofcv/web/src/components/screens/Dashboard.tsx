@@ -3,7 +3,7 @@
 import React from "react";
 import { useStore, prepDone } from "@/lib/store";
 import { Btn, PrepPill } from "../ui";
-import type { Tab } from "@/lib/types";
+import { jobLabel, type Tab } from "@/lib/types";
 
 // 下一步行动引擎：按闭环顺序找出用户现在最该做的一件事
 function useNextAction() {
@@ -27,9 +27,9 @@ function useNextAction() {
   if (pendingSugs.length)
     return { tab: "records" as Tab, title: "处理 " + pendingSugs.length + " 条复盘建议", desc: "最近一次真实面试的复盘产出了针对面试问题 / 简历 / 经历的修改建议，确认后它们会进入你的下一版准备。", label: "去确认建议 →" };
   if (!j.jd.trim() || !s.analyses[j.id])
-    return { tab: "pkg" as Tab, title: "下一步：分析「" + j.company + "」这个岗位", desc: "先拆解岗位要求，对照你整理好的经历，明确哪些重点写、哪些要弱化、哪些不能夸大。", label: "去分析岗位 →" };
+    return { tab: "pkg" as Tab, title: "下一步：分析「" + jobLabel(j) + "」这个岗位", desc: "先拆解岗位要求，对照你整理好的经历，明确哪些重点写、哪些要弱化、哪些不能夸大。", label: "去分析岗位 →" };
   if (!s.resumes[j.id])
-    return { tab: "resume" as Tab, title: "下一步：生成岗位专属简历", desc: "基于已确认的经历为「" + j.company + "」定制简历，每一句都可追溯，不会编造数据。", label: "去定制简历 →" };
+    return { tab: "resume" as Tab, title: "下一步：生成岗位专属简历", desc: "基于已确认的经历为「" + jobLabel(j) + "」定制简历，每一句都可追溯，不会编造数据。", label: "去定制简历 →" };
   if (openSuggestions.length)
     return { tab: "resume" as Tab, title: "处理简历中 " + openSuggestions.length + " 条修改建议", desc: "有改写建议等你决策：逐条接受、拒绝或修改，其中包含去夸大的风险修正。", label: "去处理建议 →" };
   if (!qa.length)
@@ -162,8 +162,8 @@ export default function Dashboard() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{ width: 42, height: 42, borderRadius: 11, background: "#16181d", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 16 }}>{j.logo}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.company} <span style={{ fontWeight: 400, color: "#8a919e", fontSize: 12.5 }}>{j.role}</span></div>
-                    <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 2 }}>投递进度：<b style={{ color: "#5850ec" }}>{j.statusLabel}</b></div>
+                    <div style={{ fontWeight: 700, fontSize: 14.5 }}>{j.kind === "track" ? j.role : j.company} <span style={{ fontWeight: 400, color: "#8a919e", fontSize: 12.5 }}>{j.kind === "track" ? "岗位方向" : j.role}</span></div>
+                    <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 2 }}>{j.kind === "track" ? <>持续准备，<b style={{ color: "#5850ec" }}>不走投递流程</b></> : <>投递进度：<b style={{ color: "#5850ec" }}>{j.statusLabel}</b></>}</div>
                   </div>
                   <span style={{ color: "#c9ccd6" }}>→</span>
                 </div>
@@ -194,7 +194,7 @@ export default function Dashboard() {
             </div>
             {lastRec ? (
               <div onClick={() => { useStore.setState({ activeRecordId: lastRec.id, recJobId: lastRec.jobId }); go("records"); }} className="pcv-row" style={{ padding: "8px 10px", margin: "0 -10px", cursor: "pointer" }}>
-                <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 6 }}>真实面试复盘 · {recJob ? recJob.company : ""} · {lastRec.date}</div>
+                <div style={{ fontSize: 12, color: "#8a919e", marginBottom: 6 }}>真实面试复盘 · {recJob ? jobLabel(recJob) : ""} · {lastRec.date}</div>
                 <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.6, color: "#2f333d", marginBottom: 8 }}>{lastRec.verdict}</div>
                 {lastRec.suggestions.filter((x) => x.state === "pending").length ? (
                   <div style={{ fontSize: 12, color: "#c2810c", background: "#fdf7ec", borderRadius: 9, padding: "7px 11px" }}>
