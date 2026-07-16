@@ -4,6 +4,11 @@
 
 技术栈：Next.js 16（App Router）· React 19 · Tailwind v4 · Zustand · Zod · Vercel AI SDK（Anthropic）。
 
+## 仓库布局
+
+- 仓库根目录：**Telos**（AI 简历生成器，本文档所述应用）。
+- [`proofcv/`](./proofcv/)：**ProofCV / RoleReady**（求职准备工具，应用在 `proofcv/web`，线上 roleready.remi.run），由原 [jane-uske/ProofCV](https://github.com/jane-uske/ProofCV) 整仓合并而来，完整历史已保留。两个应用互不依赖，各自独立安装与部署。
+
 ## 本地启动
 
 Telos 是 **Next.js 全栈应用**，前端和所有接口（AI、导出、PDF 抽取）都在同一个进程里——**不用单独起后端**，一条命令即可。
