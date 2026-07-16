@@ -9,6 +9,8 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // monorepo 里固定 Turbopack 编译根为本应用目录，防止把仓库根（Telos 简历生成器本体）卷进编译
+  turbopack: { root: import.meta.dirname },
   async headers() {
     return [
       { source: "/(.*)", headers: securityHeaders },
