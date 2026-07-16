@@ -139,17 +139,17 @@ function MatchView({ m }: { m: Match }) {
   );
   return (
     <div>
-      <SectionHead no="02" title="证据匹配" desc="不止一个分数——明确告诉你：哪些重点写、哪些要弱化、哪些缺证据、哪些不能夸大。" />
+      <SectionHead no="02" title="经历匹配" desc="不止一个分数——明确告诉你：哪些重点写、哪些要弱化、哪些缺依据、哪些不能夸大。" />
       <div style={{ display: "flex", gap: 20, background: "#16181d", borderRadius: 14, padding: "16px 20px", marginBottom: 14 }}>
         {met("要求覆盖度", m.metrics.coverage, "/100", "#ffffff")}
-        {met("证据强度", m.metrics.strength, "/100", "#a5f3d0")}
+        {met("经历强度", m.metrics.strength, "/100", "#a5f3d0")}
         {met("表达清晰度", m.metrics.clarity, "/100", "#c9c4f5")}
         {met("风险项", m.metrics.risk, "处", "#f0a0a0")}
       </div>
       <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
         {col("✓ 重点写", m.strong, "#12805c")}
         {col("△ 弱匹配 · 先澄清", m.weak, "#c2810c")}
-        {col("○ 缺少证据", m.none, "#8a919e")}
+        {col("○ 缺少经历支撑", m.none, "#8a919e")}
       </div>
       {m.downplay?.length ? (
         <div style={{ background: "#fff", border: "1px solid #eceae4", borderRadius: 12, padding: "12px 14px", marginBottom: 12 }}>
@@ -190,8 +190,8 @@ function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
   if (!prep || prep.jobId !== jobId) return null;
   const running = prep.stage === "analyzing" || prep.stage === "resume" || prep.stage === "qa";
   const stageText =
-    prep.stage === "analyzing" ? "① 正在分析 JD 并对照证据库…" :
-    prep.stage === "resume" ? "② 正在基于已确认证据定制简历…" :
+    prep.stage === "analyzing" ? "① 正在分析 JD 并对照经历库…" :
+    prep.stage === "resume" ? "② 正在基于已确认经历定制简历…" :
     prep.stage === "qa" ? "③ 正在生成面试问题…" : "";
   if (running) {
     return (
@@ -279,7 +279,7 @@ export default function Package() {
     {
       n: "02", title: "定制简历",
       state: r ? (openSugs.length ? "warn" : "done") : "todo",
-      line: r ? bullets.length + " 条内容 · " + hooks.length + " 个面试钩子" : "基于已确认证据生成，句句可溯源",
+      line: r ? bullets.length + " 条内容 · " + hooks.length + " 个面试钩子" : "基于已确认经历生成，句句可溯源",
       warn: openSugs.length ? openSugs.length + " 条 AI 建议待决策" : null,
       open: () => openResume("job"),
     },
@@ -410,7 +410,7 @@ export default function Package() {
             style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#fff", border: "1px solid #eceae4", borderRadius: 14, padding: "13px 18px", marginBottom: detailOpen ? 18 : 0 }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontWeight: 800, fontSize: 14 }}>岗位拆解 · 证据匹配 · 风险项</span>
+              <span style={{ fontWeight: 800, fontSize: 14 }}>岗位拆解 · 经历匹配 · 风险项</span>
               <GenBadge source={genSrc} />
               {m ? (
                 <span style={{ fontSize: 12, color: "#8a919e" }}>

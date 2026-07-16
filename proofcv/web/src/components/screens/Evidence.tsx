@@ -100,7 +100,7 @@ function EvidenceCard({ e }: { e: Ev }) {
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
           <Pill status={e.status} />
           {!editing ? (
-            <div onClick={() => useStore.setState({ editingEvidenceId: e.id })} style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }} title="编辑证据卡">✎</div>
+            <div onClick={() => useStore.setState({ editingEvidenceId: e.id })} style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }} title="编辑经历卡">✎</div>
           ) : null}
         </div>
       </div>
@@ -196,7 +196,7 @@ export default function Evidence() {
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 22 }}>
             <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 6 }}>我没有简历</div>
             <div style={{ fontSize: 12.5, color: "#6b7280", lineHeight: 1.7, marginBottom: 14 }}>
-              用 AI 访谈从零整理：工作、实习、项目、个人项目、开源经历都行。像面试官一样连续追问背景、职责、行动、难点、结果和证据，确认后才保存。
+              用 AI 访谈从零整理：工作、实习、项目、个人项目、开源经历都行。像面试官一样连续追问背景、职责、行动、难点、结果和可验证的细节，确认后才保存。
             </div>
             <Btn label="开始 AI 访谈 →" kind="dark" onClick={() => go("interview")} />
           </div>
@@ -213,7 +213,7 @@ export default function Evidence() {
             {fbtn("all", "全部")}
             {fbtn("confirmed", "已确认")}
             {fbtn("pending", "待确认")}
-            {fbtn("insufficient", "证据不足")}
+            {fbtn("insufficient", "细节不足")}
           </div>
           {list.length ? (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>

@@ -59,7 +59,7 @@ function BlankStart() {
     <div style={{ maxWidth: 660, margin: "40px auto 0", textAlign: "center" }}>
       <div style={{ fontFamily: "'Noto Serif SC'", fontWeight: 900, fontSize: 28, marginBottom: 10 }}>从整理你的经历开始</div>
       <div style={{ color: "#6b7280", fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
-        Telos 帮你把做过的事整理成站得住脚的证据，再针对每个岗位生成简历和面试准备。
+        Telos 帮你把做过的事整理成站得住脚的经历，再针对每个岗位生成简历和面试准备。
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10, textAlign: "left", marginBottom: 28 }}>
         {steps.map((st, i) => (

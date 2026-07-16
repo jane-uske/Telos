@@ -175,7 +175,7 @@ export default function Mock() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 16 }}>
             <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>面试官会重点检查</div>
-            {["回答是否具体（要数字和细节）", "是否有证据支撑", "是否自相矛盾", "钩子内容能不能接住追问"].map((x, i) => (
+            {["回答是否具体（要数字和细节）", "是否有经历支撑", "是否自相矛盾", "钩子内容能不能接住追问"].map((x, i) => (
               <div key={i} style={{ fontSize: 12.5, color: "#4b5060", padding: "5px 0", lineHeight: 1.5, display: "flex", gap: 8 }}>
                 <span style={{ color: "#c9c4f5" }}>◆</span>{x}
               </div>
@@ -221,8 +221,8 @@ export default function Mock() {
             {[
               "基于你简历的 " + (r.exp.flatMap((x) => x.bullets).length) + " 条内容提问，顺着回答连续追问",
               hooks.length ? "优先追问你标记的 " + hooks.length + " 个面试钩子" : "（你还没标记面试钩子——去简历编辑器标 ★，主动设计面试）",
-              weakQa.length ? "重点检验 " + weakQa.length + " 道历史薄弱 / 高风险题是否已补齐" : "检查回答是否具体、有证据、是否自相矛盾",
-              lastRec ? "追问真实面试暴露的缺口：" + lastRec.gaps[0] : "检查回答是否具体、有证据、是否自相矛盾",
+              weakQa.length ? "重点检验 " + weakQa.length + " 道历史薄弱 / 高风险题是否已补齐" : "检查回答是否具体、有依据、是否自相矛盾",
+              lastRec ? "追问真实面试暴露的缺口：" + lastRec.gaps[0] : "检查回答是否具体、有依据、是否自相矛盾",
             ]
               .filter((v, i, arr) => arr.indexOf(v) === i)
               .map((x, i) => (

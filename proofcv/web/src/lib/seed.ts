@@ -148,10 +148,10 @@ export const seedMatches = (): Record<string, Match> => ({
       { req: "工程化与监控", evId: "e6", ev: "CI/CD 与前端工程化", note: "GitHub Actions + monorepo，作为支撑项写" },
     ],
     weak: [{ req: "大型协同/中台经验", evId: "e5", ev: "跨端埋点 SDK", note: "相关但主导/参与边界待在访谈中确认，确认前不要写「主导」" }],
-    none: [{ req: "数据驱动的体验优化", ev: null, note: "暂无以业务指标衡量体验改动的证据，建议访谈补充，简历先不写" }],
+    none: [{ req: "数据驱动的体验优化", ev: null, note: "暂无以业务指标衡量体验改动的经历佐证，建议访谈补充，简历先不写" }],
     downplay: [
       { text: "微服务 API 网关（Go）", why: "与前端岗位相关度低，且贡献边界未澄清——一句话带过即可，不要展开" },
-      { text: "开源组件库 480 star", why: "star 数容易被追问贡献深度，证据不足前建议弱化或不写" },
+      { text: "开源组件库 480 star", why: "star 数容易被追问贡献深度，细节不足前建议弱化或不写" },
     ],
     risks: [
       { text: "原简历「支撑日活 3 万」缺少数据来源", fix: "改为「支撑团队高并发协同场景」或补充监控截图" },
@@ -162,16 +162,16 @@ export const seedMatches = (): Record<string, Match> => ({
     metrics: { coverage: 74, strength: 62, clarity: 80, risk: 1 },
     strong: [
       { req: "Node/Go 服务端能力", evId: "e3", ev: "微服务 API 网关", note: "Go 网关直接命中，但先在访谈中澄清个人边界再重点写" },
-      { req: "独立模块设计", evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", note: "独立负责协同层，可作为独立设计能力的主证据" },
+      { req: "独立模块设计", evId: "e1", ev: "实时协作编辑器 · 协同冲突算法重构", note: "独立负责协同层，可作为独立设计能力的主要支撑" },
     ],
     weak: [{ req: "微服务与网关理解", evId: "e3", ev: "微服务 API 网关", note: "「20+ 服务」无来源，写之前先确认数字" }],
-    none: [{ req: "云产品/ToB 经验", ev: null, note: "暂无云产品经验证据，面试中如实说明并用中台经验类比" }],
+    none: [{ req: "云产品/ToB 经验", ev: null, note: "暂无云产品相关经历，面试中如实说明并用中台经验类比" }],
     downplay: [{ text: "开源组件库", why: "与云产品全栈岗位关联弱，简历上一句话即可" }],
     risks: [{ text: "「统一接入 20+ 服务」缺少来源", fix: "确认数字或改为「统一接入多个内部服务」" }],
   },
 });
 
-// —— j1 简历：新内容模型（每条 bullet 关联证据 / 建议 / 钩子 / 追问提示） ——
+// —— j1 简历：新内容模型（每条 bullet 关联经历 / 建议 / 钩子 / 追问提示） ——
 
 const j1Bullets = {
   b1: {
@@ -250,15 +250,15 @@ export const seedQa = (): Record<string, QaItem[]> => ({
   j1: [
     { id: "q1", cat: "intro", q: "30 秒自我介绍", prep: "done", highRisk: false, origin: "generated", jdReq: "整体匹配", answer: "我是林深，5 年前端/全栈。最擅长两件事：大型协同系统的一致性与性能，以及从监控出发的前端性能治理。做过同编延迟 800ms→120ms 的算法重构，也把电商中台首屏从 5 秒压到 1.6 秒。我习惯对核心链路的稳定性负责。" },
     { id: "q2", cat: "intro", q: "2 分钟自我介绍", prep: "doing", highRisk: false, origin: "generated", jdReq: "整体匹配", answer: "我是林深，5 年经验，主要做前端/全栈。\n\n最能代表我的是两个项目：一是实时协作编辑器，我主导把冲突合并从 OT 换成 CRDT，配合 WebSocket 增量同步，把多人同编延迟从 800ms 降到 120ms，同时解决了高并发下的丢字问题；二是电商商家中台的性能治理，我从建监控看板入手，用路由级分包和虚拟滚动把首屏从 5.1 秒压到 1.6 秒，LCP 达标率从 62% 提到 94%。\n\n我比较看重「对核心链路和稳定性负责」，也习惯用数据说话——这也是我对抖音电商这个岗位比较有信心的原因。" },
-    { id: "q3", cat: "project", q: "项目讲述：实时协作编辑器（STAR）", fromBullet: "b1", jdReq: "React 深度经验", prep: "done", highRisk: false, origin: "generated", answer: "背景：我们的在线文档在日活增长后，多人同编经常冲突丢字，投诉很多。\n我的职责：我独立负责协同层重构。\n关键决策：评估后我放弃在旧 OT 上打补丁，改用 CRDT——因为它在弱网和高并发下收敛性更好，代价是内存占用上升，我用增量 GC 做了折中。\n难点：断线重连后的状态补偿，我设计了基于版本向量的补偿协议。\n结果：同编延迟 800ms→120ms（本地 500 并发压测），丢字类投诉大幅下降（按工单估算约 90%）。\n证据：有对应的 PR 和监控看板截图可以展示。", followUps: ["CRDT 内存膨胀的具体数字？", "为什么不继续优化 OT？", "双写灰度怎么保证数据一致？"] },
+    { id: "q3", cat: "project", q: "项目讲述：实时协作编辑器（STAR）", fromBullet: "b1", jdReq: "React 深度经验", prep: "done", highRisk: false, origin: "generated", answer: "背景：我们的在线文档在日活增长后，多人同编经常冲突丢字，投诉很多。\n我的职责：我独立负责协同层重构。\n关键决策：评估后我放弃在旧 OT 上打补丁，改用 CRDT——因为它在弱网和高并发下收敛性更好，代价是内存占用上升，我用增量 GC 做了折中。\n难点：断线重连后的状态补偿，我设计了基于版本向量的补偿协议。\n结果：同编延迟 800ms→120ms（本地 500 并发压测），丢字类投诉大幅下降（按工单估算约 90%）。\n佐证：有对应的 PR 和监控看板截图可以展示。", followUps: ["CRDT 内存膨胀的具体数字？", "为什么不继续优化 OT？", "双写灰度怎么保证数据一致？"] },
     { id: "q4", cat: "resume", q: "CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？", fromBullet: "b1", jdReq: "React 深度经验", prep: "risk", highRisk: true, origin: "generated", answer: "（待补强：一面已被问穿）OT 需要中心化转换、扩展性差；CRDT 无中心、收敛性好，代价是元数据内存膨胀。我们用增量 GC + 墓碑压缩控制内存——具体数字需要我回去整理后补上。", followUps: ["内存最终控制在多少？", "墓碑压缩的触发时机？", "如果内存继续涨怎么办？"] },
     { id: "q5", cat: "resume", q: "120ms 这个数字是怎么测出来的？", fromBullet: "b1", jdReq: "前端性能优化", prep: "risk", highRisk: true, origin: "generated", answer: "（待补强）本地 500 并发压测得到 120ms；真实环境会更高，需主动说明数据口径：线上灰度的 P95 数字要回去核实后补充。诚实说明「压测环境 vs 真实环境」的差异，反而展示严谨。", followUps: ["线上真实 P95 是多少？", "压测脚本怎么模拟真实编辑行为？"] },
     { id: "q6", cat: "resume", q: "断线补偿协议在极端弱网下会不会丢数据？", fromBullet: "b2", jdReq: "高并发稳定性", prep: "doing", highRisk: false, origin: "generated", answer: "基于版本向量做补偿：客户端重连时带上本地版本向量，服务端 diff 后下发缺失操作。极端情况下（本地缓存被清）会退化为全量拉取，不丢数据但体验降级。可以补充：这个退化路径有单独的监控埋点。", followUps: ["版本向量冲突怎么解？", "全量拉取的频率有多高？"] },
     { id: "q7", cat: "tech", q: "首屏 5.1s→1.6s，每项手段的收益怎么归因？", fromBullet: "b4", jdReq: "前端性能优化", prep: "done", highRisk: false, origin: "generated", answer: "先建监控看板定口径（LCP/FCP 分位数），再分批灰度：路由级分包 -1.8s、虚拟滚动 -1.1s、资源预取 -0.6s，每批改动独立灰度对照。归因靠灰度组 vs 对照组的分位数差，不是拍脑袋。", followUps: ["为什么用 P75 不用平均值？", "灰度样本量怎么保证置信？"] },
     { id: "q8", cat: "tech", q: "如果把协同编辑放到抖音电商这种亿级流量，你会怎么设计？", jdReq: "高并发稳定性", prep: "risk", highRisk: true, origin: "real", answer: "（一面已暴露：只答了方向没有落地）结构化提纲：读写分离 → 按文档/房间分片 → 热点房间二次拆分 → 边缘就近接入 → 广播扇出是瓶颈，需要合并推送 + 分级降级（只读模式）。准备一页纸架构草图。", followUps: ["分片键怎么选？", "热点房间的判定标准？", "降级时用户感知怎么处理？"] },
-    { id: "q9", cat: "biz", q: "性能优化给业务指标（转化/留存）带来了什么变化？", fromBullet: "b4", jdReq: "数据驱动的体验优化", prep: "todo", highRisk: true, origin: "generated", answer: "（证据缺口：暂无业务指标数据）可准备定性推理：首屏 3.5s 的改善减少了商家操作流失，大促期间卡顿投诉下降。如实说明当时未追踪转化指标，但说清「如果重来会怎么设指标」。", followUps: ["为什么当时不设业务指标？", "你觉得性能和转化的关系怎么量化？"] },
+    { id: "q9", cat: "biz", q: "性能优化给业务指标（转化/留存）带来了什么变化？", fromBullet: "b4", jdReq: "数据驱动的体验优化", prep: "todo", highRisk: true, origin: "generated", answer: "（依据缺口：暂无业务指标数据）可准备定性推理：首屏 3.5s 的改善减少了商家操作流失，大促期间卡顿投诉下降。如实说明当时未追踪转化指标，但说清「如果重来会怎么设指标」。", followUps: ["为什么当时不设业务指标？", "你觉得性能和转化的关系怎么量化？"] },
     { id: "q10", cat: "collab", q: "举一个你跨团队推动事情的例子", fromBullet: "b1", jdReq: "协作与推动", prep: "doing", highRisk: false, origin: "generated", answer: "协同层重构需要后端改同步协议：我先写了协议对比文档（改动成本 vs 收益），拉后端 2 人过方案，用双写灰度降低他们的风险顾虑，最终按我的方案落地。要点：用文档和灰度方案降低协作方的决策成本。", followUps: ["后端不同意时怎么办？", "灰度期间出过问题吗？"] },
-    { id: "q11", cat: "collab", q: "埋点 SDK 这段，哪些是你个人做的，哪些是团队做的？", fromBullet: "b5", jdReq: "大型协同/中台经验", prep: "todo", highRisk: true, origin: "generated", answer: "（风险：个人边界尚未确认——先去证据库确认这段经历，再写答案。确认前不要在面试中说「主导」。）", followUps: ["接口设计是谁定的？", "8 条业务线是你推的还是团队推的？"] },
+    { id: "q11", cat: "collab", q: "埋点 SDK 这段，哪些是你个人做的，哪些是团队做的？", fromBullet: "b5", jdReq: "大型协同/中台经验", prep: "todo", highRisk: true, origin: "generated", answer: "（风险：个人边界尚未确认——先去经历库确认这段经历，再写答案。确认前不要在面试中说「主导」。）", followUps: ["接口设计是谁定的？", "8 条业务线是你推的还是团队推的？"] },
     { id: "q12", cat: "risk", q: "简历里「日活 3 万」这个数字是怎么来的？", fromBullet: "b3", jdReq: "可信度", prep: "risk", highRisk: true, origin: "generated", answer: "（高风险：该数字缺少来源，简历编辑器中已有去夸大建议待处理）如果保留数字，必须能答出来源；否则接受 AI 建议改为稳妥表述。", followUps: ["3 万是注册还是活跃？", "数据从哪个系统看到的？"] },
     { id: "q13", cat: "reverse", q: "反问：团队目前协同/性能链路上最大的技术挑战是什么？", prep: "done", highRisk: false, origin: "generated", answer: "用于判断岗位真实工作内容与我的匹配度，也展示对技术本身的兴趣。追问方向：这个挑战目前卡在哪，团队期望新人多久能接手。" },
     { id: "q14", cat: "reverse", q: "反问：这个岗位未来半年最重要的目标是什么？", prep: "todo", highRisk: false, origin: "generated", answer: "了解考核预期与团队优先级，判断和自己的成长方向是否一致。" },
@@ -312,7 +312,7 @@ const j1Transcript: TranscriptSeg[] = [
 ];
 
 const j1RecordQas: RecordQa[] = [
-  { q: "CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？", a: "呃…主要是 CRDT 收敛性更好，内存我们做了增量 GC，不过具体数字我记不太清了。", chain: 1, fromResume: "b1", hookHit: true, issue: "钩子成功引来追问，但关键数字答不上——含糊且缺证据", better: "OT 需要中心化转换服务、横向扩展差；CRDT 无中心、最终收敛，代价是元数据内存膨胀。我们用增量 GC + 墓碑压缩，把单文档内存控制在可接受范围（具体数字需你核实后填入）。" },
+  { q: "CRDT 相比 OT 你具体怎么权衡的？内存问题怎么控制？", a: "呃…主要是 CRDT 收敛性更好，内存我们做了增量 GC，不过具体数字我记不太清了。", chain: 1, fromResume: "b1", hookHit: true, issue: "钩子成功引来追问，但关键数字答不上——含糊且缺依据", better: "OT 需要中心化转换服务、横向扩展差；CRDT 无中心、最终收敛，代价是元数据内存膨胀。我们用增量 GC + 墓碑压缩，把单文档内存控制在可接受范围（具体数字需你核实后填入）。" },
   { q: "120ms 是在什么环境测的？", a: "本地压测环境，真实环境可能会高一些，这块我没细看。", chain: 1, fromResume: "b1", hookHit: true, issue: "「没细看」损害严谨形象——数据口径必须主动交代", better: "120ms 是本地 500 并发压测数字；上线后灰度阶段我们持续看监控，线上 P95 的具体数字我需要核实后补充。压测和线上口径分开说，反而加分。" },
   { q: "如果放到抖音电商这种亿级流量，你会怎么设计？", a: "我需要再想想，可能要加分片和边缘节点……", chain: 0, fromResume: null, hookHit: false, issue: "回答中断、只有方向没有结构", better: "结构化：读写分离 → 按房间分片 → 热点房间二次拆分 → 边缘就近接入；瓶颈在广播扇出，用合并推送 + 分级降级（只读模式）兜底。" },
   { q: "你在团队里的角色？", a: "我主要负责协同层，渲染层是另一位同事负责的。我还带过两个新人。", chain: 0, fromResume: "b1", hookHit: false, better: "" },
@@ -343,20 +343,20 @@ export const seedRecords = (): InterviewRecord[] => [
       { id: "s0", target: "qa", state: "accepted", title: "「亿级流量协同架构」加入高风险题", detail: "一面已考、回答中断——已加入 QA 并标记高风险（q8）。" },
       { id: "s1", target: "qa", state: "pending", title: "新问题：编辑器灰度发布与回滚", detail: "面试官问了简历之外的工程实践问题，你答得不错——建议沉淀为正式准备答案，二面可能深挖。", qa: { cat: "tech", q: "编辑器发布怎么做灰度？出问题怎么回滚？", answer: "双写灰度：新旧协同引擎并行跑，实时对比一致性指标，按 1%→10%→50% 放量；异常时流量一键切回旧引擎。可补充：一致性对比的具体指标是什么。", jdReq: "工程化与监控", prep: "doing", highRisk: false, followUps: ["一致性对比看哪些指标？", "灰度期间发现过什么问题？"] } },
       { id: "s2", target: "resume", state: "pending", title: "b1 建议补充数据口径", detail: "「120ms」两次被追问测量环境。建议在简历中主动标注口径，化被动为主动。数字需你核实后确认。", bulletId: "b1", suggestion: "主导实时协作编辑器冲突算法重构，用 CRDT 替换原 OT 实现，本地 500 并发压测下多人同编延迟从 800ms 降至 120ms", reason: "真实面试中「120ms」两次被追问测量环境——主动写明口径" },
-      { id: "s3", target: "evidence", state: "pending", title: "证据卡待补：CRDT 内存与 GC 的具体数字", detail: "「实时协作编辑器」证据卡的难点部分缺少内存峰值/GC 策略/压缩比数字，一面被问穿。建议回查监控或 PR 记录补齐。", evidenceId: "e1", note: "一面复盘：CRDT 内存开销与 GC 策略的具体数字待整理（内存峰值 / GC 触发策略 / 墓碑压缩比）" },
+      { id: "s3", target: "evidence", state: "pending", title: "经历卡待补：CRDT 内存与 GC 的具体数字", detail: "「实时协作编辑器」经历卡的难点部分缺少内存峰值/GC 策略/压缩比数字，一面被问穿。建议回查监控或 PR 记录补齐。", evidenceId: "e1", note: "一面复盘：CRDT 内存开销与 GC 策略的具体数字待整理（内存峰值 / GC 触发策略 / 墓碑压缩比）" },
     ],
   },
 ];
 
 /* ================= AI mock 模式的兜底生成器 =================
-   原则：不编造事实。兜底内容要么来自用户已确认的证据（确定性拼装），
+   原则：不编造事实。兜底内容要么来自用户已确认的经历（确定性拼装），
    要么是明确标注「待补充/待确认」的准备框架。 */
 
 const BASE_SUMMARY_PREFIX = "通用简历，不绑定具体岗位。";
 
 /** 基础模式简历的个人简介模板。job 为 null 时是通用简历的说法 */
 export function resumeSummary(job: Job | null, evCount: number): string {
-  const from = "以下内容全部来自你的职业证据库（" + evCount + " 张证据卡），无编造成分——请补充时间段";
+  const from = "以下内容全部来自你的职业经历库（" + evCount + " 张经历卡），无编造成分——请补充时间段";
   return job
     ? "面向「" + job.company + " · " + job.role + "」定制。" + from + "并按岗位调整叙事重点。"
     : BASE_SUMMARY_PREFIX + from + "。之后添加目标岗位时，可以基于这份简历派生岗位定制版。";
@@ -368,7 +368,7 @@ export function isBaseTemplateSummary(summary: string): boolean {
   return summary.startsWith(BASE_SUMMARY_PREFIX);
 }
 
-// 证据 → 简历的确定性编译（fallback：AI 不可用时也能生成可追溯的简历）
+// 经历 → 简历的确定性编译（fallback：AI 不可用时也能生成可追溯的简历）
 // job 为 null 时编译的是不绑定岗位的通用简历
 export function fallbackResume(job: Job | null, evidence: Evidence[]): Resume {
   const usable = evidence.filter((e) => e.status !== "insufficient");
@@ -391,7 +391,7 @@ export function fallbackResume(job: Job | null, evidence: Evidence[]): Resume {
         ev: e.title,
         evStatus: e.status === "confirmed" ? "confirmed" : "pending",
         hook: false,
-        probe: e.status !== "confirmed" ? "该证据尚未确认，追问个人边界时有风险" : e.challenges[0] ? "难点细节：" + e.challenges[0] : undefined,
+        probe: e.status !== "confirmed" ? "该段经历尚未确认，追问个人边界时有风险" : e.challenges[0] ? "难点细节：" + e.challenges[0] : undefined,
       };
     }),
   }));
@@ -412,17 +412,17 @@ export function fallbackQa(job: Job, resume: Resume): QaItem[] {
   const hookB = resume.exp.flatMap((x) => x.bullets).find((b) => b.hook);
   const firstB = hookB || resume.exp[0]?.bullets[0];
   if (firstB) {
-    push({ cat: "project", q: "项目讲述：" + (firstB.ev || "核心项目") + "（STAR）", fromBullet: firstB.id, jdReq: "核心能力验证", answer: "按 背景→职责→关键决策→难点→结果→证据 组织。注意：只讲证据卡里已确认的内容。", prep: "todo", highRisk: false, followUps: ["个人 vs 团队边界？", "量化数字的来源？"] });
+    push({ cat: "project", q: "项目讲述：" + (firstB.ev || "核心项目") + "（STAR）", fromBullet: firstB.id, jdReq: "核心能力验证", answer: "按 背景→职责→关键决策→难点→结果→佐证 组织。注意：只讲经历卡里已确认的内容。", prep: "todo", highRisk: false, followUps: ["个人 vs 团队边界？", "量化数字的来源？"] });
   }
   resume.exp.flatMap((x) => x.bullets).forEach((b) => {
     if (b.probe) {
-      push({ cat: "resume", q: "针对「" + b.text.slice(0, 24) + "…」的追问：" + b.probe, fromBullet: b.id, jdReq: b.ev || "简历内容", answer: b.evStatus !== "confirmed" ? "（该条证据未确认，先去证据库确认，再写答案）" : "（待准备：围绕这个追问点写出可验证的细节）", prep: b.evStatus !== "confirmed" ? "risk" : "todo", highRisk: b.evStatus !== "confirmed", followUps: undefined });
+      push({ cat: "resume", q: "针对「" + b.text.slice(0, 24) + "…」的追问：" + b.probe, fromBullet: b.id, jdReq: b.ev || "简历内容", answer: b.evStatus !== "confirmed" ? "（该条经历未确认，先去经历库确认，再写答案）" : "（待准备：围绕这个追问点写出可验证的细节）", prep: b.evStatus !== "confirmed" ? "risk" : "todo", highRisk: b.evStatus !== "confirmed", followUps: undefined });
     }
   });
   push({ cat: "tech", q: "岗位相关的技术深挖（按 JD：" + (job.jd.slice(0, 30) || "核心技术要求") + "…）", jdReq: "必要能力", answer: "从 JD 必要能力中挑你最强的一项，准备一个完整技术决策故事。", prep: "todo", highRisk: false });
-  push({ cat: "biz", q: "你的工作对业务指标产生过什么影响？", jdReq: "业务理解", answer: "如果证据库中没有业务指标数据，如实说明，并准备「如果重来怎么设指标」的思考。不要编造数字。", prep: "todo", highRisk: true });
-  push({ cat: "collab", q: "举一个跨团队协作/推动的例子", jdReq: "协作能力", answer: "从证据卡的「协作过程」字段中选素材，讲清楚：分歧是什么、你怎么降低对方的决策成本。", prep: "todo", highRisk: false });
-  push({ cat: "risk", q: "简历中所有量化数字的来源，你都能答上来吗？", jdReq: "可信度", answer: "逐条核对简历 bullet 的数字来源。答不上来源的数字，要么补证据，要么接受去夸大建议。", prep: "todo", highRisk: true });
+  push({ cat: "biz", q: "你的工作对业务指标产生过什么影响？", jdReq: "业务理解", answer: "如果经历库中没有业务指标数据，如实说明，并准备「如果重来怎么设指标」的思考。不要编造数字。", prep: "todo", highRisk: true });
+  push({ cat: "collab", q: "举一个跨团队协作/推动的例子", jdReq: "协作能力", answer: "从经历卡的「协作过程」字段中选素材，讲清楚：分歧是什么、你怎么降低对方的决策成本。", prep: "todo", highRisk: false });
+  push({ cat: "risk", q: "简历中所有量化数字的来源，你都能答上来吗？", jdReq: "可信度", answer: "逐条核对简历 bullet 的数字来源。答不上来源的数字，要么补上依据，要么接受去夸大建议。", prep: "todo", highRisk: true });
   push({ cat: "reverse", q: "反问：这个岗位未来半年最重要的目标是什么？", answer: "了解考核预期与优先级。", prep: "todo", highRisk: false });
   push({ cat: "reverse", q: "反问：团队目前最大的技术挑战是什么？", answer: "判断岗位真实工作内容，展示技术兴趣。", prep: "todo", highRisk: false });
   return items;
@@ -502,7 +502,7 @@ export function fallbackRecord(job: Job, source: string, text: string, recId: st
     hooks: [],
     notes: [
       { section: "解析说明", content: "本记录由转写文本确定性解析生成：识别说话人、抽取问答对、标记含糊表述。接入真实 AI 后将补充追问链路与钩子命中分析。" },
-      { section: "问答统计", content: "共识别 " + qas.length + " 个问答对，其中 " + qas.filter((q) => q.issue).length + " 个回答存在含糊/缺证据表述。" },
+      { section: "问答统计", content: "共识别 " + qas.length + " 个问答对，其中 " + qas.filter((q) => q.issue).length + " 个回答存在含糊/缺依据表述。" },
     ],
     score: 0,
     verdict: qas.length ? "共 " + qas.length + " 问，" + vagueCount + " 处含糊表述——先把标记的回答补成可验证的版本。" : "未能从文本中识别出问答对——请确认转写包含「面试官：/我：」说话人前缀。",

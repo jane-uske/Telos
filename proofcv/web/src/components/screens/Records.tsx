@@ -9,7 +9,7 @@ import type { InterviewRecord, SegFlag } from "@/lib/types";
 const flagMeta: Record<SegFlag, { label: string; fg: string; bg: string }> = {
   vague: { label: "含糊", fg: "#c2810c", bg: "#fdf3e0" },
   broken: { label: "中断", fg: "#8a919e", bg: "#f2f3f5" },
-  noEvidence: { label: "缺证据", fg: "#d64545", bg: "#fff0f0" },
+  noEvidence: { label: "缺依据", fg: "#d64545", bg: "#fff0f0" },
   conflict: { label: "矛盾", fg: "#b03a8c", bg: "#fbeef7" },
 };
 
@@ -213,7 +213,7 @@ export default function Records() {
 
       {s.recPhase !== "idle" ? (
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18 }}>
-          <Spinner text="正在提取问答与追问链、标记含糊与缺证据的回答、生成修改建议…" />
+          <Spinner text="正在提取问答与追问链、标记含糊与缺依据的回答、生成修改建议…" />
         </div>
       ) : (
         <>
@@ -241,7 +241,7 @@ export default function Records() {
             <div style={{ background: "#faf9ff", border: "1px dashed #d8d4ff", borderRadius: 16, padding: 18, fontSize: 12.5, color: "#6b7280", lineHeight: 1.8 }}>
               <div style={{ fontWeight: 700, color: "#16181d", marginBottom: 8 }}>复盘会给你什么</div>
               <div style={{ whiteSpace: "pre-line" }}>
-                · 按时间轴的对话记录（区分说话人）{"\n"}· 提取的问题与连续追问链{"\n"}· 哪些问题由简历触发、钩子是否命中{"\n"}· 含糊 / 中断 / 缺证据 / 矛盾的标记{"\n"}· 每个弱回答的更好版本{"\n"}· 结构化面试笔记{"\n"}· 对面试问题 / 简历 / 经历的修改建议{"\n\n"}
+                · 按时间轴的对话记录（区分说话人）{"\n"}· 提取的问题与连续追问链{"\n"}· 哪些问题由简历触发、钩子是否命中{"\n"}· 含糊 / 中断 / 缺依据 / 矛盾的标记{"\n"}· 每个弱回答的更好版本{"\n"}· 结构化面试笔记{"\n"}· 对面试问题 / 简历 / 经历的修改建议{"\n\n"}
                 <span style={{ color: "#c2810c" }}>所有修改都需要你确认，不会自动覆盖。</span>
               </div>
             </div>

@@ -14,7 +14,7 @@ const checklist = [
   "最难的技术难点",
   "协作与推动方式",
   "可量化的结果",
-  "可验证的证据",
+  "可验证的成果",
 ];
 
 function Bubble({ m }: { m: InterviewMsg }) {
@@ -71,7 +71,7 @@ export default function Interview() {
     return (
       <Page
         title="AI 访谈整理经历"
-        sub="没有简历也能从零开始。AI 会像资深面试官一样连续追问：背景、你的职责边界、关键行动、难点、可量化结果与可验证证据——只记录你说过的事实，确认后才保存。"
+        sub="没有简历也能从零开始。AI 会像资深面试官一样连续追问：背景、你的职责边界、关键行动、难点、可量化结果与可验证的成果——只记录你说过的事实，确认后才保存。"
       >
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
           <div style={{ background: "#faf9ff", border: "1.5px dashed #c9c4f5", borderRadius: 14, padding: 18, gridColumn: cands.length ? undefined : "1 / -1" }}>
@@ -135,7 +135,7 @@ export default function Interview() {
               value={ivInput}
               onChange={(e) => useStore.setState({ ivInput: e.target.value })}
               onKeyDown={(e) => { if (e.key === "Enter") { sp.stop(); sendInterview(); } }}
-              placeholder={sp.listening ? "正在听……说完点「停止」，检查识别结果后再发送" : "如实回答，越具体越能挖出可信证据——点「语音」开口说，或直接打字"}
+              placeholder={sp.listening ? "正在听……说完点「停止」，检查识别结果后再发送" : "如实回答，越具体越能挖出可信的细节——点「语音」开口说，或直接打字"}
               style={{ flex: 1, border: "1px solid #e6e8ee", borderRadius: 10, padding: "11px 13px", fontSize: 13.5, outline: "none" }}
             />
             <VoiceButton sp={sp} />
@@ -158,7 +158,7 @@ export default function Interview() {
         </div>
         {ivDraft ? (
           <div style={{ background: "#fff", border: "1.5px dashed #c9c4f5", borderRadius: 16, padding: 16 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#5850ec", marginBottom: 8 }}>⚙ Agent 起草中的证据卡</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#5850ec", marginBottom: 8 }}>⚙ Agent 起草中的经历卡</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 7, fontSize: 12, color: "#4b5060", lineHeight: 1.55 }}>
               {ivDraft.background ? <div><b>背景</b>：{ivDraft.background}</div> : null}
               {ivDraft.responsibilities?.length ? <div><b>职责</b>：{ivDraft.responsibilities.join("；")}</div> : null}
@@ -167,7 +167,7 @@ export default function Interview() {
               {ivDraft.results?.length ? <div><b>结果</b>：{ivDraft.results.join("；")}</div> : null}
               {ivDraft.skills?.length ? <div><b>技能</b>：{ivDraft.skills.join("、")}</div> : null}
             </div>
-            <div style={{ fontSize: 11, color: "#a3a8b5", marginTop: 9, lineHeight: 1.5 }}>只是草稿——结束访谈后经你确认才会写入证据库。</div>
+            <div style={{ fontSize: 11, color: "#a3a8b5", marginTop: 9, lineHeight: 1.5 }}>只是草稿——结束访谈后经你确认才会写入经历库。</div>
           </div>
         ) : null}
         <Btn label={ivLoading ? "请稍候…" : "结束访谈并生成总结"} kind="dark" onClick={() => endInterview()} />
@@ -179,7 +179,7 @@ export default function Interview() {
               <div style={{ background: "#2a2438", borderRadius: 9, padding: "8px 10px", color: "#f0b866" }}>仍缺少：{ivSummary.missing.join("；")}</div>
             ) : null}
             <div style={{ marginTop: 12 }}>
-              <Btn label="更新到证据卡" kind="soft" onClick={() => applyInterviewSummary()} />
+              <Btn label="更新到经历卡" kind="soft" onClick={() => applyInterviewSummary()} />
             </div>
           </div>
         ) : null}

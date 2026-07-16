@@ -139,7 +139,7 @@ function BossImportPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-/** Agent ①：批量分析进度 + 按证据覆盖度排序的准备优先级面板 */
+/** Agent ①：批量分析进度 + 按经历覆盖度排序的准备优先级面板 */
 function PriorityPanel() {
   const s = useStore();
   const openPackage = useStore((x) => x.openPackage);
@@ -157,7 +157,7 @@ function PriorityPanel() {
         <div>
           <div style={{ fontWeight: 800, fontSize: 14.5 }}>准备优先级</div>
           <div style={{ fontSize: 12, color: "#8a919e", marginTop: 3 }}>
-            按证据覆盖度排序，回答「这批岗位先准备哪个」。只做分析排序，不替你生成任何内容。
+            按经历覆盖度排序，回答「这批岗位先准备哪个」。只做分析排序，不替你生成任何内容。
           </div>
         </div>
         {b?.running ? (
@@ -173,10 +173,10 @@ function PriorityPanel() {
         <div style={{ marginTop: 14, display: "flex", flexDirection: "column" }}>
           {ranked.map(({ j, m }, i) => {
             const gap = m.none.length
-              ? "缺证据 " + m.none.length + " 项：" + m.none.map((x) => x.req).filter(Boolean).slice(0, 2).join("、")
+              ? "缺经历支撑 " + m.none.length + " 项：" + m.none.map((x) => x.req).filter(Boolean).slice(0, 2).join("、")
               : m.weak.length
               ? m.weak.length + " 项弱匹配待澄清"
-              : "证据覆盖良好";
+              : "经历覆盖良好";
             return (
               <div
                 key={j.id}
@@ -253,7 +253,7 @@ function JobCard({ j }: { j: Job }) {
       <PrepBar done={done} />
       {j.match ? (
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "#8a919e" }}>
-          <span>证据覆盖度（来自岗位分析）</span>
+          <span>经历覆盖度（来自岗位分析）</span>
           <span style={{ fontFamily: "'JetBrains Mono'", fontWeight: 700, color: "#16181d" }}>{j.match}/100</span>
         </div>
       ) : (

@@ -72,9 +72,9 @@ export interface Analysis {
 
 export interface MatchItem {
   req: string;
-  /** 关联证据的稳定 ID（v2 起的正式关联；null = 无证据） */
+  /** 关联经历的稳定 ID（v2 起的正式关联；null = 无关联经历） */
   evId?: string | null;
-  /** 证据标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
+  /** 经历标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
   ev: string | null;
   note: string;
 }
@@ -83,9 +83,9 @@ export interface Match {
   metrics: { coverage: number; strength: number; clarity: number; risk: number };
   /** 应该重点写的经历 */
   strong: MatchItem[];
-  /** 弱匹配：证据不够硬 */
+  /** 弱匹配：经历支撑不够硬 */
   weak: MatchItem[];
-  /** 缺少证据的能力 */
+  /** 缺少经历支撑的能力 */
   none: MatchItem[];
   /** 建议弱化的内容 */
   downplay: { text: string; why: string }[];
@@ -108,9 +108,9 @@ export interface ResumeBullet {
   /** 风险修正类建议（去夸大） */
   risk?: boolean;
   decision?: "accepted" | "rejected" | "edited";
-  /** 关联证据的稳定 ID（v2 起的正式关联；null = 无证据支撑） */
+  /** 关联经历的稳定 ID（v2 起的正式关联；null = 无经历支撑） */
   evId?: string | null;
-  /** 证据标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
+  /** 经历标题快照（展示缓存 / 旧数据兼容）；以 evId 查到的现值优先 */
   ev: string | null;
   evStatus: BulletEvStatus;
   /** 对应的岗位要求（来自 Match，说明这条为什么这样写） */
@@ -226,7 +226,7 @@ export interface RecordSuggestion {
   bulletId?: string;
   suggestion?: string;
   reason?: string;
-  /** target=evidence 时：写入证据卡的备注 */
+  /** target=evidence 时：写入经历卡的备注 */
   evidenceId?: string;
   note?: string;
 }
@@ -281,7 +281,7 @@ export interface TplPreset {
 export interface InterviewMsg {
   role: "user" | "assistant";
   content: string;
-  /** Agent 工具调用透明记录（如「查证据库→命中 2 条」），随气泡展示 */
+  /** Agent 工具调用透明记录（如「查经历库→命中 2 条」），随气泡展示 */
   tools?: string[];
 }
 

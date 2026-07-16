@@ -128,7 +128,7 @@ export function agentAvailable(): boolean {
 }
 
 /**
- * 带工具的对话：模型可调用本地工具（查证据库/起草证据卡），循环直到给出文字回复。
+ * 带工具的对话：模型可调用本地工具（查经历库/起草经历卡），循环直到给出文字回复。
  * 返回 null 表示不可用或失败——调用方回落到普通 ask() / 本地兜底。
  */
 export async function askAgent(

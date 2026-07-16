@@ -48,7 +48,7 @@ export function statusMeta(st: EvidenceStatus) {
     ? { bg: "#e6f5ee", fg: "#12805c", label: "已确认", dot: "#12805c" }
     : st === "pending"
     ? { bg: "#fdf3e0", fg: "#c2810c", label: "待确认", dot: "#c2810c" }
-    : { bg: "#f2f3f5", fg: "#8a919e", label: "证据不足", dot: "#b6bcc7" };
+    : { bg: "#f2f3f5", fg: "#8a919e", label: "细节不足", dot: "#b6bcc7" };
 }
 
 export function Pill({ status }: { status: EvidenceStatus }) {

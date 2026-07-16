@@ -106,10 +106,10 @@ interface State {
   ivSummary: InterviewSummary | null;
   /** 本场访谈是否为基础模式（本地预设问题，不调用在线 AI） */
   ivBasic: boolean;
-  /** Agent 访谈中实时起草的证据卡草稿——仅草稿，结束访谈后经用户确认才入库 */
+  /** Agent 访谈中实时起草的经历卡草稿——仅草稿，结束访谈后经用户确认才入库 */
   ivDraft: Partial<Evidence> | null;
 
-  // 经历（证据库）
+  // 经历（经历库）
   evidenceFilter: string;
   evidence: Evidence[];
   editingEvidenceId: string | null;
@@ -246,11 +246,11 @@ interface State {
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 
-// ---- 证据关联解析（v2：稳定 ID 为正式关联，标题只是展示缓存） ----
+// ---- 经历关联解析（v2：稳定 ID 为正式关联，标题只是展示缓存） ----
 
 const normTitle = (t: string) => t.trim().toLowerCase();
 
-/** 按 evId（优先）或标题快照解析证据；都找不到返回 null */
+/** 按 evId（优先）或标题快照解析经历；都找不到返回 null */
 export function resolveEvidence(
   evidence: Evidence[],
   ref: { evId?: string | null; ev: string | null }
@@ -260,7 +260,7 @@ export function resolveEvidence(
   return null;
 }
 
-/** AI 输出后处理：把（可能只有标题的）证据引用回填成稳定 ID + 现势状态 */
+/** AI 输出后处理：把（可能只有标题的）经历引用回填成稳定 ID + 现势状态 */
 function linkBullet(evidence: Evidence[], b: ResumeBullet): ResumeBullet {
   const hit = resolveEvidence(evidence, b);
   return {
@@ -309,7 +309,7 @@ const buildFallbackAnalysis = (job: Job): Analysis => {
   };
 };
 
-// 证据库 ↔ JD 的确定性关键词匹配（基础模式）
+// 经历库 ↔ JD 的确定性关键词匹配（基础模式）
 const buildFallbackMatch = (job: Job, evidence: Evidence[]): Match => {
   const jd = job.jd.toLowerCase();
   const hit = (e: Evidence) => e.skills.filter((s) => s && jd.includes(s.toLowerCase()));
@@ -319,8 +319,8 @@ const buildFallbackMatch = (job: Job, evidence: Evidence[]): Match => {
   return {
     metrics: { coverage, strength: Math.min(90, strongEv.length * 20), clarity: 70, risk: weakEv.length },
     strong: strongEv.map((e) => ({ req: hit(e).join("、"), evId: e.id, ev: e.title, note: "技能关键词命中（本地规则匹配），重点写" })),
-    weak: weakEv.map((e) => ({ req: hit(e).join("、"), evId: e.id, ev: e.title, note: "相关但证据未确认——确认前不要写「主导」" })),
-    none: strongEv.length + weakEv.length ? [] : [{ req: "JD 核心要求", evId: null, ev: null, note: "证据库中没有命中该 JD 的技能关键词，建议先补充经历" }],
+    weak: weakEv.map((e) => ({ req: hit(e).join("、"), evId: e.id, ev: e.title, note: "相关但经历未确认——确认前不要写「主导」" })),
+    none: strongEv.length + weakEv.length ? [] : [{ req: "JD 核心要求", evId: null, ev: null, note: "经历库中没有命中该 JD 的技能关键词，建议先补充经历" }],
     downplay: evidence.filter((e) => e.status === "confirmed" && !hit(e).length).slice(0, 2).map((e) => ({ text: e.title, why: "与该岗位关键词无交集，建议一句话带过" })),
     risks: evidence.filter((e) => e.note && hit(e).length).map((e) => ({ text: e.title + "：" + e.note, fix: "先在经历里澄清，再写进简历" })),
   };
@@ -329,9 +329,9 @@ const buildFallbackMatch = (job: Job, evidence: Evidence[]): Match => {
 /** Match 分析 → 生成简历/QA/模拟面试的结构化输入（强/弱/未匹配/风险的硬约束） */
 function matchBrief(m: Match | undefined): string {
   if (!m) return "";
-  const li = (x: MatchItem) => "- " + x.req + (x.ev ? "（证据：" + x.ev + "）" : "（无证据）") + "：" + x.note;
+  const li = (x: MatchItem) => "- " + x.req + (x.ev ? "（经历：" + x.ev + "）" : "（无经历支撑）") + "：" + x.note;
   return (
-    "\n\n【证据匹配分析——生成时必须遵守】\n" +
+    "\n\n【经历匹配分析——生成时必须遵守】\n" +
     "强匹配（优先突出，放最显眼位置）：\n" + (m.strong.map(li).join("\n") || "（无）") +
     "\n弱匹配（谨慎表达：不写「主导/精通」等强断言，先如实描述参与程度）：\n" + (m.weak.map(li).join("\n") || "（无）") +
     "\n未匹配（禁止虚构任何相关经历或数据）：\n" + (m.none.map(li).join("\n") || "（无）") +
@@ -796,7 +796,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         .evidence.map((e) => "[" + e.id + "] " + e.title + "（" + e.status + "）：" + e.results.join("、"))
         .join("\n");
       const out = await ask(
-        "目标岗位 JD：\n" + j.jd + "\n\n候选人的职业经历（含稳定 id）：\n" + evSummary + '\n\n请：1) 拆解 JD；2) 把 JD 要求和候选人经历逐条对照，明确指出：哪些经历应重点写、哪些应弱化、哪些能力缺证据、哪些表述不应夸大。只输出 JSON：{"analysis":{"responsibilities":[],"mustHave":[],"niceToHave":[],"hidden":[],"interviewFocus":[]},"match":{"metrics":{"coverage":0-100,"strength":0-100,"clarity":0-100,"risk":整数},"strong":[{"req":"","evId":"匹配经历的id","ev":"经历标题","note":"为什么重点写"}],"weak":[{"req":"","evId":"","ev":"","note":""}],"none":[{"req":"","evId":null,"ev":null,"note":""}],"downplay":[{"text":"建议弱化的内容","why":"原因"}],"risks":[{"text":"可能夸大或缺依据的表述","fix":"更稳妥的改法"}]}}',
+        "目标岗位 JD：\n" + j.jd + "\n\n候选人的职业经历（含稳定 id）：\n" + evSummary + '\n\n请：1) 拆解 JD；2) 把 JD 要求和候选人经历逐条对照，明确指出：哪些经历应重点写、哪些应弱化、哪些能力缺经历支撑、哪些表述不应夸大。只输出 JSON：{"analysis":{"responsibilities":[],"mustHave":[],"niceToHave":[],"hidden":[],"interviewFocus":[]},"match":{"metrics":{"coverage":0-100,"strength":0-100,"clarity":0-100,"risk":整数},"strong":[{"req":"","evId":"匹配经历的id","ev":"经历标题","note":"为什么重点写"}],"weak":[{"req":"","evId":"","ev":"","note":""}],"none":[{"req":"","evId":null,"ev":null,"note":""}],"downplay":[{"text":"建议弱化的内容","why":"原因"}],"risks":[{"text":"可能夸大或缺依据的表述","fix":"更稳妥的改法"}]}}',
         { max_tokens: 4000, feature: "job_analysis" }
       );
       if (out === null) return false; // 失败已提示，不写入任何结果
@@ -849,7 +849,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     set({ jdLoading: false });
   },
 
-  // 批量岗位分析——排队跑完所有未分析岗位，结果按证据覆盖度排序
+  // 批量岗位分析——排队跑完所有未分析岗位，结果按经历覆盖度排序
   batchAnalyze: async (opts) => {
     if (get().batch?.running) return;
     const targets = get().jobs.filter((j) => j.jd.trim() && !get().analyses[j.id]);
@@ -865,7 +865,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       await get().analyzeJobById(targets[i].id, { basic: mode === "basic" });
     }
     set((st) => ({ batch: { ...st.batch!, running: false, done: targets.length, current: null } }));
-    get().showToast("批量分析完成 · " + targets.length + " 个岗位已按证据覆盖度排序");
+    get().showToast("批量分析完成 · " + targets.length + " 个岗位已按经历覆盖度排序");
   },
 
   // 一键备齐申请包——分析→简历→（停：用户确认简历建议）→QA
@@ -935,9 +935,9 @@ export const useStore = create<State>()(persist((set, get) => ({
       const prompt = base
         ? "为候选人整理一份通用简历——不针对任何具体岗位，突出这些经历本身最有说服力的地方。\n候选人已确认的经历（含稳定 id）：\n" +
           ev +
-          '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、容易被追问的点；若与原经历表述不同，说明修改原因。没有目标岗位，所以不要写 jdReq。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}'
-        : "为岗位「" + j!.company + " " + j!.role + "」定制一份简历。JD：" + j!.jd + "\n候选人已确认的经历（含稳定 id）：\n" + ev + matchBrief(get().matches[j!.id]) + '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、对应的岗位要求、容易被追问的点；若与原经历表述不同，说明修改原因。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","jdReq":"对应岗位要求","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}';
-      // 与 import_parse 同一量级：吐一整份简历的 JSON，输出量随证据条数线性涨。
+          '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无经历支撑的能力一律不写。每条内容标注：对应经历 id、容易被追问的点；若与原经历表述不同，说明修改原因。没有目标岗位，所以不要写 jdReq。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}'
+        : "为岗位「" + j!.company + " " + j!.role + "」定制一份简历。JD：" + j!.jd + "\n候选人已确认的经历（含稳定 id）：\n" + ev + matchBrief(get().matches[j!.id]) + '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无经历支撑的能力一律不写。每条内容标注：对应经历 id、对应的岗位要求、容易被追问的点；若与原经历表述不同，说明修改原因。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","jdReq":"对应岗位要求","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}';
+      // 与 import_parse 同一量级：吐一整份简历的 JSON，输出量随经历条数线性涨。
       const out = await ask(prompt, { max_tokens: 8000, feature: "resume_generate" });
       if (out === null) {
         set({ resumeLoading: false });
@@ -1113,7 +1113,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         .evidence.map((e) => e.title + "（" + e.status + "）")
         .join("；");
       const out = await ask(
-        "岗位：" + j.company + " " + j.role + "\nJD：" + j.jd + "\n\n当前简历内容（含 bullet id）：\n" + bullets + "\n\n经历库：" + evSummary + matchBrief(get().matches[j.id]) + '\n\n为这份简历生成面试 QA：30秒/2分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术/业务/协作/风险/反问类问题。上面「风险表述」中每一条都要生成对应的追问题并标记高风险；证据未确认的内容对应问题标记高风险。答案只能基于经历，缺数据处写明「待补充」，不得编造。只输出 JSON 数组：[{"cat":"intro|project|resume|tech|biz|collab|risk|reverse","q":"","answer":"","fromBullet":"关联的bullet id或省略","jdReq":"对应岗位要求","prep":"todo","highRisk":false,"followUps":["可能的继续深挖"]}]',
+        "岗位：" + j.company + " " + j.role + "\nJD：" + j.jd + "\n\n当前简历内容（含 bullet id）：\n" + bullets + "\n\n经历库：" + evSummary + matchBrief(get().matches[j.id]) + '\n\n为这份简历生成面试 QA：30秒/2分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术/业务/协作/风险/反问类问题。上面「风险表述」中每一条都要生成对应的追问题并标记高风险；经历未确认的内容对应问题标记高风险。答案只能基于经历，缺数据处写明「待补充」，不得编造。只输出 JSON 数组：[{"cat":"intro|project|resume|tech|biz|collab|risk|reverse","q":"","answer":"","fromBullet":"关联的bullet id或省略","jdReq":"对应岗位要求","prep":"todo","highRisk":false,"followUps":["可能的继续深挖"]}]',
         { max_tokens: 6000, feature: "qa_generate" }
       );
       if (out === null) {
@@ -1178,7 +1178,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       (weak.length ? "\n历史薄弱点（重点检验是否已补齐）：" + weak.join("；") : "") +
       (lastMock?.report ? "\n上次模拟面试的重点：" + lastMock.report.nextFocus.join("；") : "") +
       (lastRec ? "\n真实面试暴露的缺口：" + lastRec.gaps.join("；") : "") +
-      "\n规则：每次只问一个问题；顺着回答连续追问；上面匹配分析里的「风险表述」和「未匹配」是重点考察对象——检查回答是否具体、有证据、是否自相矛盾；回答含糊时礼貌但坚定地要细节和数字。语气专业，回复 2-3 句以内。"
+      "\n规则：每次只问一个问题；顺着回答连续追问；上面匹配分析里的「风险表述」和「未匹配」是重点考察对象——检查回答是否具体、有依据、是否自相矛盾；回答含糊时礼貌但坚定地要细节和数字。语气专业，回复 2-3 句以内。"
     );
   },
 
@@ -1245,12 +1245,12 @@ export const useStore = create<State>()(persist((set, get) => ({
       return;
     }
     set({ mockMsgs: msgs, mockInput: "", mockLoading: true });
-    // Agent 模式（BYOK Anthropic）：面试官先查证据库核实说法，再决定怎么追问
+    // Agent 模式（BYOK Anthropic）：面试官先查经历库核实说法，再决定怎么追问
     if (agentAvailable()) {
       const agentOut = await askAgent(msgs, {
         system:
           get().mockSystem(j.id) +
-          "\n你可以调用 search_evidence 工具核实候选人的说法在经历库里有没有支撑——没有证据的说法要往死里追问细节。",
+          "\n你可以调用 search_evidence 工具核实候选人的说法在经历库里有没有支撑——没有经历支撑的说法要往死里追问细节。",
         max_tokens: 500,
         tools: [searchEvidenceTool(() => get().evidence)],
       });
@@ -1351,7 +1351,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     const bullets = (s.resumes[j.id]?.exp || []).flatMap((x) => x.bullets);
     const hooks = bullets.filter((b) => b.hook).map((b) => "[" + b.id + "] " + b.text);
     const out = await ask(
-      "这是「" + j.company + " " + j.role + "」的真实面试转写。候选人简历要点：\n" + bullets.map((b) => "[" + b.id + "] " + b.text).join("\n") + (hooks.length ? "\n面试钩子：" + hooks.join("；") : "") + '\n\n请：区分说话人、按时间轴整理、抽取问答对与追问链、判断问题是否由简历触发、钩子是否命中、标记含糊/中断/缺证据/矛盾的回答并给出更好的回答、生成结构化笔记，并提出对 QA/简历/经历的修改建议（建议须用户确认，不得直接改写）。只输出 JSON：{"transcript":[{"t":"mm:ss","speaker":"interviewer|me","text":"","flags":["vague|broken|noEvidence|conflict"]}],"qas":[{"q":"","a":"","chain":0,"fromResume":"bullet id或null","hookHit":false,"issue":"","better":""}],"hooks":[{"hook":"","hit":false,"note":""}],"notes":[{"section":"","content":""}],"score":0,"verdict":"","highlights":[],"issues":[],"gaps":[],"nextPrep":[],"suggestions":[{"target":"qa|resume|evidence","title":"","detail":""}]}\n\n转写：\n' + s.recInput,
+      "这是「" + j.company + " " + j.role + "」的真实面试转写。候选人简历要点：\n" + bullets.map((b) => "[" + b.id + "] " + b.text).join("\n") + (hooks.length ? "\n面试钩子：" + hooks.join("；") : "") + '\n\n请：区分说话人、按时间轴整理、抽取问答对与追问链、判断问题是否由简历触发、钩子是否命中、标记含糊/中断/缺依据/矛盾的回答并给出更好的回答、生成结构化笔记，并提出对 QA/简历/经历的修改建议（建议须用户确认，不得直接改写）。只输出 JSON：{"transcript":[{"t":"mm:ss","speaker":"interviewer|me","text":"","flags":["vague|broken|noEvidence|conflict"]}],"qas":[{"q":"","a":"","chain":0,"fromResume":"bullet id或null","hookHit":false,"issue":"","better":""}],"hooks":[{"hook":"","hit":false,"note":""}],"notes":[{"section":"","content":""}],"score":0,"verdict":"","highlights":[],"issues":[],"gaps":[],"nextPrep":[],"suggestions":[{"target":"qa|resume|evidence","title":"","detail":""}]}\n\n转写：\n' + s.recInput,
       { max_tokens: 6000, feature: "record_review" }
     );
     if (out === null) {
@@ -1431,7 +1431,7 @@ export const useStore = create<State>()(persist((set, get) => ({
   // ---- AI 访谈（从零整理经历） ----
 
   ivSystem: () =>
-    "你是一位资深技术面试官兼职业教练，正在对候选人的某段经历（工作/实习/项目/个人项目/开源均可）做深度访谈。规则：每次只问一个最关键的追问问题；基于候选人上一条回答顺藤摸瓜，不要机械问卷；依次覆盖背景与目标、候选人的具体职责与个人贡献边界、关键行动、技术难点与业务难点、协作与推动方式、可量化的最终结果、可验证的证据来源。当候选人说得笼统或夸大时要礼貌追问细节与证据。语气专业而有温度，回复 2-3 句以内。",
+    "你是一位资深技术面试官兼职业教练，正在对候选人的某段经历（工作/实习/项目/个人项目/开源均可）做深度访谈。规则：每次只问一个最关键的追问问题；基于候选人上一条回答顺藤摸瓜，不要机械问卷；依次覆盖背景与目标、候选人的具体职责与个人贡献边界、关键行动、技术难点与业务难点、协作与推动方式、可量化的最终结果、可验证的佐证来源。当候选人说得笼统或夸大时要礼貌追问细节与依据。语气专业而有温度，回复 2-3 句以内。",
 
   startInterview: async (proj, opts) => {
     if (!proj) return;
@@ -1469,7 +1469,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         "你做的关键决策是什么？为什么这样选，有没有对比过其他方案？",
         "最难的一个点是什么？技术上或业务上都行，当时怎么破的？",
         "有没有可量化的结果？数字从哪里来，能被验证吗？",
-        "这段经历有什么可以拿出来的证据？比如代码、文档、监控截图、他人评价。",
+        "这段经历有什么能拿出来展示的东西？比如代码、文档、监控截图、他人评价。",
       ];
       set({ ivMsgs: msgs.concat([{ role: "assistant", content: fallbacks[turn % fallbacks.length] }]), ivInput: "" });
       return;
@@ -1480,7 +1480,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       return;
     }
     set({ ivMsgs: msgs, ivInput: "", ivLoading: true });
-    // Agent 模式：访谈官可查证据库避免重复问，并把问清楚的事实实时沉淀为草稿（用户最终确认才入库）
+    // Agent 模式：访谈官可查经历库避免重复问，并把问清楚的事实实时沉淀为草稿（用户最终确认才入库）
     if (agentAvailable()) {
       const agentOut = await askAgent(msgs, {
         system:
@@ -1515,7 +1515,7 @@ export const useStore = create<State>()(persist((set, get) => ({
         ivSummary: {
           summary: "（基础模式）以上问答已如实记录。下面的字段由你自己核对后写入经历卡——基础模式不做自动提炼，避免机器错误概括你的经历。",
           abilities: [],
-          missing: ["建议登录后用在线 AI 重新访谈一次，自动提炼职责边界与可验证证据"],
+          missing: ["建议登录后用在线 AI 重新访谈一次，自动提炼职责边界与可验证的佐证"],
         },
         ivLoading: false,
       });
@@ -1528,7 +1528,7 @@ export const useStore = create<State>()(persist((set, get) => ({
     set({ ivLoading: true });
     const transcript = s.ivMsgs.map((m) => (m.role === "user" ? "候选人：" : "访谈者：") + m.content).join("\n");
     const out = await ask(
-      '基于以下访谈记录，总结候选人在这段经历中真正承担的工作和可证明的能力，并指出还缺少数据/证据的点。只输出 JSON：{"summary":"一段话客观总结真正做的事，不夸大","abilities":["可证明的能力"],"missing":["还缺少数据或证据的点"]}。\n\n' + transcript,
+      '基于以下访谈记录，总结候选人在这段经历中真正承担的工作和可证明的能力，并指出还缺少数据或佐证的点。只输出 JSON：{"summary":"一段话客观总结真正做的事，不夸大","abilities":["可证明的能力"],"missing":["还缺少数据或佐证的点"]}。\n\n' + transcript,
       { max_tokens: 2500, feature: "interview" }
     );
     if (out === null) {

@@ -38,7 +38,7 @@ function buildDoc(html: string): string {
     border-radius: 0 !important;
     overflow: visible !important;
   }
-  /* 内部准备标注（已核验/待确认/证据不足/★钩子）绝不出现在给企业的 PDF 里 */
+  /* 内部准备标注（已核验/待确认/细节不足/★钩子）绝不出现在给企业的 PDF 里 */
   [data-pcv-annot] { display: none !important; }
 </style>
 </head>

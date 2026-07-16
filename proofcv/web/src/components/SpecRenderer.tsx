@@ -76,7 +76,7 @@ function SheetExp({ spec, r, dc, onColor, internal }: { spec: TemplateSpec; r: R
                   {/* data-pcv-annot：内部准备标注，打印/导出（internal=false）时完全不渲染 */}
                   {internal ? (
                     <span data-pcv-annot="" style={{ marginLeft: 6, fontSize: dc.body - 2, color: b.evStatus === "pending" ? "#c2810c" : b.evStatus === "none" ? "#9098a6" : "#12805c", whiteSpace: "nowrap" }}>
-                      {b.evStatus === "pending" ? "· 待确认" : b.evStatus === "none" ? "· 证据不足" : "· 已核验"}
+                      {b.evStatus === "pending" ? "· 待确认" : b.evStatus === "none" ? "· 待补经历" : "· 已核验"}
                     </span>
                   ) : null}
                   {internal && b.hook ? <span data-pcv-annot="" style={{ marginLeft: 4, fontSize: dc.body - 2, color: "#c8622a", whiteSpace: "nowrap" }} title="面试钩子">★</span> : null}

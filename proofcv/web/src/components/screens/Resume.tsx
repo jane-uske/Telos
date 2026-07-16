@@ -142,7 +142,7 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
   const decideBullet = useStore((s) => s.decideBullet);
   const editBulletText = useStore((s) => s.editBulletText);
   const toggleHook = useStore((s) => s.toggleHook);
-  // 证据关联以稳定 ID 为准：改经历标题不断联；ID 找不到时退回标题快照并提示
+  // 经历关联以稳定 ID 为准：改经历标题不断联；ID 找不到时退回标题快照并提示
   const liveTitle = useStore((s) => (b.evId ? s.evidence.find((e) => e.id === b.evId)?.title || null : null));
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(b.text);
@@ -187,7 +187,7 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
         {liveTitle || b.ev ? (
           <span title="这条内容的来源经历" style={{ fontSize: 11, fontWeight: 600, color: b.evStatus === "confirmed" ? "#12805c" : "#c2810c", background: b.evStatus === "confirmed" ? "#e6f5ee" : "#fdf3e0", padding: "3px 9px", borderRadius: 99 }}>
             ⛁ {liveTitle || b.ev}
-            {b.evStatus === "pending" ? " · 证据待确认" : ""}
+            {b.evStatus === "pending" ? " · 经历待确认" : ""}
             {!liveTitle && b.ev ? " · 原经历已不在库中" : ""}
           </span>
         ) : (
@@ -215,7 +215,7 @@ function BulletCard({ b, jobId }: { b: ResumeBullet; jobId: string }) {
         </div>
       ) : null}
       {b.evStatus === "none" && !hasOpenSug ? (
-        <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 6 }}>提示：这条内容没有证据支撑，被追问时有风险。</div>
+        <div style={{ fontSize: 11.5, color: "#8a919e", marginTop: 6 }}>提示：这条内容没有经历支撑，被追问时有风险。</div>
       ) : null}
     </div>
   );
@@ -288,7 +288,7 @@ export default function Resume() {
 
   // 默认导出方式：浏览器打印 / 另存为 PDF（不依赖服务端 Chrome，Vercel 可用）。
   // 打印时只渲染 #rr-print-mount 里 internal=false 的干净版本——
-  // 内部标注（已核验/证据不足/★钩子/追问提示）绝不出现在给企业的简历里。
+  // 内部标注（已核验/细节不足/★钩子/追问提示）绝不出现在给企业的简历里。
   const printPdf = () => {
     if (!s.profile.name.trim()) showToast("提示：还没填姓名——右侧「个人信息」补全后简历页眉才完整");
     setTimeout(() => window.print(), 50);
@@ -352,7 +352,7 @@ export default function Resume() {
             title={j!.company + " · " + j!.role}
             desc={
               (s.analyses[j!.id]
-                ? "还没有为这个岗位生成简历。生成时会遵守匹配分析：强匹配优先突出、弱匹配谨慎表达、无证据不虚构。"
+                ? "还没有为这个岗位生成简历。生成时会遵守匹配分析：强匹配优先突出、弱匹配谨慎表达、没有经历支撑的不虚构。"
                 : "建议先在「准备这个岗位」里分析岗位（知道重点写什么再生成），也可以直接基于已确认经历生成。") +
               (hasBase ? "你已经有一份通用简历，也可以拿它打底再按这个岗位改。" : "")
             }

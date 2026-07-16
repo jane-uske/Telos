@@ -537,7 +537,7 @@ function StageInterview() {
             <Kicker>02 · AI 访谈</Kicker>
             <StageTitle>AI 帮你把经历找回来。</StageTitle>
             <StagePara maxWidth={560}>
-              不是问卷，是顺着你的回答继续追问。你说过的每一句话，都会沉淀进一张可追溯的职业证据卡。
+              不是问卷，是顺着你的回答继续追问。你说过的每一句话，都会沉淀进一张可追溯的职业经历卡。
             </StagePara>
           </Reveal>
 
@@ -565,12 +565,12 @@ function StageInterview() {
               ))}
             </div>
 
-            {/* 右：证据卡，信息逐渐归位 */}
+            {/* 右：经历卡，信息逐渐归位 */}
             <div style={{ position: "relative" }}>
               <Ambient items={[{ top: "-6%", right: "-10%", size: 320, color: "rgba(88,80,236,.09)" }]} />
               <div style={{ position: "relative", background: "#fff", border: "1px solid #eceae4", borderRadius: 18, padding: "20px 22px", boxShadow: "0 24px 60px -36px rgba(30,30,60,.35)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>职业证据卡 · 实时协作编辑器</div>
+                  <div style={{ fontWeight: 700, fontSize: 14 }}>职业经历卡 · 实时协作编辑器</div>
                   <span
                     className={"hv-step" + (done ? " in" : "")}
                     style={{ fontSize: 11, fontWeight: 700, color: "#12805c", background: "#e6f5ee", padding: "3px 10px", borderRadius: 99 }}
@@ -915,7 +915,7 @@ const TRANSCRIPT = [
   { who: "面试官", text: "CRDT 和 OT 当时是怎么对比的？", flag: null },
   { who: "我", text: "呃……对比数据我记不太清了。", flag: { label: "回答含糊", tone: "warn" as const } },
   { who: "面试官", text: "那内存最后降到了多少？", flag: { label: "被连续追问", tone: "iris" as const } },
-  { who: "我", text: "具体数字我需要回去看一下监控。", flag: { label: "缺少证据", tone: "risk" as const } },
+  { who: "我", text: "具体数字我需要回去看一下监控。", flag: { label: "缺少依据", tone: "risk" as const } },
   { who: "面试官", text: "如果放到亿级流量，你会怎么设计？", flag: { label: "新出现的问题", tone: "coach" as const } },
 ];
 
@@ -953,7 +953,7 @@ function StageReplay() {
           <Kicker>05 · 复盘闭环</Kicker>
           <StageTitle>真实面试之后，<br />下一次准备更充分。</StageTitle>
           <StagePara maxWidth={560}>
-            上传面试录音，系统转录并标记每一个回答的状态。含糊的、被追问的、缺证据的，都会自动进入下一轮准备。
+            上传面试录音，系统转录并标记每一个回答的状态。含糊的、被追问的、缺依据的，都会自动进入下一轮准备。
           </StagePara>
         </Reveal>
 

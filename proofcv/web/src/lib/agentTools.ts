@@ -1,18 +1,18 @@
 "use client";
 
 // Agent 本地工具（在用户浏览器里执行，不出设备）。设计原则：
-// - 工具只读证据库或写「草稿」，绝不直接修改用户已确认的内容
+// - 工具只读经历库或写「草稿」，绝不直接修改用户已确认的内容
 // - 每次调用都产生一条给用户看的透明记录（note），随聊天气泡展示
 
 import type { AgentTool } from "./ai";
 import type { Evidence } from "./types";
 
-/** 查证据库：面试官/访谈官追问前核实「这个说法有没有证据支撑」 */
+/** 查经历库：面试官/访谈官追问前核实「这个说法有没有经历支撑」 */
 export function searchEvidenceTool(getEvidence: () => Evidence[]): AgentTool {
   return {
     name: "search_evidence",
     description:
-      "在候选人的职业证据库中按关键词检索。用于在追问前核实：候选人的某个说法有没有已确认的证据支撑、证据的具体内容与确认状态。没有证据支撑的说法应该深挖细节。",
+      "在候选人的职业经历库中按关键词检索。用于在追问前核实：候选人的某个说法有没有已确认的经历支撑、经历的具体内容与确认状态。没有经历支撑的说法应该深挖细节。",
     input_schema: {
       type: "object",
       properties: {
@@ -31,7 +31,7 @@ export function searchEvidenceTool(getEvidence: () => Evidence[]): AgentTool {
           )
         : [];
       const statusZh = (s: Evidence["status"]) =>
-        s === "confirmed" ? "已确认" : s === "pending" ? "待确认" : "证据不足";
+        s === "confirmed" ? "已确认" : s === "pending" ? "待确认" : "细节不足";
       const result = hits.length
         ? hits
             .map(
@@ -40,10 +40,10 @@ export function searchEvidenceTool(getEvidence: () => Evidence[]): AgentTool {
                 (e.note ? "；备注：" + e.note : "")
             )
             .join("\n")
-        : "证据库中没有命中该关键词的证据。";
+        : "经历库中没有命中该关键词的经历。";
       return {
         result,
-        note: "查证据库「" + String(input.query || "") + "」→ " + (hits.length ? "命中 " + hits.length + " 条" : "无命中"),
+        note: "查经历库「" + String(input.query || "") + "」→ " + (hits.length ? "命中 " + hits.length + " 条" : "无命中"),
       };
     },
   };
@@ -60,12 +60,12 @@ const FIELD_ZH: Record<DraftField, string> = {
   skills: "技能",
 };
 
-/** 起草证据卡：访谈中实时沉淀草稿，最终由用户确认后才入库 */
+/** 起草经历卡：访谈中实时沉淀草稿，最终由用户确认后才入库 */
 export function draftEvidenceTool(onDraft: (d: Partial<Evidence>) => void): AgentTool {
   return {
     name: "draft_evidence_card",
     description:
-      "把访谈中候选人已经说清楚的内容实时沉淀为证据卡草稿。只允许记录候选人原话中明确说过的事实，严禁推断、补全或美化任何数字与成果。可多次调用，每次只传新问清楚的字段。草稿最终由候选人本人确认后才会写入证据库。",
+      "把访谈中候选人已经说清楚的内容实时沉淀为经历卡草稿。只允许记录候选人原话中明确说过的事实，严禁推断、补全或美化任何数字与成果。可多次调用，每次只传新问清楚的字段。草稿最终由候选人本人确认后才会写入经历库。",
     input_schema: {
       type: "object",
       properties: {
@@ -95,11 +95,11 @@ export function draftEvidenceTool(onDraft: (d: Partial<Evidence>) => void): Agen
           }
         }
       }
-      if (!touched.length) return { result: "没有可记录的字段。", note: "起草证据卡 → 未更新任何字段" };
+      if (!touched.length) return { result: "没有可记录的字段。", note: "起草经历卡 → 未更新任何字段" };
       onDraft(d);
       return {
         result: "草稿已更新（" + touched.join("/") + "）。草稿会在访谈结束后由候选人确认。",
-        note: "起草证据卡草稿 → 更新了 " + touched.join("/"),
+        note: "起草经历卡草稿 → 更新了 " + touched.join("/"),
       };
     },
   };
