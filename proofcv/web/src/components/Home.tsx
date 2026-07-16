@@ -212,7 +212,7 @@ function HvHeader() {
       <div className="hv-container" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 20, letterSpacing: "-.02em" }}>
           <BrandMark size={30} />
-          RoleReady
+          Telos
         </div>
         <nav style={{ display: "flex", alignItems: "center", gap: 26 }}>
           <a href="#story" className="hv-desktop-only" style={link}>经历整理</a>
@@ -1123,12 +1123,12 @@ function HvFooter() {
       <div className="hv-container" style={{ padding: "28px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9, fontWeight: 900, fontSize: 15 }}>
           <BrandMark size={24} />
-          RoleReady
+          Telos
           <span style={{ fontSize: 12.5, color: "#8a8578", fontWeight: 400, marginLeft: 6 }}>你的职业资料属于你，不属于平台——正文只存本机，AI 内容临时处理不落库。</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 20, fontSize: 12.5, color: "#8a8578" }}>
           <span onClick={viewDemo} style={{ cursor: "pointer", color: "#5850ec", fontWeight: 600 }}>查看演示</span>
-          <span>© 2026 RoleReady</span>
+          <span>© 2026 Telos</span>
         </div>
       </div>
     </footer>

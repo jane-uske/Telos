@@ -372,7 +372,7 @@ function DataSection() {
     const blob = new Blob([json], { type: "application/json" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "roleready-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+    a.download = "telos-backup-" + new Date().toISOString().slice(0, 10) + ".json";
     a.click();
     URL.revokeObjectURL(a.href);
     showToast("备份已导出 · 妥善保存，可用于换设备迁移");

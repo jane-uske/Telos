@@ -1,4 +1,4 @@
-// RoleReady domain types — Beta: application-package-centric, local-first.
+// Telos（原 RoleReady）domain types — Beta: application-package-centric, local-first.
 
 export type Screen = "home" | "app";
 

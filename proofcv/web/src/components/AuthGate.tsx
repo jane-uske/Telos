@@ -169,7 +169,7 @@ export function LoginModal() {
   return (
     <div style={overlay} onClick={close}>
       <div style={sheet} onClick={(e) => e.stopPropagation()}>
-        <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 4 }}>登录 RoleReady</div>
+        <div style={{ fontSize: 19, fontWeight: 900, marginBottom: 4 }}>登录 Telos</div>
         <div style={{ fontSize: 12.5, color: "#8a919e", lineHeight: 1.65, marginBottom: 18 }}>
           登录只用于在线 AI 的身份与额度。登录后会自动继续你刚才的操作。
         </div>

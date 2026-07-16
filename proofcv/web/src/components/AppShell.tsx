@@ -124,7 +124,7 @@ export default function AppShell() {
       <aside className="rr-no-print" style={{ background: "#fff", borderRight: "1px solid #eceae4", padding: "18px 14px", display: "flex", flexDirection: "column", position: "sticky", top: 0, height: "100vh", overflowY: "auto" }}>
         <div onClick={() => setScreen("home")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontWeight: 900, fontSize: 18, padding: "6px 8px 14px", letterSpacing: "-.02em" }}>
           <BrandMark size={28} />
-          RoleReady
+          Telos
         </div>
 
         {demoMode ? (

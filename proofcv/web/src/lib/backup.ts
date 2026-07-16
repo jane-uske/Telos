@@ -55,12 +55,12 @@ export function parseBackup(
   } catch {
     return { ok: false, error: "文件不是有效 JSON" };
   }
-  // 兼容改名前（ProofCV 时期）导出的备份
+  // 兼容改名前（ProofCV / RoleReady 时期）导出的备份；线格式标识 app:"roleready" 保持不变
   if (!isObj(raw) || (raw.app !== "roleready" && raw.app !== "proofcv") || !isObj(raw.data)) {
-    return { ok: false, error: "这不是 RoleReady 导出的备份文件" };
+    return { ok: false, error: "这不是 Telos 导出的备份文件" };
   }
   if (typeof raw.version === "number" && raw.version > BACKUP_VERSION) {
-    return { ok: false, error: "备份来自更新版本的 RoleReady，请先升级应用再导入" };
+    return { ok: false, error: "备份来自更新版本的 Telos，请先升级应用再导入" };
   }
   // v1 备份（标题字符串关联）→ 迁移为稳定 ID 关联
   const d = (typeof raw.version === "number" && raw.version >= 2 ? (raw.data as Dict) : migrateV1toV2({ ...(raw.data as Dict) })) as Dict;

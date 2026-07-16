@@ -7,7 +7,7 @@
 ## 仓库布局
 
 - 仓库根目录：**Telos**（AI 简历生成器，本文档所述应用）。
-- [`proofcv/`](./proofcv/)：**ProofCV / RoleReady**（求职准备工具，应用在 `proofcv/web`，线上 roleready.remi.run），由原 [jane-uske/ProofCV](https://github.com/jane-uske/ProofCV) 整仓合并而来，完整历史已保留。两个应用互不依赖，各自独立安装与部署。
+- [`proofcv/`](./proofcv/)：**Telos 产品**（求职准备工具，原 ProofCV / RoleReady，2026-07 更名），应用在 `proofcv/web`，线上 https://telos.remi.run（旧域名 roleready.remi.run 兼容保留），由原 [jane-uske/ProofCV](https://github.com/jane-uske/ProofCV) 整仓合并而来，完整历史已保留。两个应用互不依赖，各自独立安装与部署；**实际上线的是这个**，根目录应用未部署。
 
 ## 本地启动
 

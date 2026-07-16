@@ -34,7 +34,7 @@ export default function AdminPage() {
     <div style={{ minHeight: "100vh", background: "#faf9f4", padding: "40px 24px" }}>
       <div style={{ maxWidth: 960, margin: "0 auto" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 4 }}>
-          <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>RoleReady · 用量总览</h1>
+          <h1 style={{ fontSize: 22, fontWeight: 900, margin: 0 }}>Telos · 用量总览</h1>
           <span style={{ fontSize: 12, color: "#8a919e" }}>{API_BASE}</span>
         </div>
         <div style={{ fontSize: 12.5, color: "#8a919e", marginBottom: 20 }}>

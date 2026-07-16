@@ -1,6 +1,6 @@
 "use client";
 
-// api.remi.run 客户端（RoleReady 托管后端，契约见 docs/BACKEND-API.md）。
+// api.remi.run 客户端（Telos 托管后端，契约见 docs/BACKEND-API.md；网关路径历史原因沿用 /roleready/v1）。
 // 调用链固定：浏览器 → api.remi.run → sub2api.remi.run → 模型服务。
 // 前端永远不直接访问 sub2api.remi.run，也不接触任何服务端 Key。
 // 服务端只保存身份与用量元数据；AI 请求内容临时处理、不落库。
