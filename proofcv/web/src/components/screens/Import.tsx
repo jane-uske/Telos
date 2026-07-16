@@ -133,7 +133,7 @@ export default function Import() {
         </div>
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, minHeight: 400 }}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>拆解结果 · 先预览再确认</div>
-          {importing ? (
+          {importing && !importParsed?.length ? (
             <ImportingHint />
           ) : !importParsed ? (
             <div style={{ color: "#a3a8b5", fontSize: 13, padding: "50px 10px", textAlign: "center", lineHeight: 1.8, whiteSpace: "pre-line" }}>
@@ -141,9 +141,15 @@ export default function Import() {
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: 12.5, color: "#12805c", background: "#e6f5ee", borderRadius: 10, padding: "10px 12px", marginBottom: 14, lineHeight: 1.6 }}>
-                ✓ 已识别 {importParsed.length} 段经历。逐段核对内容，点「确认加入我的经历」（状态为待确认），之后可用 AI 访谈继续深挖。
-              </div>
+              {importing ? (
+                <div style={{ fontSize: 12.5, color: "#5850ec", background: "#f2f0ff", borderRadius: 10, padding: "10px 12px", marginBottom: 14, lineHeight: 1.6 }}>
+                  ⏳ AI 正在拆解，已拆出 {importParsed.length} 段——拆出即可核对，不用等它全部完成。
+                </div>
+              ) : (
+                <div style={{ fontSize: 12.5, color: "#12805c", background: "#e6f5ee", borderRadius: 10, padding: "10px 12px", marginBottom: 14, lineHeight: 1.6 }}>
+                  ✓ 已识别 {importParsed.length} 段经历。逐段核对内容，点「确认加入我的经历」（状态为待确认），之后可用 AI 访谈继续深挖。
+                </div>
+              )}
               {importParsed.map((p, i) => {
                 const added = importedIdx.includes(i);
                 return (
@@ -170,6 +176,11 @@ export default function Import() {
                   </div>
                 );
               })}
+              {importing ? (
+                <div style={{ padding: "6px 0 2px" }}>
+                  <Spinner text="正在继续拆解…" />
+                </div>
+              ) : null}
               {importedIdx.length ? (
                 <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
                   <Btn label="下一步：查看我的经历 →" kind="dark" onClick={() => go("evidence")} />

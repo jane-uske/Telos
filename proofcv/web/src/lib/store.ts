@@ -2,7 +2,8 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { ask, askAgent, agentAvailable, aiMode, parseJSON, looksTruncated, setAiErrorHandler } from "./ai";
+import { ask, askStream, askAgent, agentAvailable, aiMode, parseJSON, looksTruncated, setAiErrorHandler } from "./ai";
+import { extractTopLevelArrayItems } from "./streamJson";
 import { searchEvidenceTool, draftEvidenceTool } from "./agentTools";
 import { idbStorage } from "./storage";
 import { fetchMe, setSessionExpiredHandler, useAuth } from "./apiClient";
@@ -1602,7 +1603,8 @@ export const useStore = create<State>()(persist((set, get) => ({
     }
     const mode = get().requireAi({ type: "doImport" }, opts);
     if (!mode) return;
-    set({ importing: true, importedIdx: [] });
+    // importParsed 置空：流式期间它会被逐段填充，不能残留上一次的结果
+    set({ importing: true, importedIdx: [], importParsed: null });
     const raw = get().importText;
 
     if (mode === "basic") {
@@ -1616,7 +1618,14 @@ export const useStore = create<State>()(persist((set, get) => ({
       return;
     }
 
-    const out = await ask(
+    // 流式拆解：AI 每闭合一个完整经历段就立刻上屏（逐卡浮现），不等整个数组输出完
+    const isSeg = (v: unknown): v is ImportSegment => {
+      const o = v as Record<string, unknown> | null;
+      return !!o && typeof o === "object" && typeof o.title === "string" && Array.isArray(o.bullets);
+    };
+    let streamBuf = "";
+    let shown = 0;
+    const r = await askStream(
       // 粒度标准是核心：不给标准时模型只能按排版切，会把项目内的模块错拆成独立经历
       "把下面这份简历拆解成经历段。拆分单位：一段 = 一个能在面试里独立讲述的完整项目或经历。" +
         "简历常见层级是 公司 → 项目 → 模块/职责方向：模块不是独立经历，必须归入所属项目段的 bullets（可在条目前加「模块名：」前缀），不要拆成多段；" +
@@ -1624,27 +1633,39 @@ export const useStore = create<State>()(persist((set, get) => ({
         "一份简历通常拆出 2~8 段——如果超过了 10 段，几乎可以肯定是把模块错当成了经历，请合并后再输出。" +
         '只输出 JSON 数组，每个元素形如 {"title":"经历标题（项目名或岗位一句话）","kind":"work|intern|project|personal|opensource","company":"公司或组织","project":"项目名（没有则留空字符串）","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n' +
         raw,
-      // 整份简历拆成 JSON 是全场输出最长的任务，且输出量随简历长度线性涨：
-      // 实测输入 4.8k token 的简历要吐 4067 输出（4096 只剩 1% 余量）。低了会被
-      // max_tokens 截断成半截 JSON，parseJSON 直接失败。须与后端
-      // ROLEREADY_MAX_TOKENS_CAP（8192）配套，改小会重新触发截断。
-      { max_tokens: 8000, feature: "import_parse" }
+      // 整份简历拆成 JSON 是全场输出最长的任务，且输出量随简历长度线性涨。
+      // max_tokens 须与后端 ROLEREADY_MAX_TOKENS_CAP（8192）配套；流式下即使截断，
+      // 已闭合的段也会保留，不再整次失败。
+      { max_tokens: 8000, feature: "import_parse" },
+      (chunk) => {
+        streamBuf += chunk;
+        const items = extractTopLevelArrayItems(streamBuf).filter(isSeg);
+        if (items.length > shown) {
+          shown = items.length;
+          set({ importParsed: items });
+        }
+      }
     );
-    if (out === null) {
-      set({ importing: false });
+    if (r === null) {
+      set({ importing: false, importParsed: null });
       return;
     }
-    const parsed = parseJSON<ImportSegment[] | null>(out, null);
-    if (!Array.isArray(parsed) || !parsed.length) {
-      set({ importing: false });
+    // 以完整文本的解析结果为准（增量解析只负责过程展示）；解析失败则退回已闭合的段
+    const parsed = parseJSON<ImportSegment[] | null>(r.text, null);
+    const finalSegs = Array.isArray(parsed) && parsed.length ? parsed.filter(isSeg) : extractTopLevelArrayItems(r.text).filter(isSeg);
+    if (!finalSegs.length) {
+      set({ importing: false, importParsed: null });
       get().showToast(
-        looksTruncated(out)
+        looksTruncated(r.text)
           ? "简历太长，AI 没输出完就被截断了——请删掉与目标岗位无关的段落后重试，或改用基础模式"
           : "AI 返回无法解析，本次未拆解，请重试或改用基础模式"
       );
       return;
     }
-    set({ importing: false, importParsed: parsed });
+    set({ importing: false, importParsed: finalSegs });
+    if (r.partial || (!Array.isArray(parsed) && looksTruncated(r.text))) {
+      get().showToast("AI 输出中断，已保留拆出的 " + finalSegs.length + " 段——可先确认这些，缺的段落重试或用访谈补");
+    }
   },
 }),
 {

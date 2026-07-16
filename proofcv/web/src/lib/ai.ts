@@ -11,7 +11,7 @@
 
 import type { InterviewMsg } from "./types";
 import { useAiConfig, aiConfigured } from "./aiConfig";
-import { hostedChat, loggedIn, type AiFeature } from "./apiClient";
+import { hostedChat, hostedChatStream, loggedIn, type AiFeature } from "./apiClient";
 
 export type { AiFeature } from "./apiClient";
 
@@ -98,6 +98,45 @@ export async function ask(
   } catch {
     return fail("无法连接本机服务 /api/ai");
   }
+}
+
+/** 流式 ask：托管链路走网关 SSE，onDelta 逐段回调；BYOK 暂无流式透传，
+ *  回落为一次性调用后整段回调一次（行为一致，只是不逐字）。
+ *  partial=true 表示流中途断了但已有部分文本——调用方决定半截内容怎么用。 */
+export async function askStream(
+  prompt: string | InterviewMsg[],
+  opts: AskOpts,
+  onDelta: (chunk: string) => void
+): Promise<{ text: string; partial: boolean } | null> {
+  const mode = aiMode();
+  if (mode === "none") return null;
+
+  if (mode === "hosted") {
+    const messages = (Array.isArray(prompt) ? prompt : [{ role: "user" as const, content: prompt }]).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+    const r = await hostedChatStream(
+      {
+        feature: opts.feature || "job_analysis",
+        system: opts.system || DEFAULT_SYSTEM,
+        messages,
+        max_tokens: opts.max_tokens || 1400,
+      },
+      onDelta
+    );
+    if (!r.ok) {
+      if (r.status === 401) return fail("登录已过期，请重新登录");
+      if (r.code === "quota_exceeded") return fail("本周期 AI 额度已用完（可在设置查看额度）");
+      return fail(r.error);
+    }
+    return { text: r.data.text, partial: !!r.data.partial };
+  }
+
+  const t = await ask(prompt, opts);
+  if (t === null) return null;
+  onDelta(t);
+  return { text: t, partial: false };
 }
 
 // ---- Agent 工具循环（仅 BYOK + Anthropic 原生协议；其余模式回落普通生成）----

@@ -52,8 +52,11 @@ function aiText(payload) {
       highlights: ["表达清晰"], issues: ["数字含糊"], gaps: ["数据口径"], nextPrep: ["补口径"],
       suggestions: [{ target: "qa", title: "【AI】新增数字口径题", detail: "沉淀为准备答案" }],
     });
-  if (last.includes("拆解成结构化 JSON"))
-    return JSON.stringify([{ title: "【AI】协作编辑器核心开发", company: "某在线文档 SaaS", period: "2022.06-至今", bullets: ["重构冲突算法", "优化同步性能"] }]);
+  if (last.includes("拆解成经历段") || last.includes("拆解成结构化 JSON"))
+    return JSON.stringify([
+      { title: "【AI】协作编辑器核心开发", kind: "work", company: "某在线文档 SaaS", project: "实时协作编辑器", period: "2022.06-至今", bullets: ["重构冲突算法", "优化同步性能", "冲突算法模块：CRDT 增量 GC"] },
+      { title: "【AI】商家中台前端", kind: "work", company: "某电商公司", project: "商家中台", period: "2020.07-2022.05", bullets: ["性能优化：首屏 3.5s→1.2s", "埋点 SDK 建设"] },
+    ]);
   if (last.includes("访谈记录"))
     return JSON.stringify({ summary: "【AI】候选人独立负责协同层。", abilities: ["CRDT 落地"], missing: ["线上 P95 数字"] });
   if (last.includes("复盘报告"))
@@ -96,7 +99,24 @@ http.createServer(async (req, res) => {
   if (p === "/roleready/v1/ai/chat") {
     const text = aiText(data);
     usage.push({ userId: "u_e2e", requestId: data.requestId, feature: data.feature, model: "claude-sonnet-5", inputTokens: 800, outputTokens: 350, estimatedCost: 0.006, durationMs: 400, status: "ok", createdAt: new Date().toISOString() });
-    return json(res, 200, { text, quota: { limit: 100000, used: usage.length * 500, unit: "tokens", resetAt: "2026-08-01" } });
+    const quota = { limit: 100000, used: usage.length * 500, unit: "tokens", resetAt: "2026-08-01" };
+    // stream:true → SSE 契约（data: {type:"delta"|"done"}），按小片延迟下发模拟真实流
+    if (data.stream === true) {
+      res.writeHead(200, { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store", ...CORS });
+      const CHUNK = 24;
+      let i = 0;
+      const timer = setInterval(() => {
+        if (i >= text.length) {
+          clearInterval(timer);
+          res.write(`data: ${JSON.stringify({ type: "done", quota })}\n\n`);
+          return res.end();
+        }
+        res.write(`data: ${JSON.stringify({ type: "delta", text: text.slice(i, i + CHUNK) })}\n\n`);
+        i += CHUNK;
+      }, 30);
+      return;
+    }
+    return json(res, 200, { text, quota });
   }
   if (p === "/roleready/v1/me/usage")
     return json(res, 200, { quota: { limit: 100000, used: usage.length * 500, unit: "tokens", resetAt: "2026-08-01" }, recent: usage.slice(-20).reverse() });
