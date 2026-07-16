@@ -185,6 +185,7 @@ function MatchView({ m }: { m: Match }) {
 function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
   const prep = useStore((x) => x.prep);
   const go = useStore((x) => x.go);
+  const openResume = useStore((x) => x.openResume);
   const prepContinueQa = useStore((x) => x.prepContinueQa);
   if (!prep || prep.jobId !== jobId) return null;
   const running = prep.stage === "analyzing" || prep.stage === "resume" || prep.stage === "qa";
@@ -207,7 +208,7 @@ function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
           ⏸ 编排已暂停：简历生成好了，{openSugs ? "还有 " + openSugs + " 条 AI 建议等你逐条确认" : "AI 建议已处理完"}——确认后再继续生成面试问题，不会替你做决定。
         </div>
         <div style={{ display: "flex", gap: 10, marginTop: 10 }}>
-          <Btn label="去简历编辑器逐条确认 →" kind="ghost" onClick={() => go("resume" as Tab)} />
+          <Btn label="去简历编辑器逐条确认 →" kind="ghost" onClick={() => openResume("job")} />
           <Btn label={openSugs ? "剩余建议稍后处理，先生成面试问题" : "继续生成面试问题 →"} onClick={() => prepContinueQa()} />
         </div>
       </div>
@@ -224,6 +225,7 @@ function PrepBanner({ jobId, openSugs }: { jobId: string; openSugs: number }) {
 export default function Package() {
   const s = useStore();
   const go = useStore((x) => x.go);
+  const openResume = useStore((x) => x.openResume);
   const openPackage = useStore((x) => x.openPackage);
   const updateJd = useStore((x) => x.updateJd);
   const analyzeJd = useStore((x) => x.analyzeJd);
@@ -279,7 +281,7 @@ export default function Package() {
       state: r ? (openSugs.length ? "warn" : "done") : "todo",
       line: r ? bullets.length + " 条内容 · " + hooks.length + " 个面试钩子" : "基于已确认证据生成，句句可溯源",
       warn: openSugs.length ? openSugs.length + " 条 AI 建议待决策" : null,
-      open: () => go("resume" as Tab),
+      open: () => openResume("job"),
     },
     {
       n: "03", title: "面试问题",

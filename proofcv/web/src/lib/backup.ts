@@ -91,6 +91,7 @@ export function parseBackup(
     resumeVersions: rec(d.resumeVersions),
     resumeTpl: typeof d.resumeTpl === "string" ? d.resumeTpl : "classic",
     resumeSpec: isObj(d.resumeSpec) ? (d.resumeSpec as unknown as PersistedState["resumeSpec"]) : null,
+    resumeScope: d.resumeScope === "base" ? "base" : "job",
     qa: rec(d.qa),
     qaStale: rec(d.qaStale),
     mocks: rec(d.mocks),

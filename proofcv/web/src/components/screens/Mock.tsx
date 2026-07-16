@@ -26,6 +26,7 @@ function Bubble({ m }: { m: InterviewMsg }) {
 
 function ReportView({ report }: { report: MockReport }) {
   const go = useStore((s) => s.go);
+  const openResume = useStore((s) => s.openResume);
   const exitMock = useStore((s) => s.exitMock);
   const card = (title: string, items: string[], color: string, prefix: string) =>
     items.length ? (
@@ -57,7 +58,7 @@ function ReportView({ report }: { report: MockReport }) {
       </div>
       <div style={{ display: "flex", gap: 10 }}>
         <Btn label="去更新 QA 答案" kind="ghost" onClick={() => { exitMock(); go("qa"); }} />
-        <Btn label="去修改简历" kind="ghost" onClick={() => { exitMock(); go("resume"); }} />
+        <Btn label="去修改简历" kind="ghost" onClick={() => { exitMock(); openResume("job"); }} />
         <Btn label="再来一场" kind="dark" onClick={() => { exitMock(); useStore.getState().startMock(); }} />
         <Btn label="返回" kind="soft" onClick={() => exitMock()} />
       </div>
@@ -96,6 +97,7 @@ function HistoryCard({ mk }: { mk: MockSession }) {
 export default function Mock() {
   const s = useStore();
   const go = useStore((x) => x.go);
+  const openResume = useStore((x) => x.openResume);
   const openPackage = useStore((x) => x.openPackage);
   const startMock = useStore((x) => x.startMock);
   const sendMock = useStore((x) => x.sendMock);
@@ -210,7 +212,7 @@ export default function Mock() {
         <Empty
           title={j.company + " · " + j.role}
           desc="模拟面试基于当前岗位申请包（简历 + QA）。请先为这个岗位生成专属简历。"
-          action={<Btn label="先去生成简历" onClick={() => go("resume")} />}
+          action={<Btn label="先去生成简历" onClick={() => openResume("job")} />}
         />
       ) : (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, alignItems: "start" }}>

@@ -48,12 +48,15 @@ const SCREENS: Record<Tab, React.ComponentType> = {
   settings: Settings,
 };
 
-function NavItem({ tabKey, label, badge, highlight }: { tabKey: Tab; label: string; badge?: string; highlight?: boolean }) {
+function NavItem({ tabKey, label, badge, highlight, before }: { tabKey: Tab; label: string; badge?: string; highlight?: boolean; before?: () => void }) {
   const active = useStore((s) => s.screen === "app" && s.tab === tabKey);
   const go = useStore((s) => s.go);
   return (
     <div
-      onClick={() => go(tabKey)}
+      onClick={() => {
+        before?.();
+        go(tabKey);
+      }}
       style={{
         cursor: "pointer",
         display: "flex",
@@ -109,7 +112,10 @@ export default function AppShell() {
   const firstTime = useStore((s) => !s.guideDismissed && !s.evidence.length);
 
   const Screen = SCREENS[tab] || Dashboard;
-  const pkgScoped = tab === "pkg" || tab === "resume" || tab === "qa" || tab === "mock" || tab === "records";
+  const baseResume = useStore((s) => s.resumeScope === "base" || !s.jobs.length);
+  // 通用简历不属于任何岗位，顶栏不该显示岗位名，标题也换成「我的简历」
+  const onBaseResume = tab === "resume" && baseResume;
+  const pkgScoped = !onBaseResume && (tab === "pkg" || tab === "resume" || tab === "qa" || tab === "mock" || tab === "records");
   const aiBadge = byok ? "自带 Key" : loggedIn ? "在线 AI" : "基础模式";
 
   return (
@@ -133,6 +139,8 @@ export default function AppShell() {
 
         <div style={sectionLabel}>整理我的经历</div>
         <NavItem tabKey="evidence" label="我的经历" badge={firstTime ? "从这里开始" : String(evidenceCount)} highlight={firstTime && tab !== "evidence"} />
+        {/* 通用简历：不绑定岗位，没有目标岗位时也能写 */}
+        <NavItem tabKey="resume" label="我的简历" before={() => useStore.setState({ resumeScope: "base" })} />
 
         <div style={{ ...sectionLabel, padding: "16px 10px 6px" }}>岗位与进度</div>
         <NavItem tabKey="jobs" label="岗位与进度" badge={String(jobsCount)} />
@@ -172,7 +180,7 @@ export default function AppShell() {
       <main style={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <div className="rr-no-print" style={{ height: 58, borderBottom: "1px solid #eceae4", background: "rgba(255,255,255,.78)", backdropFilter: "blur(12px) saturate(1.1)", WebkitBackdropFilter: "blur(12px) saturate(1.1)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 28px", position: "sticky", top: 0, zIndex: 5 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>{titles[tab] || "开始准备"}</div>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>{onBaseResume ? "我的简历" : titles[tab] || "开始准备"}</div>
             {pkgScoped && activeJob ? (
               <span style={{ fontSize: 12, color: "#5850ec", background: "#f1f0fb", padding: "3px 10px", borderRadius: 99, fontWeight: 600 }}>
                 {activeJob.company} · {activeJob.role.split("·")[0].trim()}

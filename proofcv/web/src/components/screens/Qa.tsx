@@ -97,6 +97,7 @@ function QaCard({ q, jobId, bulletText }: { q: QaItem; jobId: string; bulletText
 export default function Qa() {
   const s = useStore();
   const go = useStore((x) => x.go);
+  const openResume = useStore((x) => x.openResume);
   const openPackage = useStore((x) => x.openPackage);
   const generateQa = useStore((x) => x.generateQa);
 
@@ -126,7 +127,7 @@ export default function Qa() {
           <Empty
             title={j.company + " · " + j.role}
             desc={r ? "还没有生成面试问题。会包含：30 秒 / 2 分钟自我介绍、项目讲述、每条简历内容的预测问题与深挖追问、技术 / 业务 / 协作 / 风险 / 反问清单。" : "面试问题基于这份岗位的定制简历生成——请先生成这个岗位的简历。"}
-            action={r ? <Btn label="生成面试问题 →" onClick={() => generateQa()} /> : <Btn label="先去生成简历" onClick={() => go("resume")} />}
+            action={r ? <Btn label="生成面试问题 →" onClick={() => generateQa()} /> : <Btn label="先去生成简历" onClick={() => openResume("job")} />}
           />
         )}
       </Page>

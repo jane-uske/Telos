@@ -9,7 +9,39 @@ import { Page, Btn, Spinner, Empty } from "../ui";
 import { RenderSheet, TplThumb } from "../SpecRenderer";
 import { GenBadge } from "../AuthGate";
 import { tplPresets, computeSpec } from "@/lib/templates";
-import type { ResumeBullet } from "@/lib/types";
+import { BASE_RESUME_ID, type ResumeBullet } from "@/lib/types";
+
+/** 编辑对象切换：通用简历 ↔ 各岗位的定制版。样式与 JobChips 对齐 */
+function ScopeChips({ activeKey }: { activeKey: string }) {
+  const jobs = useStore((s) => s.jobs);
+  const chip = (on: boolean): React.CSSProperties => ({
+    padding: "7px 13px",
+    borderRadius: 99,
+    fontSize: 12.5,
+    fontWeight: 600,
+    background: on ? "#16181d" : "#fff",
+    color: on ? "#fff" : "#4b5060",
+    border: "1px solid " + (on ? "#16181d" : "#e6e3db"),
+  });
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 18 }}>
+      <div onClick={() => useStore.setState({ resumeScope: "base" })} className="pcv-press" style={chip(activeKey === BASE_RESUME_ID)}>
+        通用简历
+      </div>
+      {jobs.length ? <span style={{ width: 1, height: 18, background: "#e6e3db" }} /> : null}
+      {jobs.map((x) => (
+        <div
+          key={x.id}
+          onClick={() => useStore.setState({ activeJobId: x.id, resumeScope: "job" })}
+          className="pcv-press"
+          style={chip(activeKey === x.id)}
+        >
+          {x.company} · {x.role.split("·")[0].trim()}
+        </div>
+      ))}
+    </div>
+  );
+}
 
 /** 简历页眉个人信息：只存本机，打印/导出时进入简历页眉 */
 function ProfilePanel() {
@@ -227,10 +259,14 @@ export default function Resume() {
   const s = useStore();
   const go = useStore((x) => x.go);
   const generateResume = useStore((x) => x.generateResume);
+  const importBaseToJob = useStore((x) => x.importBaseToJob);
   const showToast = useStore((x) => x.showToast);
 
   const j = s.jobs.find((x) => x.id === s.activeJobId) || s.jobs[0] || null;
-  const r = j ? s.resumes[j.id] : undefined;
+  // 没有岗位时只能编辑通用简历；有岗位时由 scope 决定编辑哪一份
+  const base = s.resumeScope === "base" || !j;
+  const key = base ? BASE_RESUME_ID : j!.id;
+  const r = s.resumes[key];
   const spec = computeSpec(s.resumeSpec, s.resumeTpl);
   const rail = s.resumeRail;
   const sheetRef = React.useRef<HTMLDivElement>(null);
@@ -239,13 +275,16 @@ export default function Resume() {
   // SSR/注水期间不渲染 portal，客户端接管后再挂。
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
-  if (!j) {
-    return (
-      <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
-        <Empty title="还没有目标岗位" desc="先添加岗位并分析 JD，再为它生成专属简历。" action={<Btn label="去添加目标岗位 →" onClick={() => go("jobs")} />} />
-      </Page>
-    );
-  }
+  const sub = base
+    ? "一份不绑定岗位的通用简历，只基于你已确认的经历。添加目标岗位后，可以再为具体岗位派生定制版。"
+    : "这份简历绑定「" + j!.company + "」——同一段经历在不同岗位可以有不同叙事重点。";
+
+  // 用通用简历打底。覆盖已有内容前先问一句——原内容会被 store 自动存成一个版本
+  const hasBase = !!s.resumes[BASE_RESUME_ID];
+  const importBase = () => {
+    if (r && !window.confirm("用通用简历覆盖当前「" + j!.company + "」的这份简历？\n\n当前内容会先存为一个版本，之后可以在「内容」面板里恢复。")) return;
+    importBaseToJob();
+  };
 
   // 默认导出方式：浏览器打印 / 另存为 PDF（不依赖服务端 Chrome，Vercel 可用）。
   // 打印时只渲染 #rr-print-mount 里 internal=false 的干净版本——
@@ -257,7 +296,7 @@ export default function Resume() {
 
   const exportPdf = async () => {
     if (exporting || !sheetRef.current) return;
-    const fileName = j.company + "-" + j.role + "-简历.pdf";
+    const fileName = base ? (s.profile.name.trim() || "我") + "-通用简历.pdf" : j!.company + "-" + j!.role + "-简历.pdf";
     setExporting(true);
     try {
       const res = await fetch("/api/export/pdf", {
@@ -287,23 +326,40 @@ export default function Resume() {
   };
 
   if (!r) {
+    // 一条能写进简历的经历都没有——生成出来只会是空壳，先把人送去整理经历
+    const usableEv = s.evidence.filter((e) => e.status !== "insufficient");
     return (
-      <Page title="简历编辑器" sub="一份简历绑定一个目标岗位——同一段经历在不同岗位可以有不同叙事重点。">
+      <Page title="简历编辑器" sub={sub}>
+        <ScopeChips activeKey={key} />
         {s.resumeLoading ? (
           <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, maxWidth: 620 }}>
-            <Spinner text="正在基于你整理好的经历为该岗位定制简历，每一句都会标注来源…" />
+            <Spinner text={base ? "正在基于你整理好的经历编译通用简历，每一句都会标注来源…" : "正在基于你整理好的经历为该岗位定制简历，每一句都会标注来源…"} />
           </div>
+        ) : !usableEv.length ? (
+          <Empty
+            title="还没有可写进简历的经历"
+            desc="简历只会用你整理并确认过的经历拼装，不会替你编造。先去导入旧简历或用 AI 访谈整理几段经历。"
+            action={<Btn label="去整理我的经历 →" onClick={() => go("evidence")} />}
+          />
+        ) : base ? (
+          <Empty
+            title="还没有通用简历"
+            desc={"基于你已确认的 " + usableEv.length + " 段经历生成一份不绑定岗位的通用简历——突出经历本身最有说服力的地方。之后添加目标岗位时，可以再派生岗位定制版。"}
+            action={<Btn label="基于经历生成通用简历 →" onClick={() => generateResume()} />}
+          />
         ) : (
           <Empty
-            title={j.company + " · " + j.role}
+            title={j!.company + " · " + j!.role}
             desc={
-              s.analyses[j.id]
+              (s.analyses[j!.id]
                 ? "还没有为这个岗位生成简历。生成时会遵守匹配分析：强匹配优先突出、弱匹配谨慎表达、无证据不虚构。"
-                : "建议先在「准备这个岗位」里分析岗位（知道重点写什么再生成），也可以直接基于已确认经历生成。"
+                : "建议先在「准备这个岗位」里分析岗位（知道重点写什么再生成），也可以直接基于已确认经历生成。") +
+              (hasBase ? "你已经有一份通用简历，也可以拿它打底再按这个岗位改。" : "")
             }
             action={
               <>
-                {!s.analyses[j.id] ? <Btn label="先去分析岗位" kind="ghost" onClick={() => go("pkg")} /> : null}
+                {hasBase ? <Btn label="用通用简历打底" kind="soft" onClick={importBase} /> : null}
+                {!s.analyses[j!.id] ? <Btn label="先去分析岗位" kind="ghost" onClick={() => go("pkg")} /> : null}
                 <Btn label="基于经历生成定制简历 →" onClick={() => generateResume()} />
               </>
             }
@@ -316,25 +372,32 @@ export default function Resume() {
   const bullets = r.exp.flatMap((x) => x.bullets);
   const confirmedN = bullets.filter((b) => b.evStatus === "confirmed").length;
   const openSugs = bullets.filter((b) => b.suggestion && !b.decision).length;
-  const stale = s.qaStale[j.id] || s.mockStale[j.id];
+  // 通用简历不挂 QA / 模拟面试，改不脏任何东西
+  const stale = base ? false : s.qaStale[j!.id] || s.mockStale[j!.id];
 
   const seg = (k: typeof rail, label: string) => (
     <div onClick={() => useStore.setState({ resumeRail: k })} style={{ cursor: "pointer", flex: 1, textAlign: "center", padding: 7, fontSize: 12.5, fontWeight: rail === k ? 700 : 500, color: rail === k ? "#5850ec" : "#8a919e", background: rail === k ? "#fff" : "transparent", borderRadius: 8, boxShadow: rail === k ? "0 1px 3px rgba(0,0,0,.06)" : "none" }}>{label}</div>
   );
 
-  const genSrc = s.genSource["resume:" + j.id];
+  const genSrc = s.genSource["resume:" + key];
 
   return (
-    <Page title="简历编辑器">
+    <Page title="简历编辑器" sub={sub}>
+      <ScopeChips activeKey={key} />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 372px", gap: 18, alignItems: "start" }}>
         <div style={{ background: "#eef0f4", border: "1px solid #e3e5ec", borderRadius: 16, overflow: "hidden" }}>
           <div style={{ padding: "10px 16px", background: "#fff", borderBottom: "1px solid #f0f0f5", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: "#6b7280", display: "flex", alignItems: "center", gap: 8 }}>
-              <span>{j.company} 专属 · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4</span>
+              <span>{base ? "通用 · 不绑定岗位" : j!.company + " 专属"} · {tplPresets().find((p) => p.id === s.resumeTpl)!.name} · A4</span>
               <GenBadge source={genSrc} />
             </div>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div onClick={() => generateResume()} style={{ cursor: "pointer", fontSize: 12, color: "#5850ec", fontWeight: 600 }}>重新生成</div>
+              {!base && hasBase ? (
+                <div onClick={importBase} title="用通用简历的内容覆盖这份岗位简历——覆盖前会先存一个版本" style={{ cursor: "pointer", fontSize: 12, color: "#8a919e" }}>
+                  用通用简历打底
+                </div>
+              ) : null}
               <div onClick={exportPdf} title="需要本机 Chrome 的服务端导出（部署到 Vercel 时不可用，请用「打印」）" style={{ cursor: exporting ? "wait" : "pointer", fontSize: 12, color: "#8a919e" }}>{exporting ? "导出中…" : "服务端导出"}</div>
               <div onClick={printPdf} style={{ cursor: "pointer", fontSize: 12, padding: "4px 12px", borderRadius: 7, background: "#16181d", color: "#fff", fontWeight: 600 }}>打印 / 保存 PDF</div>
             </div>
@@ -351,7 +414,7 @@ export default function Resume() {
           </div>
           {stale ? (
             <div onClick={() => go("qa")} style={{ cursor: "pointer", background: "#fdf7ec", border: "1px solid #f3e3c2", borderRadius: 14, padding: "11px 14px", fontSize: 12.5, color: "#c2810c", lineHeight: 1.6 }}>
-              ⚠ 简历已更新——相关面试问题{s.mockStale[j.id] ? "和模拟面试" : ""}可能需要刷新。点击去处理 →
+              ⚠ 简历已更新——相关面试问题{s.mockStale[j!.id] ? "和模拟面试" : ""}可能需要刷新。点击去处理 →
             </div>
           ) : null}
           <div style={{ background: "#f2f3f6", borderRadius: 11, padding: 4, display: "flex", gap: 2 }}>
@@ -360,7 +423,7 @@ export default function Resume() {
             {seg("template", "模板")}
             {seg("custom", "自定义")}
           </div>
-          {rail === "content" ? <ContentPanel jobId={j.id} /> : rail === "profile" ? <ProfilePanel /> : rail === "template" ? <TemplatePanel /> : <CustomPanel />}
+          {rail === "content" ? <ContentPanel jobId={key} /> : rail === "profile" ? <ProfilePanel /> : rail === "template" ? <TemplatePanel /> : <CustomPanel />}
         </div>
       </div>
 

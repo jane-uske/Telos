@@ -352,8 +352,25 @@ export const seedRecords = (): InterviewRecord[] => [
    原则：不编造事实。兜底内容要么来自用户已确认的证据（确定性拼装），
    要么是明确标注「待补充/待确认」的准备框架。 */
 
+const BASE_SUMMARY_PREFIX = "通用简历，不绑定具体岗位。";
+
+/** 基础模式简历的个人简介模板。job 为 null 时是通用简历的说法 */
+export function resumeSummary(job: Job | null, evCount: number): string {
+  const from = "以下内容全部来自你的职业证据库（" + evCount + " 张证据卡），无编造成分——请补充时间段";
+  return job
+    ? "面向「" + job.company + " · " + job.role + "」定制。" + from + "并按岗位调整叙事重点。"
+    : BASE_SUMMARY_PREFIX + from + "。之后添加目标岗位时，可以基于这份简历派生岗位定制版。";
+}
+
+/** 这段简介是不是我们生成的通用简历模板——只有它才可以在打底时安全改写，
+ *  AI 写的或用户自己改过的简介一律不动 */
+export function isBaseTemplateSummary(summary: string): boolean {
+  return summary.startsWith(BASE_SUMMARY_PREFIX);
+}
+
 // 证据 → 简历的确定性编译（fallback：AI 不可用时也能生成可追溯的简历）
-export function fallbackResume(job: Job, evidence: Evidence[]): Resume {
+// job 为 null 时编译的是不绑定岗位的通用简历
+export function fallbackResume(job: Job | null, evidence: Evidence[]): Resume {
   const usable = evidence.filter((e) => e.status !== "insufficient");
   const byProject = new Map<string, Evidence[]>();
   usable.forEach((e) => {
@@ -379,11 +396,7 @@ export function fallbackResume(job: Job, evidence: Evidence[]): Resume {
     }),
   }));
   const skills = Array.from(new Set(usable.flatMap((e) => e.skills))).slice(0, 10);
-  return {
-    summary: "面向「" + job.company + " · " + job.role + "」定制。以下内容全部来自你的职业证据库（" + usable.length + " 张证据卡），无编造成分——请补充时间段并按岗位调整叙事重点。",
-    exp,
-    skills,
-  };
+  return { summary: resumeSummary(job, usable.length), exp, skills };
 }
 
 // 简历 + 岗位 → QA 的确定性生成（fallback）

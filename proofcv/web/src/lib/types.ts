@@ -134,6 +134,10 @@ export interface Resume {
   skills: string[];
 }
 
+/** 通用简历在 resumes / resumeVersions 里的槽位——不绑定任何岗位。
+ *  用 "__" 前缀避开 uid("j") 生成的岗位 id，两者不会撞。 */
+export const BASE_RESUME_ID = "__base__";
+
 export interface ResumeVersion {
   id: string;
   label: string;
@@ -325,6 +329,8 @@ export interface PendingAiAction {
     | "sendInterview"
     | "endInterview";
   jobId?: string;
+  /** generateResume 专用：续跑的是不绑定岗位的通用简历 */
+  base?: boolean;
   /** startInterview 需要的项目上下文（可序列化） */
   projId?: string;
   projTitle?: string;

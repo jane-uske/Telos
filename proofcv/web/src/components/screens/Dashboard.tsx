@@ -89,8 +89,11 @@ function BlankStart() {
 export default function Dashboard() {
   const s = useStore();
   const go = useStore((x) => x.go);
+  const openResume = useStore((x) => x.openResume);
   const openPackage = useStore((x) => x.openPackage);
   const next = useNextAction();
+  // 「下一步」引擎只会在有岗位时指向简历，那都是岗位定制版
+  const goNext = (t: Tab) => (t === "resume" ? openResume("job") : go(t));
 
   // 全新用户（无任何数据、非演示）：只显示三步说明和两个入口
   if (!s.evidence.length && !s.jobs.length && !s.records.length && !s.demoMode) {
@@ -141,7 +144,7 @@ export default function Dashboard() {
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 5 }}>{next.title}</div>
           <div style={{ fontSize: 12.5, color: "#c7cad5", lineHeight: 1.6 }}>{next.desc}</div>
         </div>
-        <div onClick={() => go(next.tab)} className="pcv-press" style={{ flexShrink: 0, background: "#5850ec", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "12px 20px", borderRadius: 11, boxShadow: "0 6px 18px rgba(88,80,236,.35)" }}>
+        <div onClick={() => goNext(next.tab)} className="pcv-press" style={{ flexShrink: 0, background: "#5850ec", color: "#fff", fontWeight: 700, fontSize: 13.5, padding: "12px 20px", borderRadius: 11, boxShadow: "0 6px 18px rgba(88,80,236,.35)" }}>
           {next.label}
         </div>
       </div>

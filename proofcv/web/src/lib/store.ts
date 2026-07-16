@@ -22,9 +22,11 @@ import {
   fallbackQa,
   fallbackMockReport,
   fallbackRecord,
+  resumeSummary,
+  isBaseTemplateSummary,
 } from "./seed";
 import { computeSpec } from "./templates";
-import { emptyProfile } from "./types";
+import { emptyProfile, BASE_RESUME_ID } from "./types";
 import type {
   Screen,
   Tab,
@@ -125,13 +127,15 @@ interface State {
   /** 一键备齐申请包编排；stage=confirm 时等用户逐条确认简历建议 */
   prep: { jobId: string; stage: "analyzing" | "resume" | "confirm" | "qa" | "done" } | null;
 
-  // 简历（一份简历绑定一个岗位）
+  // 简历（按岗位一岗一份，另有一份不绑定岗位的通用简历存在 BASE_RESUME_ID 槽位）
   resumes: Record<string, Resume>;
   resumeVersions: Record<string, ResumeVersion[]>;
   resumeLoading: boolean;
   resumeTpl: string;
   resumeSpec: TemplateSpec | null;
   resumeRail: "content" | "template" | "custom" | "profile";
+  /** 简历编辑器当前编辑的是通用简历还是当前岗位的定制版 */
+  resumeScope: "base" | "job";
 
   // 面试 QA
   qa: Record<string, QaItem[]>;
@@ -198,7 +202,9 @@ interface State {
   prepContinueQa: (opts?: RunOpts) => Promise<void>;
 
   // 简历
-  generateResume: (opts?: RunOpts) => Promise<void>;
+  generateResume: (opts?: RunOpts, target?: "base" | "job") => Promise<void>;
+  openResume: (scope: "base" | "job") => void;
+  importBaseToJob: () => void;
   updateBullet: (jobId: string, bulletId: string, fn: (b: ResumeBullet) => ResumeBullet) => void;
   decideBullet: (jobId: string, bulletId: string, d: "accepted" | "rejected") => void;
   editBulletText: (jobId: string, bulletId: string, text: string) => void;
@@ -402,6 +408,7 @@ export const PERSIST_KEYS = [
   "resumeVersions",
   "resumeTpl",
   "resumeSpec",
+  "resumeScope",
   "qa",
   "qaStale",
   "mocks",
@@ -475,6 +482,7 @@ export const useStore = create<State>()(persist((set, get) => ({
   jdLoading: false,
   resumeLoading: false,
   resumeRail: "content",
+  resumeScope: "job",
   qaLoading: false,
   mockLoading: false,
 
@@ -640,7 +648,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       case "analyzeJd": s.analyzeJd(); break;
       case "batchAnalyze": s.batchAnalyze(); break;
       case "prepPackage": s.prepPackage(); break;
-      case "generateResume": s.generateResume(); break;
+      case "generateResume": s.generateResume(undefined, p.base ? "base" : "job"); break;
       case "generateQa": s.generateQa(); break;
       case "startMock": s.startMock(); break;
       case "sendMock": s.sendMock(); break;
@@ -877,7 +885,7 @@ export const useStore = create<State>()(persist((set, get) => ({
       }
     }
     set({ prep: { jobId: j.id, stage: "resume" } });
-    if (!get().resumes[j.id]) await get().generateResume({ basic });
+    if (!get().resumes[j.id]) await get().generateResume({ basic }, "job");
     if (!get().resumes[j.id]) {
       set({ prep: null });
       return;
@@ -902,24 +910,31 @@ export const useStore = create<State>()(persist((set, get) => ({
 
   // ---- 简历 ----
 
-  generateResume: async (opts) => {
+  // target 省略时按编辑器当前 scope 决定：通用简历不绑定岗位，只吃已确认经历；
+  // 岗位定制版额外吃 JD 与匹配分析。prepPackage 等岗位流程必须显式传 "job"。
+  generateResume: async (opts, target) => {
+    const scope = target || get().resumeScope;
     const j = get().activeJob();
-    if (!j) return;
-    const mode = get().requireAi({ type: "generateResume", jobId: j.id }, opts);
+    const base = scope === "base" || !j;
+    if (!base && !j) return;
+    const key = base ? BASE_RESUME_ID : j!.id;
+    const mode = get().requireAi({ type: "generateResume", jobId: base ? undefined : j!.id, base }, opts);
     if (!mode) return;
     set({ resumeLoading: true });
-    const markGen = (src: GenSource) => set((st) => ({ genSource: { ...st.genSource, ["resume:" + j.id]: src } }));
+    const markGen = (src: GenSource) => set((st) => ({ genSource: { ...st.genSource, ["resume:" + key]: src } }));
 
     if (mode === "ai") {
       const ev = get()
         .evidence.filter((e) => e.status === "confirmed")
         .map((e) => "[" + e.id + "] " + e.title + "：" + e.actions.join("；") + "（成果：" + e.results.join("、") + "；难点：" + e.challenges.join("、") + "）")
         .join("\n");
-      const out = await ask(
-        "为岗位「" + j.company + " " + j.role + "」定制一份简历。JD：" + j.jd + "\n候选人已确认的经历（含稳定 id）：\n" + ev + matchBrief(get().matches[j.id]) + '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、对应的岗位要求、容易被追问的点；若与原经历表述不同，说明修改原因。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","jdReq":"对应岗位要求","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}',
-        // 与 import_parse 同一量级：吐一整份简历的 JSON，输出量随证据条数线性涨。
-        { max_tokens: 8000, feature: "resume_generate" }
-      );
+      const prompt = base
+        ? "为候选人整理一份通用简历——不针对任何具体岗位，突出这些经历本身最有说服力的地方。\n候选人已确认的经历（含稳定 id）：\n" +
+          ev +
+          '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、容易被追问的点；若与原经历表述不同，说明修改原因。没有目标岗位，所以不要写 jdReq。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}'
+        : "为岗位「" + j!.company + " " + j!.role + "」定制一份简历。JD：" + j!.jd + "\n候选人已确认的经历（含稳定 id）：\n" + ev + matchBrief(get().matches[j!.id]) + '\n\n严格要求：所有描述必须来自上述经历，不要编造任何数据；无证据支撑的能力一律不写。每条内容标注：对应经历 id、对应的岗位要求、容易被追问的点；若与原经历表述不同，说明修改原因。只输出 JSON：{"summary":"个人简介","exp":[{"company":"","role":"","period":"","bullets":[{"id":"唯一id","text":"","evId":"对应经历id","ev":"经历标题","jdReq":"对应岗位要求","reason":"这样写的原因（可省略）","hook":false,"probe":"面试官容易追问的点"}]}],"skills":[]}';
+      // 与 import_parse 同一量级：吐一整份简历的 JSON，输出量随证据条数线性涨。
+      const out = await ask(prompt, { max_tokens: 8000, feature: "resume_generate" });
       if (out === null) {
         set({ resumeLoading: false });
         return;
@@ -938,21 +953,51 @@ export const useStore = create<State>()(persist((set, get) => ({
       };
       set((st) => ({
         resumeLoading: false,
-        resumes: { ...st.resumes, [j.id]: r },
-        ...markStale(st, j.id),
+        resumes: { ...st.resumes, [key]: r },
+        ...markStale(st, key),
       }));
       markGen("ai");
       return;
     }
 
     // 基础模式：从已确认经历确定性编译，如实标注
-    const r = fallbackResume(j, get().evidence);
+    const r = fallbackResume(base ? null : j, get().evidence);
     set((st) => ({
       resumeLoading: false,
-      resumes: { ...st.resumes, [j.id]: r },
-      ...markStale(st, j.id),
+      resumes: { ...st.resumes, [key]: r },
+      ...markStale(st, key),
     }));
     markGen("basic");
+  },
+
+  // 打开简历编辑器并指明编辑哪一份——岗位流程进来的都要显式带 "job"
+  openResume: (scope) => {
+    set({ resumeScope: scope });
+    get().go("resume");
+  },
+
+  // 用通用简历给当前岗位打底：整份复制过去当初版，之后照常按岗位逐条改。不调 AI。
+  // 覆盖已有简历前先自动存一版，用户随时能回滚（覆盖确认在 UI 层）。
+  importBaseToJob: () => {
+    const j = get().activeJob();
+    const base = get().resumes[BASE_RESUME_ID];
+    if (!j || !base) return;
+    const had = !!get().resumes[j.id];
+    if (had) get().saveResumeVersion(j.id);
+
+    const r = JSON.parse(JSON.stringify(base)) as Resume;
+    // 只改写我们自己生成的通用简历模板简介——AI 写的或用户改过的一律原样保留
+    if (isBaseTemplateSummary(r.summary)) {
+      r.summary = resumeSummary(j, get().evidence.filter((e) => e.status !== "insufficient").length);
+    }
+    set((st) => ({
+      resumes: { ...st.resumes, [j.id]: r },
+      genSource: { ...st.genSource, ["resume:" + j.id]: st.genSource["resume:" + BASE_RESUME_ID] || "basic" },
+      ...markStale(st, j.id),
+    }));
+    get().showToast(
+      had ? "已用通用简历覆盖——原内容存为一个版本，可在「内容」里恢复" : "已用通用简历打底——接下来按这个岗位调整叙事重点"
+    );
   },
 
   updateBullet: (jobId, bulletId, fn) => {
@@ -1570,8 +1615,8 @@ export const useStore = create<State>()(persist((set, get) => ({
     const out = await ask(
       '把下面这份简历拆解成结构化 JSON。只输出 JSON 数组，每个元素形如 {"title":"项目/岗位一句话","company":"公司或项目","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n' + raw,
       // 整份简历拆成 JSON 是全场输出最长的任务，且输出量随简历长度线性涨：
-      // Opus 4.8 实测输入 5.1k token 的简历要吐 4442 输出，12 段的长简历要 6742。
-      // 低了会被 max_tokens 截断成半截 JSON，parseJSON 直接失败。须与后端
+      // 实测输入 4.8k token 的简历要吐 4067 输出（4096 只剩 1% 余量）。低了会被
+      // max_tokens 截断成半截 JSON，parseJSON 直接失败。须与后端
       // ROLEREADY_MAX_TOKENS_CAP（8192）配套，改小会重新触发截断。
       { max_tokens: 8000, feature: "import_parse" }
     );
@@ -1620,7 +1665,7 @@ function runPending(s: State, p: PendingAiAction, opts: RunOpts) {
     case "analyzeJd": st.analyzeJd(opts); break;
     case "batchAnalyze": st.batchAnalyze(opts); break;
     case "prepPackage": st.prepPackage(opts); break;
-    case "generateResume": st.generateResume(opts); break;
+    case "generateResume": st.generateResume(opts, p.base ? "base" : "job"); break;
     case "generateQa": st.generateQa(opts); break;
     case "startMock": st.startMock(opts); break;
     case "sendMock": useStore.setState({ mockBasic: true }); st.sendMock(); break;
