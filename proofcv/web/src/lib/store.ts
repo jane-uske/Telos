@@ -48,6 +48,7 @@ import type {
   InterviewMsg,
   InterviewSummary,
   ImportSegment,
+  EvidenceKind,
   UserProfile,
   GenSource,
   PendingAiAction,
@@ -687,10 +688,13 @@ export const useStore = create<State>()(persist((set, get) => ({
   },
 
   addEvidenceFromImport: (seg, idx) => {
+    const kinds: EvidenceKind[] = ["work", "intern", "project", "personal", "opensource"];
     const ev: Evidence = {
       id: uid("ev"),
       title: seg.title,
-      project: seg.company,
+      // AI 拆解带 project/kind；基础模式没有，project 退回公司名（历史行为）
+      kind: seg.kind && kinds.includes(seg.kind) ? seg.kind : undefined,
+      project: seg.project?.trim() || seg.company,
       background: "",
       responsibilities: [],
       actions: seg.bullets || [],
@@ -1613,7 +1617,13 @@ export const useStore = create<State>()(persist((set, get) => ({
     }
 
     const out = await ask(
-      '把下面这份简历拆解成结构化 JSON。只输出 JSON 数组，每个元素形如 {"title":"项目/岗位一句话","company":"公司或项目","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n' + raw,
+      // 粒度标准是核心：不给标准时模型只能按排版切，会把项目内的模块错拆成独立经历
+      "把下面这份简历拆解成经历段。拆分单位：一段 = 一个能在面试里独立讲述的完整项目或经历。" +
+        "简历常见层级是 公司 → 项目 → 模块/职责方向：模块不是独立经历，必须归入所属项目段的 bullets（可在条目前加「模块名：」前缀），不要拆成多段；" +
+        "只介绍职位与任期、没有具体项目内容的总览段可单独成一段并把 kind 记为 work。" +
+        "一份简历通常拆出 2~8 段——如果超过了 10 段，几乎可以肯定是把模块错当成了经历，请合并后再输出。" +
+        '只输出 JSON 数组，每个元素形如 {"title":"经历标题（项目名或岗位一句话）","kind":"work|intern|project|personal|opensource","company":"公司或组织","project":"项目名（没有则留空字符串）","period":"时间段","bullets":["动作+成果，保留原文事实，不要编造数字"]}。原文：\n' +
+        raw,
       // 整份简历拆成 JSON 是全场输出最长的任务，且输出量随简历长度线性涨：
       // 实测输入 4.8k token 的简历要吐 4067 输出（4096 只剩 1% 余量）。低了会被
       // max_tokens 截断成半截 JSON，parseJSON 直接失败。须与后端

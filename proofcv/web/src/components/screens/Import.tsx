@@ -1,9 +1,27 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useStore } from "@/lib/store";
 import { extractPdfText } from "@/lib/pdfText";
 import { Page, Btn, Spinner } from "../ui";
+
+/** 拆解等待反馈：网关暂不支持流式，只能一次性等完整结果，用计时告诉用户没卡死 */
+function ImportingHint() {
+  const [sec, setSec] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setSec((s) => s + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div>
+      <Spinner text={"正在拆解经历、识别技能与可量化成果… 已等待 " + sec + " 秒"} />
+      <div style={{ fontSize: 12, color: "#8a919e", textAlign: "center", lineHeight: 1.7, marginTop: 6 }}>
+        AI 需要读完整份简历后一次性输出，通常 30~60 秒，简历越长越慢。
+        {sec >= 90 ? <><br />等得有点久了——超过 2 分钟仍无结果，可刷新页面重试或改用基础模式。</> : null}
+      </div>
+    </div>
+  );
+}
 
 const sample =
   "林深｜全栈工程师\n杭州 · 5 年经验 · 985 计算机本科\n\n工作经历\n某在线文档 SaaS｜高级前端｜2022.06-至今\n- 负责协作编辑器核心，重构冲突算法\n- 优化实时同步性能\n某电商公司｜前端工程师｜2020.07-2022.05\n- 负责商家中台前端，做过性能优化\n- 参与埋点 SDK 建设\n\n技能：React / TypeScript / Node.js / Go / Webpack";
@@ -116,7 +134,7 @@ export default function Import() {
         <div style={{ background: "#fff", border: "1px solid #ececf2", borderRadius: 16, padding: 18, minHeight: 400 }}>
           <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>拆解结果 · 先预览再确认</div>
           {importing ? (
-            <Spinner text="正在拆解经历、识别技能与可量化成果…" />
+            <ImportingHint />
           ) : !importParsed ? (
             <div style={{ color: "#a3a8b5", fontSize: 13, padding: "50px 10px", textAlign: "center", lineHeight: 1.8, whiteSpace: "pre-line" }}>
               还没有拆解结果。{"\n"}左侧粘贴或上传简历后点击「拆解简历」，{"\n"}结果会显示在这里供你逐条确认。
@@ -133,7 +151,10 @@ export default function Import() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 13.5 }}>{p.title}</div>
-                        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>{p.company} · {p.period}</div>
+                        <div style={{ fontSize: 12, color: "#8a919e", marginTop: 2 }}>
+                          {p.company}
+                          {p.project && p.project !== p.company ? " · " + p.project : ""} · {p.period}
+                        </div>
                       </div>
                       {added ? (
                         <div style={{ fontSize: 12.5, fontWeight: 700, color: "#12805c", whiteSpace: "nowrap" }}>✓ 已加入</div>

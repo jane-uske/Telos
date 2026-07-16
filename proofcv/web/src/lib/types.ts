@@ -296,6 +296,10 @@ export interface ImportSegment {
   company: string;
   period: string;
   bullets: string[];
+  /** 项目名，与公司分离（AI 拆解提供；基础模式的本地规则拿不到，留空） */
+  project?: string;
+  /** 经历类型（AI 拆解提供；基础模式留空） */
+  kind?: EvidenceKind;
 }
 
 /** 简历页眉用的个人信息（本机保存，不上传） */
