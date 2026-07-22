@@ -18,12 +18,14 @@ const APP_SCHEME = "app";
 const APP_HOST = "telos";
 const ORIGIN = `${APP_SCHEME}://${APP_HOST}`;
 const RR_UPSTREAM = "https://api.remi.run";
-// 网关 GitHub OAuth 只认白名单里的 Web 源——桌面版把回跳指到白名单源，再在导航层截下 token。
-// 回跳目标用 roleready：它是网关代码里硬编码的默认白名单（remi server/gateway/roleready/
-// config.ts），不依赖服务器环境变量；telos 域名目前靠生产 env 放行，配置一丢登录就断。
-// 页面不会真的加载，用哪个域名只影响能否过网关校验。
+// 网关 GitHub OAuth 只认白名单里的 Web 源——桌面版把回跳指到白名单源，再把 token 接回来。
+// 打包版：系统浏览器完成 OAuth（复用浏览器里已登录的 GitHub 会话），回跳到 Web 版的
+// /desktop-auth 中转页，由它弹 telos:// 深链唤起本 App（scheme 在 electron-builder
+// protocols 里注册，仅打包后生效）。开发壳：保留应用内弹窗 + 导航层截 token。
 const WEB_ORIGINS = ["https://telos.remi.run", "https://roleready.remi.run"];
 const REDIRECT_TARGET = "https://roleready.remi.run";
+const DESKTOP_AUTH_URL = "https://telos.remi.run/desktop-auth";
+const DEEP_LINK_SCHEME = "telos";
 const GH_START = RR_UPSTREAM + "/roleready/v1/auth/github/start";
 
 const SMOKE = process.argv.includes("--smoke");
@@ -76,7 +78,38 @@ async function route(request) {
   return serveStatic(p);
 }
 
-// GitHub OAuth：受控弹窗里走完网关→GitHub→回跳，全程不离开桌面壳。
+// GitHub 登录入口：打包版跳系统浏览器（telos:// 深链回程）；开发壳走应用内弹窗。
+function startGithubLogin(parentWin, startUrl) {
+  if (app.isPackaged) {
+    const u = new URL(startUrl);
+    u.searchParams.set("redirect", DESKTOP_AUTH_URL);
+    shell.openExternal(u.toString());
+    return;
+  }
+  openGithubLogin(parentWin, startUrl);
+}
+
+// telos:// 深链：/desktop-auth 中转页弹回来的 #rr_token=
+let pendingDeepLinkToken = null;
+function handleDeepLink(url) {
+  const m = String(url || "").match(/rr_token=([A-Za-z0-9._~-]+)/);
+  if (!m) return;
+  const win = BrowserWindow.getAllWindows().find((w) => !w.isDestroyed());
+  if (win) {
+    deliverToken(win, m[1]);
+    if (win.isMinimized()) win.restore();
+    win.show();
+    win.focus();
+  } else {
+    pendingDeepLinkToken = m[1]; // 冷启动：等窗口加载完再注入
+  }
+}
+app.on("open-url", (e, url) => {
+  e.preventDefault();
+  handleDeepLink(url);
+});
+
+// GitHub OAuth（开发壳）：受控弹窗里走完网关→GitHub→回跳，全程不离开桌面壳。
 // 回跳目标改写成 Web 源（网关白名单内），token 在导航层截获——Web 版页面根本不会加载。
 function openGithubLogin(parentWin, startUrl) {
   const u = new URL(startUrl);
@@ -125,17 +158,25 @@ function createWindow() {
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   win.once("ready-to-show", () => win.show());
-  // GitHub 登录走受控弹窗；其余外链一律交给系统浏览器，窗口内只留本应用源
+  // GitHub 登录走专属入口；其余外链一律交给系统浏览器，窗口内只留本应用源
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith(GH_START)) openGithubLogin(win, url);
+    if (url.startsWith(GH_START)) startGithubLogin(win, url);
     else if (/^https?:/i.test(url)) shell.openExternal(url);
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, url) => {
     if (url.startsWith(ORIGIN)) return;
     e.preventDefault();
-    if (url.startsWith(GH_START)) openGithubLogin(win, url);
+    if (url.startsWith(GH_START)) startGithubLogin(win, url);
     else if (/^https?:/i.test(url)) shell.openExternal(url);
+  });
+  // 冷启动时深链先于窗口到达——首屏加载完再注入
+  win.webContents.once("did-finish-load", () => {
+    if (pendingDeepLinkToken) {
+      const t = pendingDeepLinkToken;
+      pendingDeepLinkToken = null;
+      deliverToken(win, t);
+    }
   });
   win.loadURL(ORIGIN + "/");
   return win;
@@ -167,6 +208,8 @@ async function runSmoke() {
       out.health = await fetch("/api/health").then((r) => r.json()).catch((e) => ({ error: String(e) }));
       // 子路由回落到静态导出的对应页（/evidence → evidence.html）
       out.subRoute = await fetch("/evidence").then((r) => r.ok).catch(() => false);
+      // 桌面登录依赖的浏览器中转页必须在导出产物里
+      out.desktopAuth = await fetch("/desktop-auth").then((r) => r.ok).catch(() => false);
       // 托管后端同源代理连通性（无网/网关挂了不算冒烟失败，只记录）
       out.rrApi = await fetch("/rr-api/roleready/v1/me").then((r) => r.status).catch((e) => String(e));
       try {
@@ -256,6 +299,7 @@ async function runSmoke() {
       /Telos/.test(results.title || "") &&
       results.hydrated === true &&
       results.subRoute === true &&
+      results.desktopAuth === true &&
       results.health && results.health.ok === true && results.health.desktop === true &&
       results.localStorage === true &&
       results.indexedDB === true &&
@@ -275,6 +319,7 @@ async function runSmoke() {
 }
 
 app.whenReady().then(() => {
+  app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
   protocol.handle(APP_SCHEME, (req) =>
     route(req).catch((e) =>
       Response.json({ error: String((e && e.message) || e) }, { status: 500 })

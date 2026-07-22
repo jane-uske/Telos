@@ -17,6 +17,14 @@
     "directories": {
       "output": "dist"
     },
+    "protocols": [
+      {
+        "name": "Telos",
+        "schemes": [
+          "telos"
+        ]
+      }
+    ],
     "files": [
       "main.js",
       "lib/**",

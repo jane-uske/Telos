@@ -48,10 +48,12 @@ ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm install
 - **PDF 导出**：Electron 即 Chromium，去掉了找本地 Chrome 的依赖；离线时 Noto 字体拉不到，
   回落 PingFang SC（中文照常成字）。
 - **托管模式**：邮箱验证码登录、托管 AI、额度查询经 `/rr-api` 代理可用。
-- **GitHub OAuth**：桌面版在受控弹窗里走完 网关→GitHub→回跳；回跳目标改写为
-  Web 源（网关白名单内），token 在导航层截获后以 `#rr_token=` 重载主窗口——
-  与 Web 流程同构，Web 版页面不会真的加载。弹窗里的 GitHub 会话存在 Electron
-  自己的 profile 里，与系统浏览器不共享（首次要在弹窗里登一次 GitHub）。
+- **GitHub OAuth（打包版）**：跳系统浏览器完成授权（复用浏览器里已登录的 GitHub），
+  网关回跳到 Web 版的 `/desktop-auth` 中转页，由它弹 `telos://` 深链唤起桌面 App，
+  token 以 `#rr_token=` 重载主窗口——与 Web 流程同构。依赖：线上部署了
+  `/desktop-auth` 页；`telos://` scheme 由 electron-builder `protocols` 写进
+  Info.plist（**仅打包版可用，且首次启动过一次后 macOS 才认识这个协议**）。
+  开发壳（`npm start`）没有 scheme 注册，回落为应用内弹窗完成整个流程。
 - **签名**：dmg 未签名（`identity: null`）。本机能跑；分发给别人需 Apple Developer 签名+公证，
   否则对方要右键绕 Gatekeeper。
 
