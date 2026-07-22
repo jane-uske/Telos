@@ -18,8 +18,12 @@ const APP_SCHEME = "app";
 const APP_HOST = "telos";
 const ORIGIN = `${APP_SCHEME}://${APP_HOST}`;
 const RR_UPSTREAM = "https://api.remi.run";
-// 网关 GitHub OAuth 的回跳白名单里只有 Web 源——桌面版把回跳指到它，再在导航层截下 token
-const WEB_ORIGIN = "https://telos.remi.run";
+// 网关 GitHub OAuth 只认白名单里的 Web 源——桌面版把回跳指到白名单源，再在导航层截下 token。
+// 回跳目标用 roleready：它是网关代码里硬编码的默认白名单（remi server/gateway/roleready/
+// config.ts），不依赖服务器环境变量；telos 域名目前靠生产 env 放行，配置一丢登录就断。
+// 页面不会真的加载，用哪个域名只影响能否过网关校验。
+const WEB_ORIGINS = ["https://telos.remi.run", "https://roleready.remi.run"];
+const REDIRECT_TARGET = "https://roleready.remi.run";
 const GH_START = RR_UPSTREAM + "/roleready/v1/auth/github/start";
 
 const SMOKE = process.argv.includes("--smoke");
@@ -69,7 +73,7 @@ async function route(request) {
 // 回跳目标改写成 Web 源（网关白名单内），token 在导航层截获——Web 版页面根本不会加载。
 function openGithubLogin(parentWin, startUrl) {
   const u = new URL(startUrl);
-  u.searchParams.set("redirect", WEB_ORIGIN + "/");
+  u.searchParams.set("redirect", REDIRECT_TARGET + "/");
   const popup = new BrowserWindow({
     width: 980,
     height: 720,
@@ -78,7 +82,7 @@ function openGithubLogin(parentWin, startUrl) {
     webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   const capture = (e, url) => {
-    if (!url || !url.startsWith(WEB_ORIGIN)) return;
+    if (!url || !WEB_ORIGINS.some((o) => url.startsWith(o))) return;
     if (e && typeof e.preventDefault === "function") e.preventDefault();
     const m = url.match(/rr_token=([A-Za-z0-9._~-]+)/);
     if (m) deliverToken(parentWin, m[1]);
