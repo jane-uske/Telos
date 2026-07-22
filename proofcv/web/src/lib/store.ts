@@ -53,6 +53,8 @@ import type {
   UserProfile,
   GenSource,
   PendingAiAction,
+  EvidenceEnhanceInput,
+  EvidenceEnhancePatch,
 } from "./types";
 
 const uid = (p: string) => p + Math.random().toString(36).slice(2, 8);
@@ -116,6 +118,10 @@ interface State {
   evidenceFilter: string;
   evidence: Evidence[];
   editingEvidenceId: string | null;
+  /** 智能生成进行中的经历卡 id（编辑器按钮转圈用） */
+  enhancingEvidenceId: string | null;
+  /** 智能生成结果——打开中的编辑器取走后置回 null；只回填空字段的合并在表单侧 */
+  evidenceEnhanceResult: { id: string; patch: EvidenceEnhancePatch } | null;
 
   // 岗位
   jobs: Job[];
@@ -194,6 +200,8 @@ interface State {
   // 经历
   confirmEvidence: (id: string) => void;
   saveEvidence: (id: string, patch: Partial<Evidence>) => void;
+  /** 智能生成：根据关键行动反推经历卡其余字段，结果只回填编辑器里的空字段 */
+  enhanceEvidence: (input: EvidenceEnhanceInput, opts?: RunOpts) => Promise<void>;
   addEvidenceFromImport: (seg: ImportSegment, idx: number) => void;
 
   // 岗位
@@ -360,6 +368,8 @@ const blankData = () => ({
   genSource: {} as Record<string, GenSource>,
   evidence: [] as Evidence[],
   editingEvidenceId: null,
+  enhancingEvidenceId: null,
+  evidenceEnhanceResult: null,
   evidenceFilter: "all",
   jobs: [] as Job[],
   activeJobId: "",
@@ -669,6 +679,15 @@ export const useStore = create<State>()(persist((set, get) => ({
       case "endMock": s.endMock(); break;
       case "analyzeRecord": s.analyzeRecordingText(); break;
       case "doImport": s.doImport(); break;
+      case "enhanceEvidence": {
+        // 登录回跳可能经历了整页刷新——重新打开对应经历卡的编辑器再续跑
+        if (p.enhanceInput) {
+          s.go("evidence");
+          set({ editingEvidenceId: p.enhanceInput.id });
+          s.enhanceEvidence(p.enhanceInput);
+        }
+        break;
+      }
       case "startInterview": {
         const proj = p.projId && p.projId !== "new"
           ? s.evidence.find((e) => e.id === p.projId) || null
@@ -698,6 +717,62 @@ export const useStore = create<State>()(persist((set, get) => ({
       editingEvidenceId: null,
     }));
     get().showToast("经历已更新（简历与问题按 ID 关联，改标题不会断联）");
+  },
+
+  // 智能生成：只基于「关键行动」与已填的名称/项目反推其余字段。结果不落库——
+  // 交给打开中的编辑器只回填空字段，AI 不覆盖用户写过的任何内容（保存仍由用户点）。
+  enhanceEvidence: async (input, opts) => {
+    const actions = input.actions.map((a) => a.trim()).filter(Boolean);
+    if (!actions.length) {
+      get().showToast("先在「关键行动」里写几条（每行一条），AI 才有反推的依据");
+      return;
+    }
+    const mode = get().requireAi({ type: "enhanceEvidence", enhanceInput: { ...input, actions } }, opts);
+    if (!mode) return;
+    if (mode === "basic") {
+      // 反推字段没有诚实的本地规则可写——不硬编内容，直接说清楚
+      get().showToast("基础模式没法智能生成：这一步必须由 AI 归纳，请登录或在设置页配置 API Key");
+      return;
+    }
+    set({ enhancingEvidenceId: input.id });
+    const prompt = [
+      "你在帮求职者完善一张「经历卡」。已知信息：",
+      "名称：" + (input.title.trim() || "（空）"),
+      "项目/公司：" + (input.project.trim() || "（空）"),
+      "关键行动：",
+      ...actions.map((a) => "- " + a),
+      "",
+      "只基于以上信息反推其余字段，硬性要求：",
+      "1. 绝不虚构：没有依据的数字、结果、头衔、团队规模一律不写，拿不准就留空；",
+      "2. results 只提取关键行动里明确写出的量化事实或已发生的结果，没有就给 []；",
+      "3. 用与输入相同的语言，动词开头的简历语感，不写「我」；",
+      "只输出 JSON：",
+      '{"title":"名称为空时给一个不超过 20 字的经历名，否则原样返回","project":"项目/公司为空时才推断，推不出给空串","background":"1-2 句：业务场景与要解决的问题","responsibilities":["3-5 条，从行动归纳的职责边界，突出个人实际负责的部分"],"challenges":["2-4 条，从行动能推出的技术/业务难点"],"collaboration":"行动里有跨角色协作痕迹就写 1 句，否则空串","results":["只放行动中明确的量化事实，没有给 []"],"skills":["5-10 个技术/能力标签"]}',
+    ].join("\n");
+    const t = await ask(prompt, { max_tokens: 1600, feature: "import_parse" });
+    set({ enhancingEvidenceId: null });
+    if (t === null) return; // 失败已由 ask 统一提示
+    const r = parseJSON<Partial<EvidenceEnhancePatch> | null>(t, null);
+    if (!r || typeof r !== "object") {
+      get().showToast(looksTruncated(t) ? "生成内容被 max_tokens 截断，精简关键行动后重试" : "AI 返回无法解析，请重试");
+      return;
+    }
+    const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+    const arr = (v: unknown, cap: number) =>
+      Array.isArray(v)
+        ? v.map((x) => (typeof x === "string" ? x.trim() : "")).filter(Boolean).slice(0, cap)
+        : [];
+    const patch: EvidenceEnhancePatch = {
+      title: str(r.title),
+      project: str(r.project),
+      background: str(r.background),
+      responsibilities: arr(r.responsibilities, 6),
+      challenges: arr(r.challenges, 5),
+      collaboration: str(r.collaboration),
+      results: arr(r.results, 6),
+      skills: arr(r.skills, 12),
+    };
+    set({ evidenceEnhanceResult: { id: input.id, patch } });
   },
 
   addEvidenceFromImport: (seg, idx) => {

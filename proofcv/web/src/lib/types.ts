@@ -325,6 +325,26 @@ export const emptyProfile = (): UserProfile => ({ name: "", headline: "", city: 
 /** 生成物来源：在线 AI / 基础模式（本地规则） / 演示数据 */
 export type GenSource = "ai" | "basic" | "demo";
 
+/** 智能生成（根据关键行动反推经历卡其余字段）的输入：编辑器当前表单快照，可序列化 */
+export interface EvidenceEnhanceInput {
+  id: string;
+  title: string;
+  project: string;
+  actions: string[];
+}
+
+/** 智能生成的产出。编辑器只用它回填空字段——AI 不覆盖用户写过的内容 */
+export interface EvidenceEnhancePatch {
+  title?: string;
+  project?: string;
+  background?: string;
+  responsibilities?: string[];
+  challenges?: string[];
+  collaboration?: string;
+  results?: string[];
+  skills?: string[];
+}
+
 /** 登录 / 授权门控里挂起的 AI 操作——登录成功后自动续跑 */
 export interface PendingAiAction {
   type:
@@ -340,11 +360,14 @@ export interface PendingAiAction {
     | "doImport"
     | "startInterview"
     | "sendInterview"
-    | "endInterview";
+    | "endInterview"
+    | "enhanceEvidence";
   jobId?: string;
   /** generateResume 专用：续跑的是不绑定岗位的通用简历 */
   base?: boolean;
   /** startInterview 需要的项目上下文（可序列化） */
   projId?: string;
   projTitle?: string;
+  /** enhanceEvidence 需要的表单快照 */
+  enhanceInput?: EvidenceEnhanceInput;
 }

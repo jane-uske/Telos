@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useStore } from "@/lib/store";
 import { Page, Btn, Pill, Tags } from "../ui";
 import type { Evidence as Ev } from "@/lib/types";
@@ -19,6 +19,8 @@ const inputStyle: React.CSSProperties = {
 
 function EditForm({ e }: { e: Ev }) {
   const saveEvidence = useStore((s) => s.saveEvidence);
+  const enhanceEvidence = useStore((s) => s.enhanceEvidence);
+  const enhancing = useStore((s) => s.enhancingEvidenceId === e.id);
   const [f, setF] = useState({
     title: e.title,
     project: e.project,
@@ -33,6 +35,33 @@ function EditForm({ e }: { e: Ev }) {
   const set = (k: keyof typeof f) => (ev: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) =>
     setF({ ...f, [k]: ev.target.value });
   const lines = (v: string) => v.split("\n").map((x) => x.trim()).filter(Boolean);
+
+  // 智能生成结果到达（含登录后自动续跑的情况）：只回填空字段——
+  // AI 不覆盖用户写过的内容，保存仍由用户点。订阅回调消费后立即清掉结果。
+  useEffect(() => {
+    return useStore.subscribe((s, prev) => {
+      const r = s.evidenceEnhanceResult;
+      if (!r || r === prev.evidenceEnhanceResult || r.id !== e.id) return;
+      useStore.setState({ evidenceEnhanceResult: null });
+      const p = r.patch;
+      setF((cur) => {
+        const next = { ...cur };
+        const fill = (k: keyof typeof cur, v: string | undefined) => {
+          if (v && !cur[k].trim()) next[k] = v;
+        };
+        fill("title", p.title);
+        fill("project", p.project);
+        fill("background", p.background);
+        fill("responsibilities", (p.responsibilities || []).join("\n"));
+        fill("challenges", (p.challenges || []).join("\n"));
+        fill("collaboration", p.collaboration);
+        fill("results", (p.results || []).join("\n"));
+        fill("skills", (p.skills || []).join("、"));
+        return next;
+      });
+      useStore.getState().showToast("已生成草稿 · 只填充了空字段——逐条核对，数字必须自己有依据");
+    });
+  }, [e.id]);
   const row = (label: string, node: React.ReactNode) => (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: "#a3a8b5", marginBottom: 4 }}>{label}</div>
@@ -41,6 +70,19 @@ function EditForm({ e }: { e: Ev }) {
   );
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+        <div style={{ fontSize: 11.5, color: "#a3a8b5", lineHeight: 1.5 }}>
+          先填「关键行动」，AI 反推其余字段——只填空字段，不覆盖你写过的内容
+        </div>
+        <Btn
+          kind="soft"
+          label={enhancing ? "生成中…" : "✨ 智能生成"}
+          onClick={() => {
+            if (enhancing) return;
+            enhanceEvidence({ id: e.id, title: f.title, project: f.project, actions: lines(f.actions) });
+          }}
+        />
+      </div>
       {row("名称", <input value={f.title} onChange={set("title")} style={inputStyle} />)}
       {row("项目 / 公司", <input value={f.project} onChange={set("project")} style={inputStyle} />)}
       {row("背景", <textarea value={f.background} onChange={set("background")} rows={2} style={inputStyle} />)}

@@ -27,8 +27,15 @@ const REDIRECT_TARGET = "https://roleready.remi.run";
 const GH_START = RR_UPSTREAM + "/roleready/v1/auth/github/start";
 
 const SMOKE = process.argv.includes("--smoke");
-// 冒烟走独立临时 profile：会注入假登录态，不能弄脏真实用户数据
-if (SMOKE) app.setPath("userData", path.join(os.tmpdir(), "telos-desktop-smoke"));
+// 冒烟走独立临时 profile：会注入假登录态，不能弄脏真实用户数据。
+// 每次先清空——上一轮持久化的页面位置/假 token 会让流程检查不可复现。
+if (SMOKE) {
+  const smokeDir = path.join(os.tmpdir(), "telos-desktop-smoke");
+  try {
+    require("node:fs").rmSync(smokeDir, { recursive: true, force: true });
+  } catch {}
+  app.setPath("userData", smokeDir);
+}
 
 // standard+secure 才有 localStorage / IndexedDB（本应用的数据全在里面）
 protocol.registerSchemesAsPrivileged([
@@ -143,6 +150,8 @@ async function runSmoke() {
   try {
     const win = new BrowserWindow({
       show: false,
+      width: 1280,
+      height: 900,
       webPreferences: { contextIsolation: true, nodeIntegration: false, sandbox: true },
     });
     await win.loadURL(ORIGIN + "/");
@@ -179,7 +188,48 @@ async function runSmoke() {
     })()`);
     console.log("[smoke]", JSON.stringify(results, null, 2));
 
-    // —— OAuth 令牌注入链路：模拟网关回跳（不走真 GitHub）——
+    // —— UI 流程：演示数据 → 经历编辑器 → 智能生成按钮 → 无 AI 配置时应弹门控 ——
+    // 必须先于 OAuth 注入：假 token 会让 fetchMe 401 异步弹出「登录已过期」，盖住页面。
+    // JS 合成 click 对 React 合成事件不可靠，用 sendInputEvent 发真实受信鼠标输入。
+    const exec = (js) => win.webContents.executeJavaScript(js);
+    const sleepMs = (ms) => new Promise((r) => setTimeout(r, ms));
+    const FINDER = `((txt) => [...document.querySelectorAll("span,div,button,a")]
+      .find((el) => el.childElementCount === 0 && (el.textContent || "").trim().includes(txt)))`;
+    const realClick = async (specJs) => {
+      const pt = await exec(`(() => {
+        const el = ${specJs};
+        if (!el) return null;
+        el.scrollIntoView({ block: "center" });
+        const r = el.getBoundingClientRect();
+        return { x: Math.round(r.left + r.width / 2), y: Math.round(r.top + r.height / 2) };
+      })()`);
+      if (!pt) return false;
+      // 预判命中：如果坐标点被别的元素盖住，日志里能直接看到罪魁
+      const hit = await exec(
+        `(document.elementFromPoint(${pt.x}, ${pt.y}) || {}).outerHTML?.slice(0, 100) || "(none)"`
+      );
+      if (process.env.SMOKE_DEBUG) console.log("[smoke] click", pt, hit);
+      win.webContents.sendInputEvent({ type: "mouseDown", x: pt.x, y: pt.y, button: "left", clickCount: 1 });
+      win.webContents.sendInputEvent({ type: "mouseUp", x: pt.x, y: pt.y, button: "left", clickCount: 1 });
+      return true;
+    };
+    const ui = { demo: false, demoOn: false, evidencePage: false, editor: false, genBtn: false, gate: false };
+    await exec(`window.confirm = () => true; true`); // 演示覆盖确认框自动通过
+    ui.demo = await realClick(`${FINDER}("查看演示")`);
+    await sleepMs(800);
+    ui.demoOn = await exec(`!!${FINDER}("退出演示")`);
+    await exec(`history.pushState(null, "", "/evidence"); window.dispatchEvent(new PopStateEvent("popstate")); true`);
+    await sleepMs(500);
+    ui.evidencePage = (await exec(`document.querySelectorAll('[title="编辑经历卡"]').length`)) > 0;
+    await realClick(`document.querySelector('[title="编辑经历卡"]')`);
+    await sleepMs(400);
+    ui.editor = await exec(`!!document.querySelector("textarea")`);
+    ui.genBtn = await realClick(`${FINDER}("智能生成")`);
+    await sleepMs(600);
+    ui.gate = await exec(`!!${FINDER}("用基础模式继续")`);
+    console.log("[smoke] ui-flow", JSON.stringify(ui));
+
+    // —— OAuth 令牌注入链路：模拟网关回跳（不走真 GitHub），放最后因为会整页重载 ——
     // consumeTokenFromUrl 只在解析出 token 时才 replaceState 清 hash，
     // 所以「hash 被清干净」即证明注入→挂载→消费整条链路走通。
     // tokenSeen 只作参考：假 token 会被 fetchMe 的 401 异步清掉，有竞态，不做门槛。
@@ -212,7 +262,8 @@ async function runSmoke() {
       results.pdfStatus === 200 &&
       results.pdfMagic === "%PDF-" &&
       results.pdfBytes > 1000 &&
-      auth.hashClean === true;
+      auth.hashClean === true &&
+      ui.demoOn && ui.evidencePage && ui.editor && ui.genBtn && ui.gate;
     console.log(ok ? "[smoke] ✓ 全部通过" : "[smoke] ✗ 有检查项失败");
     clearTimeout(killer);
     app.exit(ok ? 0 : 1);
