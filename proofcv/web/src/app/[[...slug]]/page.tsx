@@ -1,42 +1,25 @@
-"use client";
+import PageClient from "./PageClient";
 
-import { useEffect } from "react";
-import { useStore } from "@/lib/store";
-import { consumeTokenFromUrl, fetchMe, useAuth } from "@/lib/apiClient";
-import { installRouter } from "@/lib/routing";
-import Home from "@/components/Home";
-import AppShell from "@/components/AppShell";
-import Toast from "@/components/Toast";
-import { AiGateDialog, LoginModal } from "@/components/AuthGate";
+// 服务端薄壳：只为静态导出（桌面壳 TELOS_DESKTOP 构建）枚举可预渲染的路径。
+// slug 列表与 routing.ts 的 TAB_TO_SEG 保持一致（routing.ts 引着 store，不能进服务端组件）。
+// Web 部署行为不变：dynamicParams 默认 true，未列出的路径照旧动态渲染同一个单页。
+export function generateStaticParams() {
+  const tabs = [
+    "dashboard",
+    "evidence",
+    "jobs",
+    "pkg",
+    "resume",
+    "qa",
+    "mock",
+    "records",
+    "import",
+    "interview",
+    "settings",
+  ];
+  return [{ slug: [] }, ...tabs.map((t) => ({ slug: [t] }))];
+}
 
-// 所有页面路径（/、/evidence、/jobs、/pkg…）都由这个 optional catch-all 渲染同一个单页；
-// 具体展示哪一页由 store 的 screen/tab 决定，URL 与状态的双向同步见 installRouter。
 export default function Page() {
-  const screen = useStore((s) => s.screen);
-
-  // 本机 IndexedDB 数据在挂载后恢复（store 配了 skipHydration，避免与 React 注水竞争）。
-  // GitHub 登录回跳会带 #rr_token= —— 恢复完成后自动续跑登录前被拦下的 AI 操作。
-  useEffect(() => {
-    const tokenArrived = consumeTokenFromUrl();
-    let cleanup = () => {};
-    Promise.resolve(useStore.persist.rehydrate()).then(() => {
-      if (tokenArrived) {
-        useStore.getState().loginSucceeded();
-      } else if (useAuth.getState().token) {
-        fetchMe(); // 静默刷新用户与额度；401 时会自动清会话并提示
-      }
-      // rehydrate 之后再挂路由：首屏对齐才能用上恢复后的持久化位置
-      cleanup = installRouter();
-    });
-    return () => cleanup();
-  }, []);
-
-  return (
-    <div style={{ minHeight: "100vh", position: "relative" }}>
-      {screen === "home" ? <Home /> : <AppShell />}
-      <Toast />
-      <AiGateDialog />
-      <LoginModal />
-    </div>
-  );
+  return <PageClient />;
 }

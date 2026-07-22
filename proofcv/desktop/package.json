@@ -1,0 +1,39 @@
+{
+  "name": "telos-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Telos 桌面壳（Electron）：伺服 ../web 的静态导出，三个 API 路由由主进程原生实现",
+  "main": "main.js",
+  "scripts": {
+    "build:web": "node scripts/export-web.mjs",
+    "start": "electron .",
+    "smoke": "electron . --smoke",
+    "dist": "electron-builder --mac",
+    "build": "npm run build:web && npm run smoke && npm run dist"
+  },
+  "build": {
+    "appId": "run.remi.telos",
+    "productName": "Telos",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "lib/**",
+      "api/**",
+      "web-out/**"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        "dmg"
+      ],
+      "identity": null
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3"
+  }
+}

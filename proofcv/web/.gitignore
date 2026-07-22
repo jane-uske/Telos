@@ -15,7 +15,10 @@
 
 # next.js
 /.next/
+/.next-desktop/
 /out/
+# 桌面壳构建期间暂存的 api 目录（export-web.mjs）
+/.desktop-api-hold/
 
 # production
 /build
